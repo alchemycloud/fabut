@@ -1,39 +1,39 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>eu.execom</groupId>
+	<groupId>cloud.alchemy</groupId>
 	<artifactId>fabut</artifactId>
-	<name>Execom Fabut</name>
-	<version>3.4.1-RELEASE</version>
+	<name>Alchemy Fabut</name>
+	<version>3.5.0-RELEASE</version>
 	<description>Testing tool that helps developers to write better tests.</description>
 	<ciManagement>
 		<system>GIT</system>
 	</ciManagement>
 	<organization>
-		<name>Execom</name>
-		<url>www.execom.eu</url>
+		<name>Alchemy</name>
+		<url>www.alchemy.cloud</url>
 	</organization>
-	<url>https://github.com/nolah/fabut</url>
+	<url>https://github.com/alchemycloud/fabut</url>
 	<issueManagement>
-		<url>https://github.com/nolah/fabut/issues</url>
+		<url>https://github.com/alchemycloud/fabut/issues</url>
 		<system>Fabut git hub issue tracker</system>
 	</issueManagement>
 	<scm>
-		<url>https://github.com/nolah/fabut</url>
-		<connection>scm:git:git://github.com/nolah/fabut.git</connection>
-		<developerConnection>scm:git:git@github.com:nolah/fabut.git</developerConnection>
+		<url>https://github.com/alchemycloud/fabut</url>
+		<connection>scm:git:git://github.com/alchemycloud/fabut.git</connection>
+		<developerConnection>scm:git:git@github.com:alchemycloud/fabut.git</developerConnection>
 	</scm>
 
 	<properties>
 
-		<!-- tell the compiler we can use 1.6 -->
+		<!-- tell the compiler we can use 1.8 -->
 		<maven.compiler.source>1.8</maven.compiler.source>
 		<maven.compiler.target>1.8</maven.compiler.target>
 
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-		<commons.version>3.1</commons.version>
-		<junit.version>4.10</junit.version>
+		<commons.version>3.8.1</commons.version>
+		<junit.version>4.12</junit.version>
 
 	</properties>
 
@@ -88,8 +88,8 @@
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
 				<configuration>
-					<source>1.6</source>
-					<target>1.6</target>
+					<source>1.8</source>
+					<target>1.8</target>
 				</configuration>
 			</plugin>
 			<plugin>
@@ -114,6 +114,9 @@
 						</goals>
 					</execution>
 				</executions>
+				<configuration>
+					<doclint>none</doclint>
+				</configuration>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
