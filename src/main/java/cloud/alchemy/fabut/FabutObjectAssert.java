@@ -245,7 +245,7 @@ class FabutObjectAssert extends Assert {
                 return assertMap(propertyName, report, (Map) pair.getExpected(), (Map) pair.getActual(), properties,
                         nodesList, true);
             case OPTIONAL_TYPE:
-                return assertOptional(report, (Optional) pair.getExpected(), (Optional) pair.getActual(), properties);
+                return assertOptional(report, pair, properties, propertyName);
             default:
                 throw new IllegalStateException("Unknown assert type: " + pair.getObjectType());
         }
@@ -476,17 +476,18 @@ class FabutObjectAssert extends Assert {
         return ok;
     }
 
-    boolean assertOptional(final FabutReportBuilder report, final Optional expected, final Optional actual,
-                           final List<ISingleProperty> properties) {
+    boolean assertOptional(final FabutReportBuilder report, final AssertPair pair,
+                           final List<ISingleProperty> properties, String propertyName) {
 
-        if (!expected.isPresent() && !actual.isPresent()) {
+        if (!((Optional)pair.getExpected()).isPresent() && !((Optional)pair.getActual()).isPresent()) {
             return ASSERTED;
         }
-        if (expected.isPresent() ^ actual.isPresent()) {
+        if (((Optional)pair.getExpected()).isPresent() ^ ((Optional)pair.getActual()).isPresent()) {
+            report.assertFail(pair, propertyName);
             return ASSERT_FAIL;
         }
 
-        return assertObjects(report, expected.get(), actual.get(), properties);
+        return assertObjects(report, ((Optional)pair.getExpected()).get(), ((Optional)pair.getActual()).get(), properties);
     }
 
     /**
