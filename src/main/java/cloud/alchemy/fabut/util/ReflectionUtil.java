@@ -148,7 +148,7 @@ public final class ReflectionUtil {
      * Check if specified class is contained in entity types.
      *
      * @param object that's checked
-     * @param types map of all types by their Assertable type
+     * @param types  map of all types by their Assertable type
      * @return <code>true</code> if specified class is contained in entity types, <code>false</code> otherwise.
      */
     public static boolean isEntityType(final Class<?> object, final Map<AssertableType, List<Class<?>>> types) {
@@ -167,8 +167,8 @@ public final class ReflectionUtil {
     /**
      * Check if specified class is contained in complex types.
      *
-     * @param classs       that's checking
-     * @param types map of all types by their Assertable type
+     * @param classs that's checking
+     * @param types  map of all types by their Assertable type
      * @return <code>true</code> if specified class is contained in complex types, <code>false</code> otherwise.
      */
     public static boolean isComplexType(final Class<?> classs, final Map<AssertableType, List<Class<?>>> types) {
@@ -178,8 +178,8 @@ public final class ReflectionUtil {
     /**
      * Check if specified class is contained in ignored types.
      *
-     * @param classs       thats checked
-     * @param types map of all types by their Assertable type
+     * @param classs thats checked
+     * @param types  map of all types by their Assertable type
      * @return <code>true</code> if specified class is contained in ignored types, <code>false</code> otherwise.
      */
     public static boolean isIgnoredType(final Class<?> classs, final Map<AssertableType, List<Class<?>>> types) {
@@ -190,8 +190,8 @@ public final class ReflectionUtil {
      * Check if specified fieldName is ignored for the specified class
      *
      * @param ignoredFields all ignored fields by classes
-     * @param clazz class for which we check if field is ignored
-     * @param fieldName field name for which we are checking ig its ignored
+     * @param clazz         class for which we check if field is ignored
+     * @param fieldName     field name for which we are checking ig its ignored
      * @return <code>true</code> if field is ignored, otherwise <code>false</code>
      */
     public static boolean isIgnoredField(Map<Class<?>, List<String>> ignoredFields, Class clazz, String fieldName) {
@@ -203,7 +203,7 @@ public final class ReflectionUtil {
      *
      * @param firstObject  that is checked
      * @param secondObject that is checked
-     * @param types map of all types by their Assertable type
+     * @param types        map of all types by their Assertable type
      * @return <code>true</code> if type of expected or actual is ignored type, <code>false</code> otherwise.
      */
     public static boolean isIgnoredType(final Object firstObject, final Object secondObject,
@@ -222,6 +222,7 @@ public final class ReflectionUtil {
 
     /**
      * Gets entity's id value.
+     *
      * @param entity - entity from which id is taken
      * @return {@link Number} if specified entity id field and matching get method, <code>null</code> otherwise.
      */
@@ -239,8 +240,8 @@ public final class ReflectionUtil {
      * those methods who have matching property in the class with the name equal to get method's name uncapitalized and
      * without "get" prefix.
      *
-     * @param object       instance of class X
-     * @param types map of all types by their Assertable type
+     * @param object instance of class X
+     * @param types  map of all types by their Assertable type
      * @return {@link List} of real "get" methods of class X
      */
     public static List<Method> getGetMethods(final Object object, final Map<AssertableType, List<Class<?>>> types, final Map<Class<?>, List<String>> ignoredFields) {
@@ -279,7 +280,6 @@ public final class ReflectionUtil {
     }
 
     /**
-     *
      * @param genericType Type of generic container
      * @return Class that is contained in List or Optional
      */
@@ -296,11 +296,11 @@ public final class ReflectionUtil {
         if (genericType instanceof ParameterizedType) {
             final ParameterizedType parameterizedType = (ParameterizedType) genericType;
 
-            if (parameterizedType.getActualTypeArguments()[0] instanceof Class && !isCollectionClass((Class)parameterizedType.getActualTypeArguments()[0])) {
-                return (Class)(parameterizedType).getActualTypeArguments()[0];
+            if (parameterizedType.getActualTypeArguments()[0] instanceof Class && !isCollectionClass((Class) parameterizedType.getActualTypeArguments()[0])) {
+                return (Class) (parameterizedType).getActualTypeArguments()[0];
             }
 
-            if ((parameterizedType).getRawType() instanceof Class && !isCollectionClass((Class)parameterizedType.getRawType())) {
+            if ((parameterizedType).getRawType() instanceof Class && !isCollectionClass((Class) parameterizedType.getRawType())) {
                 return (Class) (parameterizedType).getRawType();
             }
 
@@ -397,18 +397,27 @@ public final class ReflectionUtil {
         final boolean isEntityType = isEntityType(object.getClass(), types);
 
         final Class<?> classObject = object.getClass();
-        for (final Method method : classObject.getMethods()) {
-
-            if (isGetMethod(object.getClass(), method, ignoredFields) && method.getParameterAnnotations().length == 0 && !(isEntityType && isCollectionClass(method.getReturnType()))) {
-                final String propertyName = getFieldName(method);
-                final Object propertyForCopying = getPropertyForCopying(object, method);
-                final Object copiedProperty = copyProperty(propertyForCopying, nodes, types, ignoredFields);
-                if (!invokeSetMethod(method, classObject, propertyName, copy, copiedProperty)) {
-                    throw new CopyException(classObject.getSimpleName());
-                }
-            }
+        final Method[] methods = classObject.getMethods();
+        for (final Method method : methods) {
+            if (method.getName().equals("getId"))
+                getSetCopy(object, nodes, types, ignoredFields, copy, isEntityType, classObject, method);
+        }
+        for (final Method method : methods) {
+            if (!method.getName().equals("getId"))
+                getSetCopy(object, nodes, types, ignoredFields, copy, isEntityType, classObject, method);
         }
         return copy;
+    }
+
+    private static void getSetCopy(Object object, NodesList nodes, Map<AssertableType, List<Class<?>>> types, Map<Class<?>, List<String>> ignoredFields, Object copy, boolean isEntityType, Class<?> classObject, Method method) throws CopyException {
+        if (isGetMethod(object.getClass(), method, ignoredFields) && method.getParameterAnnotations().length == 0 && !(isEntityType && isCollectionClass(method.getReturnType()))) {
+            final String propertyName = getFieldName(method);
+            final Object propertyForCopying = getPropertyForCopying(object, method);
+            final Object copiedProperty = copyProperty(propertyForCopying, nodes, types, ignoredFields);
+            if (!invokeSetMethod(method, classObject, propertyName, copy, copiedProperty)) {
+                throw new CopyException(classObject.getSimpleName());
+            }
+        }
     }
 
     /**
@@ -444,10 +453,10 @@ public final class ReflectionUtil {
      * Copies property.
      *
      * @param propertyForCopying property for copying
-     * @param nodes list of objects that had been copied
-     * @param types map of all types by their Assertable type
+     * @param nodes              list of objects that had been copied
+     * @param types              map of all types by their Assertable type
      * @return copied property
-     * @throws  CopyException if it can't make a copy of property
+     * @throws CopyException if it can't make a copy of property
      */
     public static Object copyProperty(final Object propertyForCopying, final NodesList nodes,
                                       final Map<AssertableType, List<Class<?>>> types, final Map<Class<?>, List<String>> ignoredFields) throws CopyException {
@@ -484,7 +493,7 @@ public final class ReflectionUtil {
      * Creates a copy of specified map.
      *
      * @param propertyForCopying property that is to be copied
-     * @param types map of all types by their Assertable type
+     * @param types              map of all types by their Assertable type
      * @return copy of the map
      * @throws CopyException if can't make a copy
      */
@@ -500,8 +509,8 @@ public final class ReflectionUtil {
     /**
      * Creates a copy of specified list.
      *
-     * @param <T>  type objects in the list
-     * @param list list for copying
+     * @param <T>   type objects in the list
+     * @param list  list for copying
      * @param types map of all types by their Assertable type
      * @return copied list
      * @throws CopyException the copy exception
@@ -518,8 +527,8 @@ public final class ReflectionUtil {
     /**
      * Creates a copy of specified set.
      *
-     * @param <T> type objects in the set
-     * @param set set for copying
+     * @param <T>   type objects in the set
+     * @param set   set for copying
      * @param types map of all types by their Assertable type
      * @return copied list
      * @throws CopyException the copy exception
