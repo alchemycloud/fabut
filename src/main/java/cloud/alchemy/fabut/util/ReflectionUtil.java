@@ -5,7 +5,6 @@ import cloud.alchemy.fabut.exception.CopyException;
 import cloud.alchemy.fabut.graph.NodesList;
 import junit.framework.AssertionFailedError;
 import org.apache.commons.lang3.StringUtils;
-
 import java.lang.reflect.*;
 import java.util.*;
 
@@ -395,29 +394,49 @@ public final class ReflectionUtil {
         nodes.addPair(copy, object);
 
         final boolean isEntityType = isEntityType(object.getClass(), types);
-
-        final Class<?> classObject = object.getClass();
-        final Method[] methods = classObject.getMethods();
-        for (final Method method : methods) {
-            if (method.getName().equals("getId"))
-                getSetCopy(object, nodes, types, ignoredFields, copy, isEntityType, classObject, method);
-        }
-        for (final Method method : methods) {
-            if (!method.getName().equals("getId"))
-                getSetCopy(object, nodes, types, ignoredFields, copy, isEntityType, classObject, method);
+        try {
+            final Class<?> classObject = object.getClass();
+            final Method[] methods = classObject.getMethods();
+            for (final Method method : methods) {
+                if (method.getName().equals("getId")) {
+                    Field field = getDeclaredFieldFromClassOrSupperClass(object.getClass(), "id");
+                    if (field == null) {
+                        throw new CopyException(object.getClass().getSimpleName());
+                    }
+                    field.setAccessible(true);
+                    field.set(copy, field.get(object));
+                }
+            }
+            for (final Method method : methods) {
+                if (!method.getName().equals("getId") && isGetMethod(object.getClass(), method, ignoredFields) && method.getParameterAnnotations().length == 0 && !(isEntityType && isCollectionClass(method.getReturnType()))){
+                    final String declaredField = getFieldName(method);
+                    Field field = getDeclaredFieldFromClassOrSupperClass(object.getClass(), declaredField);
+                    if (field == null) {
+                        throw new CopyException(object.getClass().getSimpleName());
+                    }
+                    field.setAccessible(true);
+                    field.set(copy, copyProperty(field.get(object), nodes, types, ignoredFields));
+                }
+            }
+        } catch (Exception e) {
+            throw new CopyException(object.getClass().getSimpleName());
         }
         return copy;
     }
 
-    private static void getSetCopy(Object object, NodesList nodes, Map<AssertableType, List<Class<?>>> types, Map<Class<?>, List<String>> ignoredFields, Object copy, boolean isEntityType, Class<?> classObject, Method method) throws CopyException {
-        if (isGetMethod(object.getClass(), method, ignoredFields) && method.getParameterAnnotations().length == 0 && !(isEntityType && isCollectionClass(method.getReturnType()))) {
-            final String propertyName = getFieldName(method);
-            final Object propertyForCopying = getPropertyForCopying(object, method);
-            final Object copiedProperty = copyProperty(propertyForCopying, nodes, types, ignoredFields);
-            if (!invokeSetMethod(method, classObject, propertyName, copy, copiedProperty)) {
-                throw new CopyException(classObject.getSimpleName());
+    public static Field getDeclaredFieldFromClassOrSupperClass(Class<?> clazz, String declaredField) {
+        Class<?> tmpClass = clazz;
+        Field field;
+        do {
+            try {
+                field = tmpClass.getDeclaredField(declaredField);
+                return field;
+            } catch (NoSuchFieldException e) {
+                tmpClass = tmpClass.getSuperclass();
             }
-        }
+        } while (tmpClass != null);
+
+        return null;
     }
 
     /**
