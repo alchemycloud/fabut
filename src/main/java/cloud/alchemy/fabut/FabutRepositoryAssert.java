@@ -19,9 +19,11 @@ import cloud.alchemy.fabut.report.FabutReportBuilder;
 import cloud.alchemy.fabut.util.ReflectionUtil;
 import org.junit.Assert;
 
+import static cloud.alchemy.fabut.util.ReflectionUtil.getRealClass;
+
 /**
  * Extension of {@link FabutObjectAssert} with functionality to assert bd snapshot with its after state.
- * 
+ *
  * @author Dusko Vesin
  * @author Nikola Olah
  * @author Bojan Babic
@@ -31,7 +33,9 @@ import org.junit.Assert;
 @SuppressWarnings({"unchecked", "rawtypes"})
 class FabutRepositoryAssert extends FabutObjectAssert {
 
-    /** The db snapshot. */
+    /**
+     * The db snapshot.
+     */
     private Map<Class<?>, Map<Object, CopyAssert>> dbSnapshot;
     private IFabutRepositoryTest repositoryFabutTest;
     private final AssertType assertType;
@@ -56,7 +60,7 @@ class FabutRepositoryAssert extends FabutObjectAssert {
 
     @Override
     protected boolean assertEntityPair(final FabutReportBuilder report, final String propertyName,
-            final AssertPair pair, final List<ISingleProperty> properties, final NodesList nodesList) {
+                                       final AssertPair pair, final List<ISingleProperty> properties, final NodesList nodesList) {
         if (assertType == AssertType.OBJECT_ASSERT) {
             return super.assertEntityPair(report, propertyName, pair, properties, nodesList);
         }
@@ -70,7 +74,7 @@ class FabutRepositoryAssert extends FabutObjectAssert {
 
     /**
      * Asserts that entity has been deleted in after db state.
-     * 
+     *
      * @param entity
      * @return <code>true</code> if entity is really deleted, <code>false</code> otherwise.
      */
@@ -78,7 +82,7 @@ class FabutRepositoryAssert extends FabutObjectAssert {
 
         final boolean ignoreEntity = ignoreEntity(report, entity);
 
-        final Object findById = findById(entity.getClass(), ReflectionUtil.getIdValue(entity));
+        final Object findById = findById(getRealClass(entity), ReflectionUtil.getIdValue(entity));
         final boolean isDeletedInRepository = findById == null;
 
         if (!isDeletedInRepository) {
@@ -89,38 +93,39 @@ class FabutRepositoryAssert extends FabutObjectAssert {
 
     /**
      * Ignores the entity.
-     * 
-     * @param report
-     *            the report
-     * @param entity
-     *            the actual
+     *
+     * @param report the report
+     * @param entity the actual
      * @return <code>true</code> if entity can be found in db snapshot, <code>false</code> otherwise.
      */
     public boolean ignoreEntity(final FabutReportBuilder report, final Object entity) {
-        return markAsAsserted(report, entity, entity.getClass());
+        return markAsAsserted(report, entity);
     }
 
     /**
      * Asserts specified entity with entity with of same class with same id in db snapshot.
-     * 
+     *
      * @param report
      * @param entity
      * @param properties
      * @return <code>true</code> if entity can be asserted with one in the snapshot, <code>false</code> otherwise.
      */
-    public boolean assertEntityWithSnapshot(final FabutReportBuilder report, final Object entity,
-            final List<ISingleProperty> properties) {
+    public SnapshotAssert assertEntityWithSnapshot(final FabutReportBuilder report, final Object entity,
+                                            final List<ISingleProperty> properties) {
 
         final Object id = ReflectionUtil.getIdValue(entity);
 
-        final Map<Object, CopyAssert> map = dbSnapshot.get(entity.getClass());
+        final Class<?> entityClass = getRealClass(entity);
+
+        final Map<Object, CopyAssert> map = dbSnapshot.get(entityClass);
 
         final CopyAssert copyAssert = map.get(id);
         if (copyAssert != null) {
             final Object expected = copyAssert.getEntity();
-            return assertObjects(report, expected, entity, properties);
+            final Object freshEntity = findById(entityClass, id);
+            return new SnapshotAssert(assertObjects(report, expected, freshEntity, properties), freshEntity);
         } else {
-            return ASSERT_FAIL;
+            return new SnapshotAssert(ASSERT_FAIL, null);
         }
 
     }
@@ -132,14 +137,14 @@ class FabutRepositoryAssert extends FabutObjectAssert {
 
     /**
      * This method needs to be called after every entity assert so it marks that entity has been asserted in snapshot.
-     * 
+     *
      * @param entity
      * @param isProperty
      * @return <code>true</code> if entity can be marked that is asserted, <code>false</code> otherwise.
      */
     final boolean afterAssertEntity(final FabutReportBuilder report, final Object entity, final boolean isProperty) {
         if (!isProperty) {
-            return markAsAsserted(report, entity, entity.getClass());
+            return markAsAsserted(report, entity);
         } else {
             return ASSERTED;
         }
@@ -147,9 +152,8 @@ class FabutRepositoryAssert extends FabutObjectAssert {
 
     /**
      * Find all entities of type entity class in DB.
-     * 
-     * @param entityClass
-     *            the entity class
+     *
+     * @param entityClass the entity class
      * @return the list
      */
     protected List<?> findAll(final Class<?> entityClass) {
@@ -158,11 +162,9 @@ class FabutRepositoryAssert extends FabutObjectAssert {
 
     /**
      * Find specific entity of type entity class and with specific id in DB.
-     * 
-     * @param entityClass
-     *            the entity class
-     * @param id
-     *            the id
+     *
+     * @param entityClass the entity class
+     * @param id          the id
      * @return the entity type
      */
     protected Object findById(final Class<?> entityClass, final Object id) {
@@ -171,21 +173,20 @@ class FabutRepositoryAssert extends FabutObjectAssert {
 
     /**
      * Mark entity bean as asserted.
-     * 
+     *
      * @param entity
      *            AbstractEntity
      */
 
     /**
      * Marks the specified entity as asserted.
-     * 
-     * @param entity
-     *            the entity
-     * @param actualType
-     *            the actual type
+     *
+     * @param entity     the entity
      * @return <code>true</code> if entity is successfully asserted else return <code>false</code>.
      */
-    protected boolean markAsAsserted(final FabutReportBuilder report, final Object entity, final Class<?> actualType) {
+    protected boolean markAsAsserted(final FabutReportBuilder report, final Object entity) {
+
+        final Class<?> actualType = getRealClass(entity);
 
         final Object id = ReflectionUtil.getIdValue(entity);
         if (id == null) {
@@ -205,17 +206,14 @@ class FabutRepositoryAssert extends FabutObjectAssert {
 
     /**
      * Mark entity bean as asserted in db snapshot map. Go trough all its supper classes and if its possible assert it.
-     * 
-     * @param id
-     *            the id
-     * @param copy
-     *            the entity
-     * @param actualType
-     *            the actual type
+     *
+     * @param id         the id
+     * @param copy       the entity
+     * @param actualType the actual type
      * @return true, if successful
      */
     protected boolean markAsserted(final Object id, final Object copy,
-            final Class<?> actualType) {
+                                   final Class<?> actualType) {
         final Map<Object, CopyAssert> map = dbSnapshot.get(actualType);
         final boolean isTypeSupported = map != null;
         if (isTypeSupported) {
@@ -237,11 +235,9 @@ class FabutRepositoryAssert extends FabutObjectAssert {
 
     /**
      * Takes current database snapshot and saves it.
-     * 
-     * @param report
-     *            the report
-     * @param parameters
-     *            the parameters
+     *
+     * @param report     the report
+     * @param parameters the parameters
      * @return true, if successful
      */
     @Override
@@ -269,9 +265,8 @@ class FabutRepositoryAssert extends FabutObjectAssert {
 
     /**
      * Asserts db snapshot with after db state.
-     * 
-     * @param report
-     *            the report
+     *
+     * @param report the report
      * @return true, if successful
      */
     protected boolean assertDbSnapshot(final FabutReportBuilder report) {
@@ -294,20 +289,16 @@ class FabutRepositoryAssert extends FabutObjectAssert {
 
     /**
      * Performs assert check on entities that are contained in db snapshot but do not exist in after db state.
-     * 
-     * @param beforeIds
-     *            the before ids
-     * @param afterIds
-     *            the after ids
-     * @param beforeEntities
-     *            the before entities
-     * @param report
-     *            the report
+     *
+     * @param beforeIds      the before ids
+     * @param afterIds       the after ids
+     * @param beforeEntities the before entities
+     * @param report         the report
      * @return <code>true</code> if all entities contained only in db snapshot are asserted, <code>false</code>
-     *         otherwise.
+     * otherwise.
      */
     boolean checkNotExistingInAfterDbState(final TreeSet beforeIds, final TreeSet afterIds,
-            final Map<Object, CopyAssert> beforeEntities, final FabutReportBuilder report) {
+                                           final Map<Object, CopyAssert> beforeEntities, final FabutReportBuilder report) {
 
         final TreeSet beforeIdsCopy = new TreeSet(beforeIds);
         boolean ok = ASSERTED;
@@ -326,19 +317,15 @@ class FabutRepositoryAssert extends FabutObjectAssert {
 
     /**
      * Performs check if there is any entity in after db state that has not been asserted and reports them.
-     * 
-     * @param beforeIds
-     *            the before ids
-     * @param afterIds
-     *            the after ids
-     * @param afterEntities
-     *            the after entities
-     * @param report
-     *            the report
+     *
+     * @param beforeIds     the before ids
+     * @param afterIds      the after ids
+     * @param afterEntities the after entities
+     * @param report        the report
      * @return <code>true</code> if all entities in after db state are asserted.
      */
     boolean checkNewToAfterDbState(final TreeSet beforeIds, final TreeSet afterIds,
-            final Map<Object, Object> afterEntities, final FabutReportBuilder report) {
+                                   final Map<Object, Object> afterEntities, final FabutReportBuilder report) {
 
         final TreeSet afterIdsCopy = new TreeSet(afterIds);
         boolean ok = ASSERTED;
@@ -354,22 +341,17 @@ class FabutRepositoryAssert extends FabutObjectAssert {
 
     /**
      * Assert db snapshot with after state.
-     * 
-     * @param beforeIds
-     *            the before ids
-     * @param afterIds
-     *            the after ids
-     * @param beforeEntities
-     *            the before entities
-     * @param afterEntities
-     *            the after entities
-     * @param report
-     *            the report
+     *
+     * @param beforeIds      the before ids
+     * @param afterIds       the after ids
+     * @param beforeEntities the before entities
+     * @param afterEntities  the after entities
+     * @param report         the report
      * @return true, if successful
      */
     boolean assertDbSnapshotWithAfterState(final TreeSet beforeIds, final TreeSet afterIds,
-            final Map<Object, CopyAssert> beforeEntities, final Map<Object, Object> afterEntities,
-            final FabutReportBuilder report) {
+                                           final Map<Object, CopyAssert> beforeEntities, final Map<Object, Object> afterEntities,
+                                           final FabutReportBuilder report) {
 
         final TreeSet beforeIdsCopy = new TreeSet(beforeIds);
         // does intersection between db snapshot and after db state
@@ -415,17 +397,11 @@ class FabutRepositoryAssert extends FabutObjectAssert {
         Assert.assertEquals(expected, actual);
     }
 
-    public void setEntityTypes(final List<Class<?>> entityTypes) {
-        getTypes().put(AssertableType.ENTITY_TYPE, entityTypes);
-    }
-
     /**
      * Asserts two entities by their id.
-     * 
-     * @param report
-     *            assert report builder
-     * @param propertyName
-     *            name of current entity
+     *
+     * @param report       assert report builder
+     * @param propertyName name of current entity
      * @return - <code>true</code> if and only if ids of two specified objects are equal, <code>false</code> otherwise
      */
     boolean assertEntityById(final FabutReportBuilder report, final String propertyName, final AssertPair pair) {

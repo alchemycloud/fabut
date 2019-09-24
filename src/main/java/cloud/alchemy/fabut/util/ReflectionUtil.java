@@ -5,6 +5,8 @@ import cloud.alchemy.fabut.exception.CopyException;
 import cloud.alchemy.fabut.graph.NodesList;
 import junit.framework.AssertionFailedError;
 import org.apache.commons.lang3.StringUtils;
+
+import javax.swing.text.html.Option;
 import java.lang.reflect.*;
 import java.util.*;
 
@@ -48,6 +50,23 @@ public final class ReflectionUtil {
     }
 
     /**
+     * Get real entity class, in some cases we will get a hibernate proxy class. In that case we need to get its super class.
+     *
+     * @param entity witch class is requested
+     * @return class of the entity.
+     */
+    public static Class<?> getRealClass(Object entity) {
+        final Class<?> aClass = entity.getClass();
+
+        if (!aClass.getName().contains("Proxy")) {
+            return aClass;
+        } else {
+            return aClass.getSuperclass();
+        }
+
+    }
+
+    /**
      * Check if specified method of class Object is get method. Primitive boolean type fields have "is" for prefix of
      * their get method and all other types have "get" prefix for their get method so this method checks if field name
      * gotten from method name has a matched field name in the class X. Methods with prefix "is" have to have underlying
@@ -57,11 +76,8 @@ public final class ReflectionUtil {
      * @param method thats checking
      * @return <code>true</code> if method is "real" get method, <code>false</code> otherwise
      */
-    public static boolean isGetMethod(final Class<?> classs, final Method method, Map<Class<?>, List<String>> ignoredFields) {
+    public static boolean isGetMethod(final Class<?> classs, final Method method) {
         try {
-            if (isIgnoredField(ignoredFields, classs, getFieldName(method))) {
-                return false;
-            }
             if (method.getName().startsWith(IS_METHOD_PREFIX)) {
                 // if field type is primitive boolean
                 return classs.getDeclaredField(getFieldName(method)).getType() == boolean.class;
@@ -144,6 +160,20 @@ public final class ReflectionUtil {
     }
 
     /**
+     * Determines if specified object is instance of {@link Optional}.
+     *
+     * @param object the object that is checked
+     * @return <code>true</code> if it is a map, <code>false</code> otherwise
+     */
+    public static boolean isOptionalType(final Object object) {
+        return object instanceof Optional;
+    }
+
+    public static boolean isEntityType(final Object object, final Map<AssertableType, List<Class<?>>> types) {
+        return isEntityType(getRealClass(object), types);
+    }
+
+    /**
      * Check if specified class is contained in entity types.
      *
      * @param object that's checked
@@ -156,11 +186,13 @@ public final class ReflectionUtil {
 
             final boolean isEntity = types.get(AssertableType.ENTITY_TYPE).contains(object);
 
-            // necessary tweak for hibernate beans witch in some cases are fetched as proxy objects
-            final boolean isSuperClassEntity = types.get(AssertableType.ENTITY_TYPE).contains(object.getSuperclass());
-            return isEntity || isSuperClassEntity;
+            return isEntity;
         }
         return false;
+    }
+
+    public static boolean isComplexType(final Object classs, final Map<AssertableType, List<Class<?>>> types) {
+        return isComplexType(getRealClass(classs), types);
     }
 
     /**
@@ -182,7 +214,7 @@ public final class ReflectionUtil {
      * @return <code>true</code> if specified class is contained in ignored types, <code>false</code> otherwise.
      */
     public static boolean isIgnoredType(final Class<?> classs, final Map<AssertableType, List<Class<?>>> types) {
-        return types.get(AssertableType.IGNORED_TYPE).contains(classs);
+        return types.get(AssertableType.IGNORED_TYPE).contains(classs) || types.get(AssertableType.IGNORED_TYPE).contains(classs.getSuperclass());
     }
 
     /**
@@ -209,14 +241,24 @@ public final class ReflectionUtil {
                                         final Map<AssertableType, List<Class<?>>> types) {
 
         if (secondObject != null) {
-            return isIgnoredType(secondObject.getClass(), types);
+            return isIgnoredType(getRealClass(secondObject), types);
         }
 
         if (firstObject != null) {
-            return isIgnoredType(firstObject.getClass(), types);
+            return isIgnoredType(getRealClass(firstObject), types);
         }
 
         return false;
+    }
+
+
+    public static boolean hasIdMethod(final Object entity) {
+        try {
+            final Method method = entity.getClass().getMethod(GET_ID);
+            return true;
+        } catch (final Exception e) {
+            return false;
+        }
     }
 
     /**
@@ -243,16 +285,15 @@ public final class ReflectionUtil {
      * @param types  map of all types by their Assertable type
      * @return {@link List} of real "get" methods of class X
      */
-    public static List<Method> getGetMethods(final Object object, final Map<AssertableType, List<Class<?>>> types, final Map<Class<?>, List<String>> ignoredFields) {
+    public static List<Method> getGetMethods(final Object object, final Map<AssertableType, List<Class<?>>> types) {
 
         final List<Method> getMethods = new ArrayList<>();
         final List<Method> getMethodsComplexType = new ArrayList<>();
-        final boolean isEntityClass = isEntityType(object.getClass(), types);
+        final boolean isEntityClass = isEntityType(object, types);
 
         final Method[] allMethods = object.getClass().getMethods();
         for (final Method method : allMethods) {
-            if (isGetMethod(object.getClass(), method, ignoredFields) && !(isEntityClass && isCollectionClass(method.getReturnType()))
-                    && !isIgnoredField(ignoredFields, object.getClass(), getFieldName(method))) {
+            if (isGetMethod(object.getClass(), method) && !(isEntityClass && isCollectionClass(method.getReturnType()))) {
 
                 final Class methodReturnType = method.getReturnType();
                 final Class clazz;
@@ -266,7 +307,7 @@ public final class ReflectionUtil {
 
                 // complex or entity type get methods inside object come last in list,
                 // this is important because otherwise inner object asserts will possibly 'eat up' expected properties of parent object during asserts
-                if (isComplexType(clazz, types) || isEntityType(clazz, types)) {
+                if (isComplexType(object, types) || isEntityType(object, types)) {
                     getMethodsComplexType.add(method);
                 } else {
                     getMethods.add(method);
@@ -350,7 +391,7 @@ public final class ReflectionUtil {
             return AssertableType.PRIMITIVE_TYPE;
         }
 
-        final Class<?> typeClass = actual != null ? actual.getClass() : expected.getClass();
+        final Class<?> typeClass = actual != null ? getRealClass(actual) : getRealClass(expected);
         if (List.class.isAssignableFrom(typeClass)) {
             return AssertableType.LIST_TYPE;
         } else if (Map.class.isAssignableFrom(typeClass)) {
@@ -359,9 +400,9 @@ public final class ReflectionUtil {
             return AssertableType.OPTIONAL_TYPE;
         } else if (types.get(AssertableType.COMPLEX_TYPE).contains(typeClass)) {
             return AssertableType.COMPLEX_TYPE;
-        } else if (types.get(AssertableType.ENTITY_TYPE).contains(typeClass)) {
+        } else if (isEntityType(typeClass, types)) {
             return AssertableType.ENTITY_TYPE;
-        } else if (types.get(AssertableType.IGNORED_TYPE).contains(typeClass)) {
+        } else if (isIgnoredType(typeClass, types)) {
             return AssertableType.IGNORED_TYPE;
         } else {
             return AssertableType.PRIMITIVE_TYPE;
@@ -393,12 +434,12 @@ public final class ReflectionUtil {
         }
         nodes.addPair(copy, object);
 
-        final boolean isEntityType = isEntityType(object.getClass(), types);
+        final boolean isEntityType = isEntityType(object, types);
         try {
             final Class<?> classObject = object.getClass();
             final Method[] methods = classObject.getMethods();
             for (final Method method : methods) {
-                if (method.getName().equals("getId")) {
+                if (method.getName().equals(GET_ID)) {
                     Field field = getDeclaredFieldFromClassOrSupperClass(object.getClass(), "id");
                     if (field == null) {
                         throw new CopyException(object.getClass().getSimpleName());
@@ -408,7 +449,7 @@ public final class ReflectionUtil {
                 }
             }
             for (final Method method : methods) {
-                if (!method.getName().equals("getId") && isGetMethod(object.getClass(), method, ignoredFields) && method.getParameterAnnotations().length == 0 && !(isEntityType && isCollectionClass(method.getReturnType()))){
+                if (!method.getName().equals(GET_ID) && isGetMethod(object.getClass(), method) && method.getParameterAnnotations().length == 0 && !(isEntityType && isCollectionClass(method.getReturnType()))) {
                     final String declaredField = getFieldName(method);
                     Field field = getDeclaredFieldFromClassOrSupperClass(object.getClass(), declaredField);
                     if (field == null) {
@@ -484,7 +525,7 @@ public final class ReflectionUtil {
             return null;
         }
 
-        if (isComplexType(propertyForCopying.getClass(), types)) {
+        if (isComplexType(propertyForCopying, types)) {
             // its complex object, we need its copy
             return createCopyObject(propertyForCopying, nodes, types, ignoredFields);
         }
@@ -492,6 +533,11 @@ public final class ReflectionUtil {
         if (isListType(propertyForCopying)) {
             // just creating new list with same elements
             return copyList((List<?>) propertyForCopying, types, ignoredFields);
+        }
+
+        if (isOptionalType(propertyForCopying)) {
+            // just creating new list with same elements
+            return copyOptional((Optional<?>) propertyForCopying, types, ignoredFields);
         }
 
         if (isSetType(propertyForCopying)) {
@@ -544,6 +590,25 @@ public final class ReflectionUtil {
     }
 
     /**
+     * Creates a copy of specified optional.
+     *
+     * @param <T>      type objects in the optional
+     * @param optional optional for copying
+     * @param types    map of all types by their Assertable type
+     * @return copied optional
+     * @throws CopyException the copy exception
+     */
+    public static <T> Optional<T> copyOptional(final Optional<T> optional, final Map<AssertableType, List<Class<?>>> types, Map<Class<?>, List<String>> ignoredFields)
+            throws CopyException {
+
+        if (optional.isPresent()) {
+            return Optional.of((T) copyProperty(optional.get(), new NodesList(), types, ignoredFields));
+        } else {
+            return Optional.empty();
+        }
+    }
+
+    /**
      * Creates a copy of specified set.
      *
      * @param <T>   type objects in the set
@@ -579,6 +644,13 @@ public final class ReflectionUtil {
             final List<?> list = (List<?>) object;
             return copyList(list, types, ignoredFields);
         }
+
+
+        if (isOptionalType(object)) {
+            final Optional<?> optional = (Optional<?>) object;
+            return copyOptional(optional, types, ignoredFields);
+        }
+
 
         if (isSetType(object)) {
             final Set<?> set = (Set<?>) object;

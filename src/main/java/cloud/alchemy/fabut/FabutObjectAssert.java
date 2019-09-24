@@ -17,7 +17,7 @@ import org.apache.commons.lang3.StringUtils;
 import java.lang.reflect.Method;
 import java.util.*;
 
-import static java.util.Optional.empty;
+import static cloud.alchemy.fabut.util.ReflectionUtil.getRealClass;
 
 /**
  * Tool for smart asserting two objecting, or asserting object with list of custom properties. Object asserting is done
@@ -30,7 +30,6 @@ import static java.util.Optional.empty;
  * @author Nikola Trkulja
  * @author Andrej Miletic
  */
-@SuppressWarnings({"rawtypes", "unchecked"})
 class FabutObjectAssert extends Assert {
 
     private static final String EMPTY_STRING = "";
@@ -44,7 +43,7 @@ class FabutObjectAssert extends Assert {
     private Map<AssertableType, List<Class<?>>> types;
 
     /**
-     *  Ignored properties
+     * Ignored properties
      */
     private Map<Class<?>, List<String>> ignoredFields;
 
@@ -91,29 +90,31 @@ class FabutObjectAssert extends Assert {
             return ASSERT_FAIL;
         }
 
-        final List<Method> methods = ReflectionUtil.getGetMethods(actual, types, fabutTest.getIgnoredFields());
+        final List<Method> methods = ReflectionUtil.getGetMethods(actual, types);
         boolean result = ASSERTED;
         for (final Method method : methods) {
 
             final String fieldName = ReflectionUtil.getFieldName(method);
+            final boolean ignoredField = ReflectionUtil.isIgnoredField(ignoredFields, getRealClass(actual), fieldName);
 
             final ISingleProperty property = getPropertyFromList(fieldName, expectedProperties);
             try {
                 if (property != null) {
                     result &= assertProperty(fieldName, report, property, method.invoke(actual), EMPTY_STRING,
                             expectedProperties, new NodesList(), true);
-                } else if (hasInnerProperties(fieldName, expectedProperties)) {
+                } else if (!ignoredField && hasInnerProperties(fieldName, expectedProperties)) {
                     result &= assertInnerProperty(report, method.invoke(actual), expectedProperties, fieldName);
-                } else {
+                } else if (!ignoredField) {
                     // there is no matching property for field
                     report.noPropertyForField(fieldName, method.invoke(actual));
                     result = ASSERT_FAIL;
                 }
-
             } catch (final Exception e) {
                 report.uncallableMethod(method, actual);
                 result = ASSERT_FAIL;
             }
+
+
         }
         if (!expectedProperties.isEmpty()) {
             for (ISingleProperty singleProperty : expectedProperties) {
@@ -230,7 +231,7 @@ class FabutObjectAssert extends Assert {
         nodesList.addPair(pair);
         switch (pair.getObjectType()) {
             case IGNORED_TYPE:
-                report.ignoredType(pair.getExpected().getClass());
+                report.ignoredType(getRealClass(pair.getExpected()));
                 return ASSERTED;
             case COMPLEX_TYPE:
                 return assertSubfields(report, pair, properties, nodesList, propertyName);
@@ -245,7 +246,7 @@ class FabutObjectAssert extends Assert {
                 return assertMap(propertyName, report, (Map) pair.getExpected(), (Map) pair.getActual(), properties,
                         nodesList, true);
             case OPTIONAL_TYPE:
-                return assertOptional(report, pair, properties, propertyName);
+                return assertOptional(report, pair, properties, propertyName, nodesList, true);
             default:
                 throw new IllegalStateException("Unknown assert type: " + pair.getObjectType());
         }
@@ -282,23 +283,24 @@ class FabutObjectAssert extends Assert {
         report.increaseDepth(propertyName);
 
         boolean t = ASSERTED;
-        final List<Method> getMethods = ReflectionUtil.getGetMethods(pair.getExpected(), types, ignoredFields);
+        final List<Method> getMethods = ReflectionUtil.getGetMethods(pair.getExpected(), types);
 
         for (final Method expectedMethod : getMethods) {
-            try {
-                final String fieldName = ReflectionUtil.getFieldName(expectedMethod);
+            final String fieldName = ReflectionUtil.getFieldName(expectedMethod);
+            if (!ReflectionUtil.isIgnoredField(ignoredFields, getRealClass(pair.getExpected()), fieldName)) {
+                try {
+                    final ISingleProperty property = obtainProperty(expectedMethod.invoke(pair.getExpected()), fieldName,
+                            properties);
 
-                final ISingleProperty property = obtainProperty(expectedMethod.invoke(pair.getExpected()), fieldName,
-                        properties);
+                    final Method actualMethod = ReflectionUtil.getGetMethod(expectedMethod.getName(), pair.getActual());
 
-                final Method actualMethod = ReflectionUtil.getGetMethod(expectedMethod.getName(), pair.getActual());
+                    t &= assertProperty(fieldName, report, property, actualMethod.invoke(pair.getActual()), fieldName,
+                            properties, nodesList, true);
 
-                t &= assertProperty(fieldName, report, property, actualMethod.invoke(pair.getActual()), fieldName,
-                        properties, nodesList, true);
-
-            } catch (final Exception e) {
-                report.uncallableMethod(expectedMethod, pair.getActual());
-                t = ASSERT_FAIL;
+                } catch (final Exception e) {
+                    report.uncallableMethod(expectedMethod, pair.getActual());
+                    t = ASSERT_FAIL;
+                }
             }
         }
 
@@ -368,7 +370,7 @@ class FabutObjectAssert extends Assert {
         // expected null value
         if (expected instanceof NullProperty) {
             final boolean ok = actual == null ? ASSERTED : ASSERT_FAIL;
-            if (!ok){
+            if (!ok) {
                 report.nullProperty(propertyName);
             }
             return ok;
@@ -376,7 +378,7 @@ class FabutObjectAssert extends Assert {
 
         // expected any not empty value
         if (expected instanceof NotEmptyProperty) {
-            final boolean ok = actual instanceof Optional && ((Optional)actual).isPresent() ? ASSERTED : ASSERT_FAIL;
+            final boolean ok = actual instanceof Optional && ((Optional) actual).isPresent() ? ASSERTED : ASSERT_FAIL;
             if (!ok) {
                 report.notEmptyProperty(propertyName);
             }
@@ -385,8 +387,8 @@ class FabutObjectAssert extends Assert {
 
         // expected empty value
         if (expected instanceof EmptyProperty) {
-            final boolean ok = actual instanceof Optional && !((Optional)actual).isPresent() ? ASSERTED : ASSERT_FAIL;
-            if (!ok){
+            final boolean ok = actual instanceof Optional && !((Optional) actual).isPresent() ? ASSERTED : ASSERT_FAIL;
+            if (!ok) {
                 report.emptyProperty(propertyName);
             }
             return ok;
@@ -477,17 +479,20 @@ class FabutObjectAssert extends Assert {
     }
 
     boolean assertOptional(final FabutReportBuilder report, final AssertPair pair,
-                           final List<ISingleProperty> properties, String propertyName) {
+                           final List<ISingleProperty> properties, String propertyName, final NodesList nodesList, final boolean isProperty) {
 
-        if (!((Optional)pair.getExpected()).isPresent() && !((Optional)pair.getActual()).isPresent()) {
+        if (!((Optional) pair.getExpected()).isPresent() && !((Optional) pair.getActual()).isPresent()) {
             return ASSERTED;
         }
-        if (((Optional)pair.getExpected()).isPresent() ^ ((Optional)pair.getActual()).isPresent()) {
+        if (((Optional) pair.getExpected()).isPresent() ^ ((Optional) pair.getActual()).isPresent()) {
             report.assertFail(pair, propertyName);
             return ASSERT_FAIL;
         }
 
-        return assertObjects(report, ((Optional)pair.getExpected()).get(), ((Optional)pair.getActual()).get(), properties);
+        final Object expectedValue = ((Optional) pair.getExpected()).get();
+        final Object actualValue = ((Optional) pair.getActual()).get();
+        final AssertPair assertPair = ConversionUtil.createAssertPair(expectedValue, actualValue, types, isProperty);
+        return assertPair(propertyName, report, assertPair, properties, nodesList);
     }
 
     /**

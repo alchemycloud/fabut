@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import cloud.alchemy.fabut.property.*;
+import cloud.alchemy.fabut.util.ReflectionUtil;
 import junit.framework.AssertionFailedError;
 import cloud.alchemy.fabut.enums.AssertType;
 import cloud.alchemy.fabut.report.FabutReportBuilder;
@@ -11,10 +12,9 @@ import cloud.alchemy.fabut.util.ConversionUtil;
 
 /**
  * Set of method for advanced asserting.
- * 
+ *
  * @author Dusko Vesin
  * @author Andrej Miletic
- * 
  */
 public class Fabut {
 
@@ -31,24 +31,23 @@ public class Fabut {
 
     /**
      * This method needs to be called in @Before method of a test in order for {@link Fabut} to work.
-     * 
-     * @param testInstance
-     *            the test instance
+     *
+     * @param testInstance the test instance
      */
     public static synchronized void beforeTest(final Object testInstance) {
         assertPassed = true;
         assertType = ConversionUtil.getAssertType(testInstance);
         switch (assertType) {
-        case OBJECT_ASSERT:
-            fabutAssert = new FabutRepositoryAssert((IFabutTest) testInstance);
-            break;
-        case REPOSITORY_ASSERT:
-            fabutAssert = new FabutRepositoryAssert((IFabutRepositoryTest) testInstance);
-            break;
-        case UNSUPPORTED_ASSERT:
-            throw new IllegalStateException("This test must implement IFabutAssert or IRepositoryFabutAssert");
-        default:
-            throw new IllegalStateException("Unsupported assert type: " + assertType);
+            case OBJECT_ASSERT:
+                fabutAssert = new FabutRepositoryAssert((IFabutTest) testInstance);
+                break;
+            case REPOSITORY_ASSERT:
+                fabutAssert = new FabutRepositoryAssert((IFabutRepositoryTest) testInstance);
+                break;
+            case UNSUPPORTED_ASSERT:
+                throw new IllegalStateException("This test must implement IFabutAssert or IRepositoryFabutAssert");
+            default:
+                throw new IllegalStateException("Unsupported assert type: " + assertType);
         }
     }
 
@@ -82,6 +81,7 @@ public class Fabut {
 
     /**
      * Creates repository snapshot so it can be asserted with after state after the test execution.
+     *
      * @param parameters array of parameters for snapshot
      */
     public static void takeSnapshot(final Object... parameters) {
@@ -97,13 +97,10 @@ public class Fabut {
 
     /**
      * Asserts object with expected properties.
-     * 
-     * @param message
-     *            custom message to be added on top of the report
-     * @param object
-     *            the object that needs to be asserted
-     * @param properties
-     *            expected properties for asserting object
+     *
+     * @param message    custom message to be added on top of the report
+     * @param object     the object that needs to be asserted
+     * @param properties expected properties for asserting object
      */
     public static void assertObject(final String message, final Object object, final IProperty... properties) {
         checkValidInit();
@@ -117,11 +114,9 @@ public class Fabut {
 
     /**
      * Asserts object with expected properties.
-     * 
-     * @param expected
-     *            the expected
-     * @param properties
-     *            expected properties for asserting object
+     *
+     * @param expected   the expected
+     * @param properties expected properties for asserting object
      */
     public static void assertObject(final Object expected, final IProperty... properties) {
         checkValidInit();
@@ -130,18 +125,14 @@ public class Fabut {
 
     /**
      * Asserts two objects.
-     * 
-     * @param message
-     *            custom message to be added on top of the report
-     * @param expected
-     *            the expected object
-     * @param actual
-     *            the actual object
-     * @param expectedChanges
-     *            property difference between expected and actual
+     *
+     * @param message         custom message to be added on top of the report
+     * @param expected        the expected object
+     * @param actual          the actual object
+     * @param expectedChanges property difference between expected and actual
      */
     public static void assertObjects(final String message, final Object expected, final Object actual,
-            final IProperty... expectedChanges) {
+                                     final IProperty... expectedChanges) {
         checkValidInit();
 
         final FabutReportBuilder report = new FabutReportBuilder(message);
@@ -153,13 +144,10 @@ public class Fabut {
 
     /**
      * Asserts two objects.
-     * 
-     * @param expected
-     *            the expected object
-     * @param actual
-     *            the actual object
-     * @param expectedChanges
-     *            property difference between expected and actual
+     *
+     * @param expected        the expected object
+     * @param actual          the actual object
+     * @param expectedChanges property difference between expected and actual
      */
     public static void assertObjects(final Object expected, final Object actual, final IProperty... expectedChanges) {
         checkValidInit();
@@ -168,11 +156,9 @@ public class Fabut {
 
     /**
      * Asserts list of expected and array of actual objects.
-     * 
-     * @param expected
-     *            the expected list
-     * @param actuals
-     *            the actual array
+     *
+     * @param expected the expected list
+     * @param actuals  the actual array
      */
     public static void assertList(final List<?> expected, final Object... actuals) {
         checkValidInit();
@@ -181,35 +167,34 @@ public class Fabut {
 
     /**
      * Asserts entity with one saved in snapshot.
-     * 
-     * @param entity
-     *            the entity
-     * @param expectedChanges
-     *            properties changed after the snapshot has been taken
+     *
+     * @param entity          the entity
+     * @param expectedChanges properties changed after the snapshot has been taken
      */
-    public static void assertEntityWithSnapshot(final Object entity, final IProperty... expectedChanges) {
+    public static <T> T assertEntityWithSnapshot(final T entity, final IProperty... expectedChanges) {
         checkValidInit();
         checkIfEntity(entity);
 
         final FabutReportBuilder report = new FabutReportBuilder();
-        if (!fabutAssert.assertEntityWithSnapshot(report, entity, fabutAssert.extractProperties(expectedChanges))) {
+        final SnapshotAssert assertResult = fabutAssert.assertEntityWithSnapshot(report, entity, fabutAssert.extractProperties(expectedChanges));
+        if (!assertResult.getResult()) {
             assertPassed = false;
             throw new AssertionFailedError(report.getMessage());
         }
+        return (T) assertResult.getEntity();
     }
 
     /**
      * Marks object as asserted.
-     * 
-     * @param entity
-     *            the entity
+     *
+     * @param entity the entity
      */
     public static void markAsserted(final Object entity) {
         checkValidInit();
         checkIfEntity(entity);
 
         final FabutReportBuilder report = new FabutReportBuilder();
-        if (!fabutAssert.markAsAsserted(report, entity, entity.getClass())) {
+        if (!fabutAssert.markAsAsserted(report, entity)) {
             assertPassed = false;
             throw new AssertionFailedError(report.getMessage());
         }
@@ -217,9 +202,8 @@ public class Fabut {
 
     /**
      * Assert entity as deleted. It will fail if entity can still be found in snapshot.
-     * 
-     * @param entity
-     *            the entity
+     *
+     * @param entity the entity
      */
     public static void assertEntityAsDeleted(final Object entity) {
         checkValidInit();
@@ -234,9 +218,8 @@ public class Fabut {
 
     /**
      * Ignores the entity.
-     * 
-     * @param entity
-     *            the entity
+     *
+     * @param entity the entity
      */
     public static void ignoreEntity(final Object entity) {
         checkValidInit();
@@ -251,9 +234,8 @@ public class Fabut {
 
     /**
      * Checks if specified object is entity.
-     * 
-     * @param entity
-     *            the entity
+     *
+     * @param entity the entity
      */
     private static void checkIfEntity(final Object entity) {
         checkIfRepositoryAssert();
@@ -261,8 +243,7 @@ public class Fabut {
             throw new NullPointerException("assertEntityWithSnapshot cannot take null entity!");
         }
 
-        if (!fabutAssert.getEntityTypes().contains(entity.getClass())) {
-
+        if (!ReflectionUtil.isEntityType(entity, fabutAssert.getTypes())) {
             throw new IllegalStateException(entity.getClass() + " is not registered as entity type");
         }
     }
@@ -286,15 +267,11 @@ public class Fabut {
 
     /**
      * Create {@link Property} with provided parameters.
-     * 
-     * @param path
-     *            property path.
-     * @param expectedValue
-     *            expected values
+     *
+     * @param path          property path.
+     * @param expectedValue expected values
+     * @param <T>           generic type
      * @return created object.
-     * 
-     * @param <T>
-     *            generic type
      */
     public static <T> Property<T> value(final PropertyPath<T> path, final T expectedValue) {
         return new Property<T>(path.getPath(), expectedValue);
@@ -302,9 +279,8 @@ public class Fabut {
 
     /**
      * Create {@link IgnoredProperty} with provided parameter.
-     * 
-     * @param path
-     *            property path.
+     *
+     * @param path property path.
      * @return created object.
      */
     public static IgnoredProperty ignored(final PropertyPath<?> path) {
@@ -313,9 +289,8 @@ public class Fabut {
 
     /**
      * Create {@link IgnoredProperty} with provided parameters.
-     * 
-     * @param paths
-     *            property path.
+     *
+     * @param paths property path.
      * @return created objects.
      */
     public static MultiProperties ignored(final PropertyPath<?>... paths) {
@@ -330,9 +305,8 @@ public class Fabut {
 
     /**
      * Create {@link NotNullProperty} with provided parameter.
-     * 
-     * @param path
-     *            property path.
+     *
+     * @param path property path.
      * @return created object.
      */
     public static NotNullProperty notNull(final PropertyPath<?> path) {
@@ -341,9 +315,8 @@ public class Fabut {
 
     /**
      * Create {@link NotNullProperty} with provided parameters.
-     * 
-     * @param paths
-     *            property paths.
+     *
+     * @param paths property paths.
      * @return created objects.
      */
     public static MultiProperties notNull(final PropertyPath<?>... paths) {
@@ -358,9 +331,8 @@ public class Fabut {
 
     /**
      * Create {@link NullProperty} with provided parameter.
-     * 
-     * @param path
-     *            property path.
+     *
+     * @param path property path.
      * @return created object.
      */
     public static NullProperty isNull(final PropertyPath<?> path) {
@@ -369,9 +341,8 @@ public class Fabut {
 
     /**
      * Create {@link NullProperty} with provided parameters.
-     * 
-     * @param paths
-     *            property paths.
+     *
+     * @param paths property paths.
      * @return created objects.
      */
     public static MultiProperties isNull(final PropertyPath<?>... paths) {
@@ -387,17 +358,17 @@ public class Fabut {
     /**
      * Create {@link NotEmptyProperty} with provided parameter.
      *
-     * @param path
-     *            property path.
+     * @param path property path.
      * @return created object.
      */
-    public static NotEmptyProperty notEmpty(final PropertyPath<?> path) { return new NotEmptyProperty(path.getPath()); }
+    public static NotEmptyProperty notEmpty(final PropertyPath<?> path) {
+        return new NotEmptyProperty(path.getPath());
+    }
 
     /**
      * Create {@link NotEmptyProperty} with provided parameters.
      *
-     * @param paths
-     *            property paths.
+     * @param paths property paths.
      * @return created objects.
      */
     public static MultiProperties notEmpty(final PropertyPath<?>... paths) {
@@ -413,17 +384,17 @@ public class Fabut {
     /**
      * Create {@link EmptyProperty} with provided parameter.
      *
-     * @param path
-     *            property path.
+     * @param path property path.
      * @return created object.
      */
-    public static EmptyProperty isEmpty(final PropertyPath<?> path) { return new EmptyProperty(path.getPath()); }
+    public static EmptyProperty isEmpty(final PropertyPath<?> path) {
+        return new EmptyProperty(path.getPath());
+    }
 
     /**
      * Create {@link EmptyProperty} with provided parameters.
      *
-     * @param paths
-     *            property paths.
+     * @param paths property paths.
      * @return created objects.
      */
     public static MultiProperties isEmpty(final PropertyPath<?>... paths) {
@@ -434,5 +405,23 @@ public class Fabut {
         }
 
         return new MultiProperties(properties);
+    }
+}
+
+class SnapshotAssert {
+    private final Boolean result;
+    private final Object entity;
+
+    public SnapshotAssert(Boolean result, Object entity) {
+        this.result = result;
+        this.entity = entity;
+    }
+
+    public Boolean getResult() {
+        return result;
+    }
+
+    public Object getEntity() {
+        return entity;
     }
 }
