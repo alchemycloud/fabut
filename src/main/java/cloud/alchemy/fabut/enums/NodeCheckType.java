@@ -28,7 +28,7 @@ public enum NodeCheckType {
      * @param assertResult
      *            the assert result
      */
-    private NodeCheckType(final boolean assertResult) {
+    NodeCheckType(final boolean assertResult) {
         this.assertResult = assertResult;
     }
 

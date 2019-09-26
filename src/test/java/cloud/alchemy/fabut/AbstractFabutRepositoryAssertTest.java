@@ -2,6 +2,7 @@ package cloud.alchemy.fabut;
 
 import java.util.*;
 
+import cloud.alchemy.fabut.assertt.FabutRepositoryAssert;
 import cloud.alchemy.fabut.model.*;
 import org.junit.After;
 import org.junit.Assert;

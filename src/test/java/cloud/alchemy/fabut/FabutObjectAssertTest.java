@@ -1,5 +1,6 @@
 package cloud.alchemy.fabut;
 
+import cloud.alchemy.fabut.assertt.FabutObjectAssert;
 import cloud.alchemy.fabut.enums.AssertableType;
 import cloud.alchemy.fabut.enums.ReferenceCheckType;
 import cloud.alchemy.fabut.graph.NodesList;

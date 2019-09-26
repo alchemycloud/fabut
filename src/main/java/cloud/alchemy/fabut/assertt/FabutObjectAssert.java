@@ -1,5 +1,7 @@
-package cloud.alchemy.fabut;
+package cloud.alchemy.fabut.assertt;
 
+import cloud.alchemy.fabut.Fabut;
+import cloud.alchemy.fabut.IFabutTest;
 import cloud.alchemy.fabut.enums.AssertableType;
 import cloud.alchemy.fabut.enums.NodeCheckType;
 import cloud.alchemy.fabut.enums.ReferenceCheckType;
@@ -30,7 +32,7 @@ import static cloud.alchemy.fabut.util.ReflectionUtil.getRealClass;
  * @author Nikola Trkulja
  * @author Andrej Miletic
  */
-class FabutObjectAssert extends Assert {
+public class FabutObjectAssert extends Assert {
 
     private static final String EMPTY_STRING = "";
     private static final String DOT = ".";
@@ -82,8 +84,8 @@ class FabutObjectAssert extends Assert {
      * @param expectedProperties the properties
      * @return <code>true</code> if object can be asserted with list of properties, <code>false</code> otherwise.
      */
-    protected boolean assertObjectWithProperties(final FabutReportBuilder report, final Object actual,
-                                                 final List<ISingleProperty> expectedProperties) {
+    public boolean assertObjectWithProperties(final FabutReportBuilder report, final Object actual,
+                                              final List<ISingleProperty> expectedProperties) {
 
         if (actual == null) {
             report.nullReference();
@@ -129,8 +131,8 @@ class FabutObjectAssert extends Assert {
         return result;
     }
 
-    boolean assertInnerProperty(final FabutReportBuilder report, final Object actual,
-                                final List<ISingleProperty> properties, final String parent) {
+    public boolean assertInnerProperty(final FabutReportBuilder report, final Object actual,
+                                       final List<ISingleProperty> properties, final String parent) {
         final List<ISingleProperty> extracts = extractPropertiesWithMatchingParent(parent, properties);
         removeParentQualification(parent, extracts);
         report.increaseDepth(parent);
@@ -139,8 +141,8 @@ class FabutObjectAssert extends Assert {
         return t;
     }
 
-    boolean assertInnerObject(final FabutReportBuilder report, final Object expected, final Object actual,
-                              final List<ISingleProperty> properties, final String parent) {
+    public boolean assertInnerObject(final FabutReportBuilder report, final Object expected, final Object actual,
+                                     final List<ISingleProperty> properties, final String parent) {
         final List<ISingleProperty> extracts = extractPropertiesWithMatchingParent(parent, properties);
         removeParentQualification(parent, extracts);
         report.increaseDepth(parent);
@@ -160,8 +162,8 @@ class FabutObjectAssert extends Assert {
      *                                  object, properties in this list take priority over fields in expected object
      * @return <code>true</code> can be asserted, <code>false</code> otherwise
      */
-    protected boolean assertObjects(final FabutReportBuilder report, final Object expected, final Object actual,
-                                    final List<ISingleProperty> expectedChangedProperties) {
+    public boolean assertObjects(final FabutReportBuilder report, final Object expected, final Object actual,
+                                 final List<ISingleProperty> expectedChangedProperties) {
 
         final AssertPair assertPair = ConversionUtil.createAssertPair(expected, actual, types);
         final boolean assertResult = assertPair(EMPTY_STRING, report, assertPair, expectedChangedProperties,
@@ -177,7 +179,7 @@ class FabutObjectAssert extends Assert {
      *
      * @param parameters array of parameters
      */
-    protected boolean takeSnapshot(final FabutReportBuilder report, final Object... parameters) {
+    public boolean takeSnapshot(final FabutReportBuilder report, final Object... parameters) {
         initParametersSnapshot();
         boolean ok = ASSERTED;
         for (final Object object : parameters) {
@@ -208,7 +210,7 @@ class FabutObjectAssert extends Assert {
      * @param nodesList    list of object that had been asserted
      * @return <code>true</code> if objects can be asserted, <code>false</code> otherwise.
      */
-    boolean assertPair(final String propertyName, final FabutReportBuilder report, final AssertPair pair,
+    public boolean assertPair(final String propertyName, final FabutReportBuilder report, final AssertPair pair,
                        final List<ISingleProperty> properties, final NodesList nodesList) {
 
         final ReferenceCheckType referenceCheck = checkByReference(report, pair, propertyName);
@@ -277,8 +279,8 @@ class FabutObjectAssert extends Assert {
      * @param nodesList  the nodes list
      * @return <code>true</code> if objects can be asserted, <code>false</code> otherwise.
      */
-    boolean assertSubfields(final FabutReportBuilder report, final AssertPair pair,
-                            final List<ISingleProperty> properties, final NodesList nodesList, final String propertyName) {
+    public boolean assertSubfields(final FabutReportBuilder report, final AssertPair pair,
+                                   final List<ISingleProperty> properties, final NodesList nodesList, final String propertyName) {
 
         report.increaseDepth(propertyName);
 
@@ -352,9 +354,9 @@ class FabutObjectAssert extends Assert {
      * @param isProperty   is actual property, important for entities
      * @return - <code>true</code> if object is asserted with expected property, <code>false</code> otherwise.
      */
-    boolean assertProperty(final String propertyName, final FabutReportBuilder report, final ISingleProperty expected,
-                           final Object actual, final String fieldName, final List<ISingleProperty> properties,
-                           final NodesList nodesList, final boolean isProperty) {
+    public boolean assertProperty(final String propertyName, final FabutReportBuilder report, final ISingleProperty expected,
+                                  final Object actual, final String fieldName, final List<ISingleProperty> properties,
+                                  final NodesList nodesList, final boolean isProperty) {
 
         removeParentQualification(fieldName, properties);
 
@@ -424,9 +426,9 @@ class FabutObjectAssert extends Assert {
      * @return - <code>true</code> if every element from expected list with index <em>i</em> is asserted with element
      * from actual list with index <em>i</em>, <code>false</code> otherwise.
      */
-    boolean assertList(final String propertyName, final FabutReportBuilder report, final List expected,
-                       final List actual, final List<ISingleProperty> properties, final NodesList nodesList,
-                       final boolean isProperty) {
+    public boolean assertList(final String propertyName, final FabutReportBuilder report, final List expected,
+                              final List actual, final List<ISingleProperty> properties, final NodesList nodesList,
+                              final boolean isProperty) {
 
         // check sizes
         if (expected.size() != actual.size()) {
@@ -458,8 +460,8 @@ class FabutObjectAssert extends Assert {
      * @param isProperty
      * @return
      */
-    boolean assertMap(final String propertyName, final FabutReportBuilder report, final Map expected, final Map actual,
-                      final List<ISingleProperty> properties, final NodesList nodesList, final boolean isProperty) {
+    public boolean assertMap(final String propertyName, final FabutReportBuilder report, final Map expected, final Map actual,
+                             final List<ISingleProperty> properties, final NodesList nodesList, final boolean isProperty) {
         // TODO add better reporting when asserting map objects, similar to list
         final TreeSet expectedKeys = new TreeSet(expected.keySet());
         final TreeSet actualKeys = new TreeSet(actual.keySet());
@@ -505,8 +507,8 @@ class FabutObjectAssert extends Assert {
      * @param actualKeys
      * @return
      */
-    boolean assertExcessExpected(final String propertyName, final FabutReportBuilder report, final Map expected,
-                                 final TreeSet expectedKeys, final TreeSet actualKeys) {
+    public boolean assertExcessExpected(final String propertyName, final FabutReportBuilder report, final Map expected,
+                                        final TreeSet expectedKeys, final TreeSet actualKeys) {
         final TreeSet expectedKeysCopy = new TreeSet(expectedKeys);
         expectedKeysCopy.removeAll(actualKeys);
         if (expectedKeysCopy.size() > 0) {
@@ -528,8 +530,8 @@ class FabutObjectAssert extends Assert {
      * @param actualKeys
      * @return
      */
-    boolean assertExcessActual(final String propertyName, final FabutReportBuilder report, final Map actual,
-                               final TreeSet expectedKeys, final TreeSet actualKeys) {
+    public boolean assertExcessActual(final String propertyName, final FabutReportBuilder report, final Map actual,
+                                      final TreeSet expectedKeys, final TreeSet actualKeys) {
         final TreeSet actualKeysCopy = new TreeSet(actualKeys);
         actualKeysCopy.removeAll(expectedKeys);
         if (actualKeysCopy.size() > 0) {
@@ -548,8 +550,8 @@ class FabutObjectAssert extends Assert {
      * @param properties         list of excluded properties
      * @return List of properties without specified parent property name
      */
-    List<ISingleProperty> removeParentQualification(final String parentPropertyName,
-                                                    final List<ISingleProperty> properties) {
+    public List<ISingleProperty> removeParentQualification(final String parentPropertyName,
+                                                           final List<ISingleProperty> properties) {
 
         final String parentPrefix = parentPropertyName + DOT;
         for (final ISingleProperty property : properties) {
@@ -569,7 +571,7 @@ class FabutObjectAssert extends Assert {
      * @param properties   list of excluded properties
      * @return generated property
      */
-    ISingleProperty obtainProperty(final Object field, final String propertyPath, final List<ISingleProperty> properties) {
+    public ISingleProperty obtainProperty(final Object field, final String propertyPath, final List<ISingleProperty> properties) {
         final ISingleProperty property = getPropertyFromList(propertyPath, properties);
         if (property != null) {
             return property;
@@ -585,7 +587,7 @@ class FabutObjectAssert extends Assert {
      * @return {@link ISingleProperty} if there is property with same path as specified in list of properties,
      * <code>null</code> otherwise
      */
-    ISingleProperty getPropertyFromList(final String propertyPath, final List<ISingleProperty> properties) {
+    public ISingleProperty getPropertyFromList(final String propertyPath, final List<ISingleProperty> properties) {
 
         final Iterator<ISingleProperty> iterator = properties.iterator();
         while (iterator.hasNext()) {
@@ -607,8 +609,8 @@ class FabutObjectAssert extends Assert {
      * @return {@link ReferenceCheckType#EQUAL_REFERENCE} is expected and actual have same reference, if and only if one
      * of them is null return {@link ReferenceCheckType#EXCLUSIVE_NULL}
      */
-    ReferenceCheckType checkByReference(final FabutReportBuilder report, final AssertPair pair,
-                                        final String propertyName) {
+    public ReferenceCheckType checkByReference(final FabutReportBuilder report, final AssertPair pair,
+                                               final String propertyName) {
         if (pair.getExpected() == pair.getActual()) {
             //report.asserted(pair, propertyName);
             return ReferenceCheckType.EQUAL_REFERENCE;
@@ -638,7 +640,7 @@ class FabutObjectAssert extends Assert {
      * @param properties array/arrays of properties
      * @return the list
      */
-    List<ISingleProperty> extractProperties(final IProperty... properties) {
+    public List<ISingleProperty> extractProperties(final IProperty... properties) {
         final ArrayList<ISingleProperty> list = new ArrayList<>();
 
         for (final IProperty property : properties) {
@@ -658,7 +660,7 @@ class FabutObjectAssert extends Assert {
      * @param report the report
      * @return true, if successful
      */
-    boolean assertParameterSnapshot(final FabutReportBuilder report) {
+    public boolean assertParameterSnapshot(final FabutReportBuilder report) {
 
         boolean ok = true;
         for (final SnapshotPair snapshotPair : parameterSnapshot) {
@@ -678,8 +680,8 @@ class FabutObjectAssert extends Assert {
      * @param properties
      * @return
      */
-    List<ISingleProperty> extractPropertiesWithMatchingParent(final String parent,
-                                                              final List<ISingleProperty> properties) {
+    public List<ISingleProperty> extractPropertiesWithMatchingParent(final String parent,
+                                                                     final List<ISingleProperty> properties) {
         final List<ISingleProperty> extracts = new LinkedList<ISingleProperty>();
         final Iterator<ISingleProperty> iterator = properties.iterator();
         while (iterator.hasNext()) {
@@ -699,7 +701,7 @@ class FabutObjectAssert extends Assert {
      * @param properties
      * @return
      */
-    boolean hasInnerProperties(final String parent, final List<ISingleProperty> properties) {
+    public boolean hasInnerProperties(final String parent, final List<ISingleProperty> properties) {
         for (final ISingleProperty property : properties) {
             if (property.getPath().startsWith(parent + DOT)) {
                 return true;
@@ -769,7 +771,7 @@ class FabutObjectAssert extends Assert {
      *
      * @return the parameter snapshot
      */
-    List<SnapshotPair> getParameterSnapshot() {
+    public List<SnapshotPair> getParameterSnapshot() {
         return parameterSnapshot;
     }
 

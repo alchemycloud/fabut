@@ -1,4 +1,4 @@
-package cloud.alchemy.fabut;
+package cloud.alchemy.fabut.assertt;
 
 public class SnapshotAssert {
     private final Boolean result;

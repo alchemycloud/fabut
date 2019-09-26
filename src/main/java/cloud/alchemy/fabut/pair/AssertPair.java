@@ -18,7 +18,7 @@ public class AssertPair extends Pair {
     }
 
     public AssertPair(final Object expected, final Object actual, final AssertableType assertableType,
-            final boolean property) {
+                      final boolean property) {
         super(expected, actual);
         this.assertableType = assertableType;
         this.property = property;
@@ -26,10 +26,6 @@ public class AssertPair extends Pair {
 
     public AssertableType getObjectType() {
         return assertableType;
-    }
-
-    public void setObjectType(final AssertableType objectType) {
-        assertableType = objectType;
     }
 
     public boolean isProperty() {

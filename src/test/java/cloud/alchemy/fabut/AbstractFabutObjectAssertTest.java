@@ -5,6 +5,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import cloud.alchemy.fabut.assertt.FabutObjectAssert;
 import cloud.alchemy.fabut.model.test.Address;
 import cloud.alchemy.fabut.model.test.Faculty;
 import cloud.alchemy.fabut.model.test.Student;

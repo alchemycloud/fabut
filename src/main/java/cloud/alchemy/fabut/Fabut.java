@@ -3,6 +3,8 @@ package cloud.alchemy.fabut;
 import java.util.ArrayList;
 import java.util.List;
 
+import cloud.alchemy.fabut.assertt.FabutRepositoryAssert;
+import cloud.alchemy.fabut.assertt.SnapshotAssert;
 import cloud.alchemy.fabut.property.*;
 import cloud.alchemy.fabut.util.ReflectionUtil;
 import junit.framework.AssertionFailedError;
@@ -125,50 +127,7 @@ public class Fabut {
      * @param properties expected properties for asserting object
      */
     public static void assertObject(final Object expected, final IProperty... properties) {
-        checkValidInit();
         assertObject("", expected, properties);
-    }
-
-    /**
-     * Asserts two objects.
-     *
-     * @param message         custom message to be added on top of the report
-     * @param expected        the expected object
-     * @param actual          the actual object
-     * @param expectedChanges property difference between expected and actual
-     */
-    public static void assertObjects(final String message, final Object expected, final Object actual,
-                                     final IProperty... expectedChanges) {
-        checkValidInit();
-
-        final FabutReportBuilder report = new FabutReportBuilder(message);
-        if (!fabutAssert.assertObjects(report, expected, actual, fabutAssert.extractProperties(expectedChanges))) {
-            assertPassed = false;
-            throw new AssertionFailedError(report.getMessage());
-        }
-    }
-
-    /**
-     * Asserts two objects.
-     *
-     * @param expected        the expected object
-     * @param actual          the actual object
-     * @param expectedChanges property difference between expected and actual
-     */
-    public static void assertObjects(final Object expected, final Object actual, final IProperty... expectedChanges) {
-        checkValidInit();
-        assertObjects("", expected, actual, expectedChanges);
-    }
-
-    /**
-     * Asserts list of expected and array of actual objects.
-     *
-     * @param expected the expected list
-     * @param actuals  the actual array
-     */
-    public static void assertList(final List<?> expected, final Object... actuals) {
-        checkValidInit();
-        assertObjects("", expected, ConversionUtil.createListFromArray(actuals));
     }
 
     /**
@@ -193,22 +152,6 @@ public class Fabut {
             throw new AssertionFailedError(report.getMessage());
         }
         return (T) assertResult.getEntity();
-    }
-
-    /**
-     * Marks object as asserted.
-     *
-     * @param entity the entity
-     */
-    public static void markAsserted(final Object entity) {
-        checkValidInit();
-        checkIfEntity(entity);
-
-        final FabutReportBuilder report = new FabutReportBuilder();
-        if (!fabutAssert.markAsAsserted(report, entity)) {
-            assertPassed = false;
-            throw new AssertionFailedError(report.getMessage());
-        }
     }
 
     /**
@@ -249,23 +192,16 @@ public class Fabut {
      * @param entity the entity
      */
     private static void checkIfEntity(final Object entity) {
-        checkIfRepositoryAssert();
+        if (!isRepositoryAssert()) {
+            throw new IllegalStateException("Test class must implement IRepositoryFabutAssert");
+        }
+
         if (entity == null) {
             throw new NullPointerException("assertEntityWithSnapshot cannot take null entity!");
         }
 
         if (!ReflectionUtil.isEntityType(entity, fabutAssert.getTypes())) {
             throw new IllegalStateException(entity.getClass() + " is not registered as entity type");
-        }
-    }
-
-    /**
-     * Checks if current test is repository test.
-     */
-    private static void checkIfRepositoryAssert() {
-
-        if (!isRepositoryAssert()) {
-            throw new IllegalStateException("Test class must implement IRepositoryFabutAssert");
         }
     }
 

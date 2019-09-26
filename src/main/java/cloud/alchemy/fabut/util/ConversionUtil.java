@@ -28,23 +28,7 @@ public final class ConversionUtil {
         super();
     }
 
-    /**
-     * Creates a {@link LinkedList} from specified varargs.
-     * 
-     * @param excludes
-     *            varargs parameters
-     * @return list of objects of class X
-     * 
-     * @param <X>
-     *            generic type
-     */
-    @SafeVarargs
-    public static <X> List<X> createListFromArray(final X... excludes) {
-        final List<X> list = new LinkedList<>();
-        list.addAll(Arrays.asList(excludes));
 
-        return list;
-    }
 
     /**
      * Creates the assert pair.
@@ -59,6 +43,7 @@ public final class ConversionUtil {
      */
     public static AssertPair createAssertPair(final Object expected, final Object actual,
             final Map<AssertableType, List<Class<?>>> types) {
+
         final AssertableType objectType = ReflectionUtil.getObjectType(expected, actual, types);
         return new AssertPair(expected, actual, objectType);
     }

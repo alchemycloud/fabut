@@ -1,16 +1,19 @@
 package cloud.alchemy.fabut.util;
 
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import cloud.alchemy.fabut.Fabut;
 import cloud.alchemy.fabut.property.*;
+import org.apache.commons.lang3.ArrayUtils;
 import org.junit.Assert;
 
 import org.junit.Test;
 
 /**
  * Tests for {@link ConversionUtil}.
- * 
+ *
  * @author Dusko Vesin
  * @author Nikola Olah
  * @author Bojan Babic
@@ -18,7 +21,7 @@ import org.junit.Test;
  */
 public class ConversionUtilTest extends Assert {
 
-    private static final PropertyPath<String> TEST =  new PropertyPath<>("test");
+    private static final PropertyPath<String> TEST = new PropertyPath<>("test");
 
     /**
      * Test for createListFromVaragrs of {@link ConversionUtil} when there are two properties specified in particular.
@@ -31,8 +34,7 @@ public class ConversionUtilTest extends Assert {
         final NotNullProperty notNullProperty = Fabut.notNull(TEST);
 
         // method
-        final List<AbstractSingleProperty> properties = ConversionUtil.createListFromArray(nullProperty,
-                notNullProperty);
+        final List<AbstractSingleProperty> properties = Arrays.asList(nullProperty, notNullProperty);
 
         // assert
         assertEquals(2, properties.size());
@@ -46,7 +48,7 @@ public class ConversionUtilTest extends Assert {
     @Test
     public void testCreateListFromVarargsNoProperties() {
         // method
-        final List<ISingleProperty> properties = ConversionUtil.createListFromArray();
+        final List<ISingleProperty> properties = Collections.emptyList();
 
         // assert
         assertEquals(0, properties.size());

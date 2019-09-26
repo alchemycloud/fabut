@@ -1,4 +1,4 @@
-package cloud.alchemy.fabut;
+package cloud.alchemy.fabut.assertt;
 
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -8,6 +8,8 @@ import java.util.Map.Entry;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
+import cloud.alchemy.fabut.IFabutRepositoryTest;
+import cloud.alchemy.fabut.IFabutTest;
 import cloud.alchemy.fabut.enums.AssertType;
 import cloud.alchemy.fabut.enums.AssertableType;
 import cloud.alchemy.fabut.exception.CopyException;
@@ -31,7 +33,7 @@ import static cloud.alchemy.fabut.util.ReflectionUtil.getRealClass;
  * @author Andrej Miletic
  */
 @SuppressWarnings({"unchecked", "rawtypes"})
-class FabutRepositoryAssert extends FabutObjectAssert {
+public class FabutRepositoryAssert extends FabutObjectAssert {
 
     /**
      * The db snapshot.
@@ -191,7 +193,7 @@ class FabutRepositoryAssert extends FabutObjectAssert {
      * @param entity the entity
      * @return <code>true</code> if entity is successfully asserted else return <code>false</code>.
      */
-    protected boolean markAsAsserted(final FabutReportBuilder report, final Object entity) {
+    public boolean markAsAsserted(final FabutReportBuilder report, final Object entity) {
 
         final Class<?> actualType = getRealClass(entity);
 
@@ -276,7 +278,7 @@ class FabutRepositoryAssert extends FabutObjectAssert {
      * @param report the report
      * @return true, if successful
      */
-    protected boolean assertDbSnapshot(final FabutReportBuilder report) {
+    public boolean assertDbSnapshot(final FabutReportBuilder report) {
         boolean ok = true;
         // assert entities by classes
         for (final Entry<Class<?>, Map<Object, CopyAssert>> snapshotEntry : dbSnapshot.entrySet()) {
