@@ -25,16 +25,9 @@
 	</scm>
 
 	<properties>
-
-		<!-- tell the compiler we can use 1.8 -->
 		<maven.compiler.source>1.8</maven.compiler.source>
 		<maven.compiler.target>1.8</maven.compiler.target>
-
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-
-		<commons.version>3.8.1</commons.version>
-		<junit.version>4.12</junit.version>
-
 	</properties>
 
 	<dependencies>
@@ -43,14 +36,14 @@
 		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-lang3</artifactId>
-			<version>${commons.version}</version>
+			<version>3.9</version>
 		</dependency>
 
 		<!-- Junit -->
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
-			<version>${junit.version}</version>
+			<version>4.12</version>
 		</dependency>
 
 	</dependencies>
