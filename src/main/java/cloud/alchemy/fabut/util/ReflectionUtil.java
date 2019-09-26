@@ -198,6 +198,11 @@ public final class ReflectionUtil {
         return types.get(AssertableType.COMPLEX_TYPE).contains(classs);
     }
 
+
+    private static boolean isIgnoredType(final Object classs, final Map<AssertableType, List<Class<?>>> types) {
+        return isIgnoredType(getRealClass(classs), types);
+    }
+
     /**
      * Check if specified class is contained in ignored types.
      *
@@ -206,7 +211,7 @@ public final class ReflectionUtil {
      * @return <code>true</code> if specified class is contained in ignored types, <code>false</code> otherwise.
      */
     private static boolean isIgnoredType(final Class<?> classs, final Map<AssertableType, List<Class<?>>> types) {
-        return types.get(AssertableType.IGNORED_TYPE).contains(classs) || types.get(AssertableType.IGNORED_TYPE).contains(classs.getSuperclass());
+        return types.get(AssertableType.IGNORED_TYPE).contains(classs);
     }
 
     /**
@@ -220,29 +225,6 @@ public final class ReflectionUtil {
     public static boolean isIgnoredField(Map<Class<?>, List<String>> ignoredFields, Class clazz, String fieldName) {
         return ignoredFields.getOrDefault(clazz, Collections.emptyList()).contains(fieldName);
     }
-
-    /**
-     * Checks if object is ignored type.
-     *
-     * @param firstObject  that is checked
-     * @param secondObject that is checked
-     * @param types        map of all types by their Assertable type
-     * @return <code>true</code> if type of expected or actual is ignored type, <code>false</code> otherwise.
-     */
-    public static boolean isIgnoredType(final Object firstObject, final Object secondObject,
-                                        final Map<AssertableType, List<Class<?>>> types) {
-
-        if (secondObject != null) {
-            return isIgnoredType(getRealClass(secondObject), types);
-        }
-
-        if (firstObject != null) {
-            return isIgnoredType(getRealClass(firstObject), types);
-        }
-
-        return false;
-    }
-
 
     public static boolean hasIdMethod(final Object entity) {
         try {
@@ -581,7 +563,6 @@ public final class ReflectionUtil {
         }
         return copySet;
     }
-
 
 
 }
