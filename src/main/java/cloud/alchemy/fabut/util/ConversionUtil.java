@@ -1,15 +1,13 @@
 package cloud.alchemy.fabut.util;
 
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-
 import cloud.alchemy.fabut.IFabutRepositoryTest;
 import cloud.alchemy.fabut.IFabutTest;
 import cloud.alchemy.fabut.enums.AssertType;
 import cloud.alchemy.fabut.enums.AssertableType;
 import cloud.alchemy.fabut.pair.AssertPair;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * Util class for conversions needed by testutil.
@@ -27,8 +25,6 @@ public final class ConversionUtil {
     private ConversionUtil() {
         super();
     }
-
-
 
     /**
      * Creates the assert pair.
