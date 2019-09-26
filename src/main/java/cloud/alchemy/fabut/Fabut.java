@@ -106,6 +106,12 @@ public class Fabut {
         checkValidInit();
 
         final FabutReportBuilder report = new FabutReportBuilder(message);
+        if (isRepositoryAssert() && fabutAssert.doesExistInSnapshot(object)) {
+            assertPassed = false;
+            report.entityInSnapshot(object);
+            throw new AssertionFailedError(report.getMessage());
+        }
+
         if (!fabutAssert.assertObjectWithProperties(report, object, fabutAssert.extractProperties(properties))) {
             assertPassed = false;
             throw new AssertionFailedError(report.getMessage());
@@ -174,8 +180,13 @@ public class Fabut {
     public static <T> T assertEntityWithSnapshot(final T entity, final IProperty... expectedChanges) {
         checkValidInit();
         checkIfEntity(entity);
-
         final FabutReportBuilder report = new FabutReportBuilder();
+
+        if (expectedChanges.length == 0) {
+            report.assertWithSnapshotMustHaveAtLeastOnChange(entity);
+            throw new AssertionFailedError(report.getMessage());
+        }
+
         final SnapshotAssert assertResult = fabutAssert.assertEntityWithSnapshot(report, entity, fabutAssert.extractProperties(expectedChanges));
         if (!assertResult.getResult()) {
             assertPassed = false;
@@ -253,10 +264,13 @@ public class Fabut {
      */
     private static void checkIfRepositoryAssert() {
 
-        if (assertType != AssertType.REPOSITORY_ASSERT) {
-
+        if (!isRepositoryAssert()) {
             throw new IllegalStateException("Test class must implement IRepositoryFabutAssert");
         }
+    }
+
+    private static boolean isRepositoryAssert() {
+        return assertType == AssertType.REPOSITORY_ASSERT;
     }
 
     private static void checkValidInit() {

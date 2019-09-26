@@ -14,7 +14,7 @@ import cloud.alchemy.fabut.property.NullProperty;
 /**
  * Report builder used for creating clean and readable reports. Its point is to emphasize failed asserts so developer
  * can track them easy.
- * 
+ *
  * @author Dusko Vesin
  * @author Nikola Olah
  * @author Bojan Babic
@@ -43,9 +43,8 @@ public class FabutReportBuilder {
 
     /**
      * Default constructor.
-     * 
-     * @param message
-     *            initial message
+     *
+     * @param message initial message
      */
     public FabutReportBuilder(final String message) {
         this();
@@ -55,7 +54,7 @@ public class FabutReportBuilder {
 
     /**
      * Get string text.
-     * 
+     *
      * @return string
      */
     public String getMessage() {
@@ -65,6 +64,7 @@ public class FabutReportBuilder {
 
     /**
      * Increase indentation in report.
+     *
      * @param parent name of parent
      */
     public void increaseDepth(final String parent) {
@@ -83,11 +83,9 @@ public class FabutReportBuilder {
 
     /**
      * Add new comment to specified depth.
-     * 
-     * @param comment
-     *            to be added
-     * @param type
-     *            type of comment
+     *
+     * @param comment to be added
+     * @param type    type of comment
      */
     private void addComment(final String comment, final CommentType type) {
 
@@ -114,13 +112,10 @@ public class FabutReportBuilder {
      * <p>
      * Example: <i>■> Expected size for list: users is: 2, but was: 1</i>
      * </p>
-     * 
-     * @param propertyName
-     *            the property name
-     * @param expectedSize
-     *            the expected size
-     * @param actualSize
-     *            the actual size
+     *
+     * @param propertyName the property name
+     * @param expectedSize the expected size
+     * @param actualSize   the actual size
      */
     public void listDifferentSizeComment(final String propertyName, final int expectedSize, final int actualSize) {
         final String comment = String.format("Expected size for list: %s is: %d, but was: %d", propertyName,
@@ -130,15 +125,13 @@ public class FabutReportBuilder {
 
     /**
      * Reports fail due to field not having matching property.
-     * 
+     *
      * <p>
      * Example: <i>There was no property for field: name of class: User, with value: John</i>
      * </p>
-     * 
-     * @param fieldName
-     *            name of the field
-     * @param field
-     *            class of the field
+     *
+     * @param fieldName name of the field
+     * @param field     class of the field
      */
     public void noPropertyForField(final String fieldName, final Object field) {
         final String comment = String.format("There was no property for field:  %s of class:  %s, with value: %s",
@@ -152,9 +145,8 @@ public class FabutReportBuilder {
      * <p>
      * Example(): <i>■> id: expected not null property, but field was null</i>
      * </p>
-     * 
-     * @param fieldName
-     *            - name of the field
+     *
+     * @param fieldName - name of the field
      */
     public void notNullProperty(final String fieldName) {
         final String comment = String.format("%s: expected not null property, but field was null", fieldName);
@@ -166,10 +158,8 @@ public class FabutReportBuilder {
      * <p>
      * Example: <i>■> endDate: expected null, but field was not null</i>
      * </p>
-     * 
-     * 
-     * @param fieldName
-     *            - name of the field
+     *
+     * @param fieldName - name of the field
      */
     public void nullProperty(final String fieldName) {
         final String comment = String.format("%s: expected null property, but field was not null", fieldName);
@@ -183,8 +173,7 @@ public class FabutReportBuilder {
      * Example(): <i>■> id: expected not empty property, but field was empty</i>
      * </p>
      *
-     * @param fieldName
-     *            - name of the field
+     * @param fieldName - name of the field
      */
     public void notEmptyProperty(final String fieldName) {
         final String comment = String.format("%s: expected not empty property, but field was empty", fieldName);
@@ -197,9 +186,7 @@ public class FabutReportBuilder {
      * Example: <i>■> endDate: expected empty, but field was empty null</i>
      * </p>
      *
-     *
-     * @param fieldName
-     *            - name of the field
+     * @param fieldName - name of the field
      */
     public void emptyProperty(final String fieldName) {
         final String comment = String.format("%s: expected empty property, but field was not empty", fieldName);
@@ -212,9 +199,8 @@ public class FabutReportBuilder {
      * <p>
      * Example: <i>∞> name: is ignored field</i>
      * </p>
-     * 
-     * @param fieldName
-     *            - name of the field
+     *
+     * @param fieldName - name of the field
      */
     public void reportIgnoreProperty(final String fieldName) {
         final String comment = String.format("%s: is ignored field", fieldName);
@@ -226,17 +212,15 @@ public class FabutReportBuilder {
      * <p>
      * Example: <i>■> Property: address of class: User has wrong reference.</i>
      * </p>
-     * 
-     * @param fieldName
-     *            name of the field
-     * @param object
-     *            the object
+     *
+     * @param fieldName name of the field
+     * @param object    the object
      */
     public void checkByReference(final String fieldName, final Object object) {
 
 
         final String comment = String.format("Property:  %s of class:  %s has wrong reference.", fieldName, object
-                    .getClass().getSimpleName());
+                .getClass().getSimpleName());
         addComment(comment, CommentType.FAIL);
 
     }
@@ -246,9 +230,8 @@ public class FabutReportBuilder {
      * <p>
      * Example: <i>∞> Type Date is ignored type.</i>
      * </p>
-     * 
-     * @param clazz
-     *            - class of the ignored type
+     *
+     * @param clazz - class of the ignored type
      */
     public void ignoredType(final Class<?> clazz) {
         final String comment = String.format("Type  %s is ignored type.", clazz.getSimpleName());
@@ -260,11 +243,9 @@ public class FabutReportBuilder {
      * <p>
      * Example: <i>#> Asserting object at index [1] of list shoppingCarts.</i>
      * </p>
-     * 
-     * @param listName
-     *            - name of the list
-     * @param index
-     *            - index of the element in the list being asserted
+     *
+     * @param listName - name of the list
+     * @param index    - index of the element in the list being asserted
      */
     public void assertingListElement(final String listName, final int index) {
         final String comment = String.format("Asserting object at index [%d] of list %s.", index, listName);
@@ -276,12 +257,17 @@ public class FabutReportBuilder {
      * <p>
      * Example: <i>■> Entity User [id=1] doesn't exist in DB any more but is not asserted in test.</i>
      * </p>
-     * 
-     * @param entity
-     *            - the entity that doesn't exist in DB anymore
+     *
+     * @param entity - the entity that doesn't exist in DB anymore
      */
     public void noEntityInSnapshot(final Object entity) {
         final String comment = String.format("Entity %s doesn't exist in DB any more but is not asserted in test.",
+                entity);
+        addComment(comment, CommentType.FAIL);
+    }
+
+    public void entityInSnapshot(final Object entity) {
+        final String comment = String.format("Entity %s exist in DB, user assertWithSnapshot instead..",
                 entity);
         addComment(comment, CommentType.FAIL);
     }
@@ -293,9 +279,8 @@ public class FabutReportBuilder {
      * Example: <i>■> Entity User [id=100] is created in system after last snapshot but hasn't been asserted in
      * test..</i>
      * </p>
-     * 
-     * @param entity
-     *            the entity
+     *
+     * @param entity the entity
      */
     public void entityNotAssertedInAfterState(final Object entity) {
         final String comment = String.format(
@@ -309,12 +294,9 @@ public class FabutReportBuilder {
      * Example: <i>■> There is no method: getName in actual object class: ShoppingCart (expected object class was:
      * User).</i>
      * </p>
-     * 
-     * 
-     * @param method
-     *            - the method
-     * @param actual
-     *            - object reference for asserting
+     *
+     * @param method - the method
+     * @param actual - object reference for asserting
      */
     public void uncallableMethod(final Method method, final Object actual) {
         final String comment = String.format(
@@ -328,7 +310,6 @@ public class FabutReportBuilder {
      * <p>
      * Example: <i>■> Object that was passed to assertObject was null, it must not be null!</i>
      * </p>
-     *
      */
     public void nullReference() {
         final String comment = "Object that was passed to assertObject was null, it must not be null!";
@@ -340,11 +321,9 @@ public class FabutReportBuilder {
      * <p>
      * Example: <i>∞> id: expected: 11 and was: 11.</i>
      * </p>
-     * 
-     * @param pair
-     *            the pair
-     * @param propertyName
-     *            the property name
+     *
+     * @param pair         the pair
+     * @param propertyName the property name
      */
     public void asserted(final AssertPair pair, final String propertyName) {
         final String comment = String.format("%s: expected: %s and was: %s", propertyName, pair.getExpected(),
@@ -357,11 +336,9 @@ public class FabutReportBuilder {
      * <p>
      * Example: <i>■> name: expected: John, but was: Mike.</i>
      * </p>
-     * 
-     * @param pair
-     *            the pair
-     * @param propertyName
-     *            the property name
+     *
+     * @param pair         the pair
+     * @param propertyName the property name
      */
     public void assertFail(final AssertPair pair, final String propertyName) {
         final String comment = String.format("%s: expected: %s, but was: %s", propertyName, pair.getExpected(),
@@ -374,9 +351,8 @@ public class FabutReportBuilder {
      * <p>
      * Example: <i>■> Id of User cannot be null</i>
      * </p>
-     * 
-     * @param clazz
-     *            the class whose id is null
+     *
+     * @param clazz the class whose id is null
      */
     public void idNull(final Class<?> clazz) {
         final String comment = String.format("Id of %s cannot be null", clazz.getSimpleName());
@@ -388,9 +364,8 @@ public class FabutReportBuilder {
      * <p>
      * Example: <i>■> Entity: User [id=100] was not deleted in repository</i>
      * </p>
-     * 
-     * @param entity
-     *            the entity
+     *
+     * @param entity the entity
      */
     public void notDeletedInRepository(final Object entity) {
         final String comment = String.format("Entity: %s was not deleted in repository", entity);
@@ -402,9 +377,8 @@ public class FabutReportBuilder {
      * <p>
      * Example: <i>■> Entity: User [id=100] cannot be copied into snapshot</i>
      * </p>
-     * 
-     * @param entity
-     *            the entity
+     *
+     * @param entity the entity
      */
     public void noCopy(final Object entity) {
         final String comment = String.format("Entity: %s cannot be copied into snapshot", entity);
@@ -416,7 +390,7 @@ public class FabutReportBuilder {
      * <p>
      * Example: <i>■> No match for expected key: first </i>
      * </p>
-     * 
+     *
      * @param key map key
      */
     public void excessExpectedMap(final Object key) {
@@ -429,7 +403,7 @@ public class FabutReportBuilder {
      * <p>
      * Example: <i>■> No match for actual key: first </i>
      * </p>
-     * 
+     *
      * @param key map key
      */
     public void excessActualMap(final Object key) {
@@ -455,7 +429,7 @@ public class FabutReportBuilder {
      * <p>
      * Example: <i>#\\> Map key: first </i>
      * </p>
-     * 
+     *
      * @param key map key
      */
     public void assertingMapKey(final Object key) {
@@ -463,4 +437,8 @@ public class FabutReportBuilder {
         addComment(comment, CommentType.COLLECTION);
     }
 
+    public <T> void assertWithSnapshotMustHaveAtLeastOnChange(T entity) {
+        final String comment = String.format("Assert entity with snapshot must be called with at least one property", entity);
+        addComment(comment, CommentType.FAIL);
+    }
 }

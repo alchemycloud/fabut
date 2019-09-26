@@ -111,14 +111,12 @@ class FabutRepositoryAssert extends FabutObjectAssert {
      * @return <code>true</code> if entity can be asserted with one in the snapshot, <code>false</code> otherwise.
      */
     public SnapshotAssert assertEntityWithSnapshot(final FabutReportBuilder report, final Object entity,
-                                            final List<ISingleProperty> properties) {
+                                                   final List<ISingleProperty> properties) {
 
         final Object id = ReflectionUtil.getIdValue(entity);
-
         final Class<?> entityClass = getRealClass(entity);
 
         final Map<Object, CopyAssert> map = dbSnapshot.get(entityClass);
-
         final CopyAssert copyAssert = map.get(id);
         if (copyAssert != null) {
             final Object expected = copyAssert.getEntity();
@@ -128,6 +126,15 @@ class FabutRepositoryAssert extends FabutObjectAssert {
             return new SnapshotAssert(ASSERT_FAIL, null);
         }
 
+    }
+
+    public boolean doesExistInSnapshot(final Object entity) {
+        final Object id = ReflectionUtil.getIdValue(entity);
+        final Class<?> entityClass = getRealClass(entity);
+
+        final Map<Object, CopyAssert> map = dbSnapshot.get(entityClass);
+
+        return map != null && map.get(id) != null;
     }
 
     @Override
@@ -181,7 +188,7 @@ class FabutRepositoryAssert extends FabutObjectAssert {
     /**
      * Marks the specified entity as asserted.
      *
-     * @param entity     the entity
+     * @param entity the entity
      * @return <code>true</code> if entity is successfully asserted else return <code>false</code>.
      */
     protected boolean markAsAsserted(final FabutReportBuilder report, final Object entity) {
