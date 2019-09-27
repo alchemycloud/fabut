@@ -1,15 +1,14 @@
 package cloud.alchemy.fabut.report;
 
-import java.lang.reflect.Method;
-
 import cloud.alchemy.fabut.enums.CommentType;
 import cloud.alchemy.fabut.pair.AssertPair;
 import cloud.alchemy.fabut.property.EmptyProperty;
 import cloud.alchemy.fabut.property.NotEmptyProperty;
-import org.apache.commons.lang3.StringUtils;
-
 import cloud.alchemy.fabut.property.NotNullProperty;
 import cloud.alchemy.fabut.property.NullProperty;
+import org.apache.commons.lang3.StringUtils;
+
+import java.lang.reflect.Method;
 
 /**
  * Report builder used for creating clean and readable reports. Its point is to emphasize failed asserts so developer
@@ -438,7 +437,7 @@ public class FabutReportBuilder {
     }
 
     public <T> void assertWithSnapshotMustHaveAtLeastOnChange(T entity) {
-        final String comment = String.format("Assert entity with snapshot must be called with at least one property", entity);
+        final String comment = String.format("Assert entity with snapshot must be called with at least one property: %s", entity);
         addComment(comment, CommentType.FAIL);
     }
 }

@@ -16,14 +16,14 @@ public enum ReferenceCheckType {
 
     NOT_NULL_PAIR(true);
 
-    private boolean assertResult;
+    private final boolean assertResult;
 
     /**
      * Default constructor.
      * 
      * @param assertResult
      */
-    private ReferenceCheckType(final boolean assertResult) {
+    ReferenceCheckType(final boolean assertResult) {
         this.assertResult = assertResult;
     }
 

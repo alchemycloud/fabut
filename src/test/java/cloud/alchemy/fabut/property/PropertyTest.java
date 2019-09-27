@@ -1,10 +1,9 @@
 package cloud.alchemy.fabut.property;
 
+import cloud.alchemy.fabut.Fabut;
 import cloud.alchemy.fabut.model.EntityTierOneType;
 import org.junit.Assert;
 import org.junit.Test;
-
-import cloud.alchemy.fabut.Fabut;
 
 /**
  * Tests for {@link AbstractSingleProperty}.

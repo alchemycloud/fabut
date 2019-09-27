@@ -3,7 +3,6 @@ package cloud.alchemy.fabut;
 import cloud.alchemy.fabut.model.EntityTierOneType;
 import cloud.alchemy.fabut.property.CopyAssert;
 import org.junit.Assert;
-
 import org.junit.Test;
 
 /**

@@ -3,7 +3,6 @@ package cloud.alchemy.fabut.graph;
 import cloud.alchemy.fabut.enums.NodeCheckType;
 import cloud.alchemy.fabut.model.TierOneType;
 import org.junit.Assert;
-
 import org.junit.Test;
 
 /**

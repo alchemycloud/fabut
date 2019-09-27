@@ -1,13 +1,5 @@
 package cloud.alchemy.fabut.assertt;
 
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.TreeMap;
-import java.util.TreeSet;
-
 import cloud.alchemy.fabut.IFabutRepositoryTest;
 import cloud.alchemy.fabut.IFabutTest;
 import cloud.alchemy.fabut.enums.AssertType;
@@ -20,6 +12,9 @@ import cloud.alchemy.fabut.property.ISingleProperty;
 import cloud.alchemy.fabut.report.FabutReportBuilder;
 import cloud.alchemy.fabut.util.ReflectionUtil;
 import org.junit.Assert;
+
+import java.util.*;
+import java.util.Map.Entry;
 
 import static cloud.alchemy.fabut.util.ReflectionUtil.getRealClass;
 
@@ -140,8 +135,8 @@ public class FabutRepositoryAssert extends FabutObjectAssert {
     }
 
     @Override
-    boolean afterAssertObject(final Object object, final boolean isSubproperty) {
-        return afterAssertEntity(new FabutReportBuilder(), object, isSubproperty);
+    boolean afterAssertObject(final Object object) {
+        return afterAssertEntity(new FabutReportBuilder(), object, false);
     }
 
     /**
@@ -202,7 +197,7 @@ public class FabutRepositoryAssert extends FabutObjectAssert {
             report.idNull(actualType);
             return ASSERT_FAIL;
         }
-        Object copy = null;
+        Object copy;
         try {
             copy = ReflectionUtil.createCopy(entity, getTypes(), getIgnoredFields());
         } catch (final CopyException e) {
@@ -238,8 +233,7 @@ public class FabutRepositoryAssert extends FabutObjectAssert {
         final boolean isSuperSuperTypeSupported = (superClassType != null)
                 && markAsserted(id, copy, superClassType);
 
-        final boolean marked = isTypeSupported || isSuperSuperTypeSupported;
-        return marked;
+        return isTypeSupported || isSuperSuperTypeSupported;
     }
 
     /**

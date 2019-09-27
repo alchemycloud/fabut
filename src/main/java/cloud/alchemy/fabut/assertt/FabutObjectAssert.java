@@ -13,8 +13,8 @@ import cloud.alchemy.fabut.property.*;
 import cloud.alchemy.fabut.report.FabutReportBuilder;
 import cloud.alchemy.fabut.util.ConversionUtil;
 import cloud.alchemy.fabut.util.ReflectionUtil;
-import org.junit.Assert;
 import org.apache.commons.lang3.StringUtils;
+import org.junit.Assert;
 
 import java.lang.reflect.Method;
 import java.util.*;
@@ -47,7 +47,7 @@ public class FabutObjectAssert extends Assert {
     /**
      * Ignored properties
      */
-    private Map<Class<?>, List<String>> ignoredFields;
+    private final Map<Class<?>, List<String>> ignoredFields;
 
     /**
      * The parameter snapshot.
@@ -125,7 +125,7 @@ public class FabutObjectAssert extends Assert {
             result = ASSERT_FAIL;
         }
         if (result) {
-            afterAssertObject(actual, false);
+            afterAssertObject(actual);
         }
 
         return result;
@@ -169,7 +169,7 @@ public class FabutObjectAssert extends Assert {
         final boolean assertResult = assertPair(EMPTY_STRING, report, assertPair, expectedChangedProperties,
                 new NodesList());
         if (assertResult) {
-            afterAssertObject(actual, false);
+            afterAssertObject(actual);
         }
         return assertResult;
     }
@@ -248,7 +248,7 @@ public class FabutObjectAssert extends Assert {
                 return assertMap(propertyName, report, (Map) pair.getExpected(), (Map) pair.getActual(), properties,
                         nodesList, true);
             case OPTIONAL_TYPE:
-                return assertOptional(report, pair, properties, propertyName, nodesList, true);
+                return assertOptional(report, pair, properties, propertyName, nodesList);
             default:
                 throw new IllegalStateException("Unknown assert type: " + pair.getObjectType());
         }
@@ -481,7 +481,7 @@ public class FabutObjectAssert extends Assert {
     }
 
     boolean assertOptional(final FabutReportBuilder report, final AssertPair pair,
-                           final List<ISingleProperty> properties, String propertyName, final NodesList nodesList, final boolean isProperty) {
+                           final List<ISingleProperty> properties, String propertyName, final NodesList nodesList) {
 
         if (!((Optional) pair.getExpected()).isPresent() && !((Optional) pair.getActual()).isPresent()) {
             return ASSERTED;
@@ -493,7 +493,7 @@ public class FabutObjectAssert extends Assert {
 
         final Object expectedValue = ((Optional) pair.getExpected()).get();
         final Object actualValue = ((Optional) pair.getActual()).get();
-        final AssertPair assertPair = ConversionUtil.createAssertPair(expectedValue, actualValue, types, isProperty);
+        final AssertPair assertPair = ConversionUtil.createAssertPair(expectedValue, actualValue, types, true);
         return assertPair(propertyName, report, assertPair, properties, nodesList);
     }
 
@@ -627,10 +627,9 @@ public class FabutObjectAssert extends Assert {
      * Check is object of entity type and if it is mark it as asserted entity, in other case do nothing.
      *
      * @param object        the object
-     * @param isSubproperty is object subproperty
      * @return true, if successful
      */
-    boolean afterAssertObject(final Object object, final boolean isSubproperty) {
+    boolean afterAssertObject(final Object object) {
         return ASSERT_FAIL;
     }
 
@@ -665,7 +664,7 @@ public class FabutObjectAssert extends Assert {
         boolean ok = true;
         for (final SnapshotPair snapshotPair : parameterSnapshot) {
             ok &= assertObjects(report, snapshotPair.getExpected(), snapshotPair.getActual(),
-                    new LinkedList<ISingleProperty>());
+                    new LinkedList<>());
         }
 
         initParametersSnapshot();
@@ -682,7 +681,7 @@ public class FabutObjectAssert extends Assert {
      */
     public List<ISingleProperty> extractPropertiesWithMatchingParent(final String parent,
                                                                      final List<ISingleProperty> properties) {
-        final List<ISingleProperty> extracts = new LinkedList<ISingleProperty>();
+        final List<ISingleProperty> extracts = new LinkedList<>();
         final Iterator<ISingleProperty> iterator = properties.iterator();
         while (iterator.hasNext()) {
             final ISingleProperty property = iterator.next();

@@ -1,6 +1,9 @@
 package cloud.alchemy.fabut;
 
-import cloud.alchemy.fabut.model.*;
+import cloud.alchemy.fabut.model.EntityTierOneType;
+import cloud.alchemy.fabut.model.EntityWithList;
+import cloud.alchemy.fabut.model.NoDefaultConstructorEntity;
+import cloud.alchemy.fabut.model.TierOneType;
 import cloud.alchemy.fabut.model.test.Address;
 import cloud.alchemy.fabut.model.test.Faculty;
 import cloud.alchemy.fabut.model.test.Student;
@@ -9,7 +12,8 @@ import cloud.alchemy.fabut.property.*;
 import junit.framework.AssertionFailedError;
 import org.junit.Test;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
 
 public class FabutTest extends AbstractFabutRepositoryAssertTest {
 
@@ -236,7 +240,7 @@ public class FabutTest extends AbstractFabutRepositoryAssertTest {
         // setup
         Fabut.beforeTest(this);
         final EntityWithList entity = new EntityWithList();
-        entity.setList(Arrays.asList(new EntityTierOneType("test", 1)));
+        entity.setList(Collections.singletonList(new EntityTierOneType("test", 1)));
         entity.setId(1);
 
         // method
@@ -483,7 +487,7 @@ public class FabutTest extends AbstractFabutRepositoryAssertTest {
                 Fabut.value(new PropertyPath<>("faculty.teacher.name"), "Djura"),
                 Fabut.value(new PropertyPath<>("faculty.teacher.address.city"), "Kamenica"),
                 Fabut.value(new PropertyPath<>("faculty.teacher.address.street"), "Ljubicica"),
-                Fabut.value(new PropertyPath<Student>("faculty.teacher.student"), student),
+                Fabut.value(new PropertyPath<>("faculty.teacher.student"), student),
                 Fabut.value(new PropertyPath<>("faculty.teacher.address.streetNumber"), "10"));
         Fabut.afterTest();
     }

@@ -735,12 +735,10 @@ public class FabutObjectAssertTest extends AbstractFabutObjectAssertTest {
     @Test
     public void testAssertChangedPropertyPrimitiveTypeTrue() {
         // setup
-        final String actual = TEST;
-        final String expected = TEST;
 
         // method
         final boolean assertValue = getFabutObjectAssert().assertPair(EMPTY_STRING, new FabutReportBuilder(),
-                new AssertPair(expected, actual, AssertableType.PRIMITIVE_TYPE, true),
+                new AssertPair(TEST, TEST, AssertableType.PRIMITIVE_TYPE, true),
                 new ArrayList<>(), new NodesList());
 
         // assert
@@ -754,12 +752,11 @@ public class FabutObjectAssertTest extends AbstractFabutObjectAssertTest {
     @Test
     public void testAssertChangedPropertyPrimitiveTypeFalse() {
         // setup
-        final String actual = TEST;
         final String expected = TEST + TEST;
 
         // method
         final boolean assertValue = getFabutObjectAssert().assertPair(EMPTY_STRING, new FabutReportBuilder(),
-                new AssertPair(expected, actual, AssertableType.PRIMITIVE_TYPE, true),
+                new AssertPair(expected, TEST, AssertableType.PRIMITIVE_TYPE, true),
                 new ArrayList<>(), new NodesList());
 
         // assert

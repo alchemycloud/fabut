@@ -20,7 +20,7 @@ public enum NodeCheckType {
     NEW_PAIR(true);
 
     /** The assert result. */
-    private boolean assertResult;
+    private final boolean assertResult;
 
     /**
      * Instantiates a new node check type.

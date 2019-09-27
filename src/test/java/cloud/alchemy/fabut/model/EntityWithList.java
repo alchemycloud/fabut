@@ -9,8 +9,8 @@ import java.util.List;
  */
 public class EntityWithList {
 
-    public static final PropertyPath<Integer> ID = new PropertyPath<Integer>("id");
-    public static final PropertyPath<List<EntityTierOneType>> LIST = new PropertyPath<List<EntityTierOneType>>("list");
+    public static final PropertyPath<Integer> ID = new PropertyPath<>("id");
+    public static final PropertyPath<List<EntityTierOneType>> LIST = new PropertyPath<>("list");
 
     private Integer id;
 

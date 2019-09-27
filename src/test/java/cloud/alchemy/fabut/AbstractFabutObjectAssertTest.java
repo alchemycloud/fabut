@@ -1,36 +1,18 @@
 package cloud.alchemy.fabut;
 
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-
 import cloud.alchemy.fabut.assertt.FabutObjectAssert;
+import cloud.alchemy.fabut.model.*;
 import cloud.alchemy.fabut.model.test.Address;
 import cloud.alchemy.fabut.model.test.Faculty;
 import cloud.alchemy.fabut.model.test.Student;
 import cloud.alchemy.fabut.model.test.Teacher;
 import org.junit.Assert;
-
 import org.junit.Before;
 
-import cloud.alchemy.fabut.model.A;
-import cloud.alchemy.fabut.model.B;
-import cloud.alchemy.fabut.model.C;
-import cloud.alchemy.fabut.model.DoubleLink;
-import cloud.alchemy.fabut.model.IgnoredMethodsType;
-import cloud.alchemy.fabut.model.IgnoredType;
-import cloud.alchemy.fabut.model.NoGetMethodsType;
-import cloud.alchemy.fabut.model.Start;
-import cloud.alchemy.fabut.model.TierFiveType;
-import cloud.alchemy.fabut.model.TierFourType;
-import cloud.alchemy.fabut.model.TierOneType;
-import cloud.alchemy.fabut.model.TierSixType;
-import cloud.alchemy.fabut.model.TierThreeType;
-import cloud.alchemy.fabut.model.TierTwoType;
-import cloud.alchemy.fabut.model.TierTwoTypeWithIgnoreProperty;
-import cloud.alchemy.fabut.model.TierTwoTypeWithListProperty;
-import cloud.alchemy.fabut.model.TierTwoTypeWithPrimitiveProperty;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
 /**
  * TODO add comments
@@ -64,7 +46,7 @@ public abstract class AbstractFabutObjectAssertTest extends Assert implements IF
 
     @Override
     public List<Class<?>> getComplexTypes() {
-        final List<Class<?>> complexTypes = new LinkedList<Class<?>>();
+        final List<Class<?>> complexTypes = new LinkedList<>();
         complexTypes.add(A.class);
         complexTypes.add(B.class);
         complexTypes.add(C.class);
@@ -97,9 +79,8 @@ public abstract class AbstractFabutObjectAssertTest extends Assert implements IF
 
     @Override
     public Map<Class<?>, List<String>> getIgnoredFields() {
-        final Map<Class<?>, List<String>> ignoredFields = new HashMap<>();
 
-        return ignoredFields;
+        return new HashMap<>();
     }
 
     @Override

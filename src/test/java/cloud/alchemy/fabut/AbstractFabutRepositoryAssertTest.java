@@ -1,12 +1,12 @@
 package cloud.alchemy.fabut;
 
-import java.util.*;
-
 import cloud.alchemy.fabut.assertt.FabutRepositoryAssert;
 import cloud.alchemy.fabut.model.*;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+
+import java.util.*;
 
 /**
  * TODO add comments
@@ -31,7 +31,7 @@ public abstract class AbstractFabutRepositoryAssertTest extends Assert implement
 
     @Override
     public List<Class<?>> getEntityTypes() {
-        final List<Class<?>> entityTypes = new LinkedList<Class<?>>();
+        final List<Class<?>> entityTypes = new LinkedList<>();
         entityTypes.add(EntityTierOneType.class);
         entityTypes.add(EntityTierTwoType.class);
         entityTypes.add(EntityWithList.class);
@@ -127,7 +127,7 @@ public abstract class AbstractFabutRepositoryAssertTest extends Assert implement
 
     @Override
     public List<Class<?>> getComplexTypes() {
-        final List<Class<?>> complexTypes = new LinkedList<Class<?>>();
+        final List<Class<?>> complexTypes = new LinkedList<>();
         complexTypes.add(A.class);
         complexTypes.add(B.class);
         complexTypes.add(C.class);

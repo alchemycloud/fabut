@@ -13,7 +13,7 @@ import cloud.alchemy.fabut.property.PropertyPath;
 public class TierTwoTypeWithIgnoreProperty extends Type {
 
     /** The Constant IGNORED_TYPE. */
-    public static final PropertyPath<IgnoredType> IGNORED_TYPE = new PropertyPath<IgnoredType>("ignoredType");
+    public static final PropertyPath<IgnoredType> IGNORED_TYPE = new PropertyPath<>("ignoredType");
 
     /** The ignored type. */
     private final IgnoredType ignoredType;

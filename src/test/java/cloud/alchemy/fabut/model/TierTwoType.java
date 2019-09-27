@@ -15,7 +15,7 @@ public class TierTwoType extends Type {
     /**
      * The Constant PROPERTY.
      */
-    public static final PropertyPath<TierOneType> PROPERTY = new PropertyPath<TierOneType>("property");
+    public static final PropertyPath<TierOneType> PROPERTY = new PropertyPath<>("property");
 
     /**
      * The property.

@@ -18,7 +18,7 @@ public class EntityTierOneType extends TierOneType {
     /**
      * The Constant ID.
      */
-    public static final PropertyPath<Integer> ID = new PropertyPath<Integer>("id");
+    public static final PropertyPath<Integer> ID = new PropertyPath<>("id");
 
     /**
      * The id.

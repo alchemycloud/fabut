@@ -18,5 +18,5 @@ public enum AssertType {
     /**
      * When test does not meet necessary prerequisites.
      */
-    UNSUPPORTED_ASSERT;
+    UNSUPPORTED_ASSERT
 }

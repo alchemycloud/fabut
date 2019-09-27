@@ -1,10 +1,10 @@
 package cloud.alchemy.fabut.graph;
 
-import java.util.LinkedList;
-import java.util.List;
-
 import cloud.alchemy.fabut.enums.NodeCheckType;
 import cloud.alchemy.fabut.pair.AssertPair;
+
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * Implementing class for {@link IsomorphicGraph} using {@link LinkedList} as container.
@@ -21,7 +21,7 @@ public class NodesList implements IsomorphicGraph {
      * Default constructor.
      */
     public NodesList() {
-        isomorphicNodes = new LinkedList<IsomorphicNodePair>();
+        isomorphicNodes = new LinkedList<>();
     }
 
     @Override

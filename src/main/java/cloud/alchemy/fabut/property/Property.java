@@ -38,7 +38,7 @@ public class Property<T> extends AbstractSingleProperty {
 
     @Override
     public ISingleProperty getCopy() {
-        return new Property<T>(getPath(), value);
+        return new Property<>(getPath(), value);
     }
 
 }

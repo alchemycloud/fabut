@@ -13,7 +13,7 @@ import cloud.alchemy.fabut.property.PropertyPath;
 public class TierOneType extends Type {
 
     /** The property. */
-    public static PropertyPath<String> PROPERTY = new PropertyPath<>("property");
+    public static final PropertyPath<String> PROPERTY = new PropertyPath<>("property");
 
     /** The property. */
     private String property;

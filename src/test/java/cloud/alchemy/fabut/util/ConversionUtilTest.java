@@ -1,15 +1,13 @@
 package cloud.alchemy.fabut.util;
 
+import cloud.alchemy.fabut.Fabut;
+import cloud.alchemy.fabut.property.*;
+import org.junit.Assert;
+import org.junit.Test;
+
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-
-import cloud.alchemy.fabut.Fabut;
-import cloud.alchemy.fabut.property.*;
-import org.apache.commons.lang3.ArrayUtils;
-import org.junit.Assert;
-
-import org.junit.Test;
 
 /**
  * Tests for {@link ConversionUtil}.

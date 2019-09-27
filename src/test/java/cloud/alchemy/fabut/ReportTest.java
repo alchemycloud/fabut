@@ -1,6 +1,8 @@
 package cloud.alchemy.fabut;
 
-import cloud.alchemy.fabut.model.*;
+import cloud.alchemy.fabut.model.EntityTierOneType;
+import cloud.alchemy.fabut.model.NoDefaultConstructorEntity;
+import cloud.alchemy.fabut.model.TierOneType;
 import cloud.alchemy.fabut.model.test.Address;
 import cloud.alchemy.fabut.model.test.Faculty;
 import cloud.alchemy.fabut.model.test.Student;
@@ -11,11 +13,6 @@ import junit.framework.AssertionFailedError;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
 
 
 public class ReportTest extends AbstractFabutRepositoryAssertTest {

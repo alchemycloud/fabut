@@ -17,7 +17,7 @@ public class TierTwoTypeWithListProperty extends Type {
     /**
      * The Constant PROPERTY.
      */
-    public static final PropertyPath<List<String>> PROPERTY = new PropertyPath<List<String>>("property");
+    public static final PropertyPath<List<String>> PROPERTY = new PropertyPath<>("property");
 
     /**
      * The property.

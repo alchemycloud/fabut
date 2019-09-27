@@ -8,7 +8,7 @@ import cloud.alchemy.fabut.enums.AssertableType;
  */
 public class AssertPair extends Pair {
 
-    private AssertableType assertableType;
+    private final AssertableType assertableType;
     private boolean property;
 
     public AssertPair(final Object expected, final Object actual, final AssertableType objectType) {

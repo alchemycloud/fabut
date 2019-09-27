@@ -1,16 +1,16 @@
 package cloud.alchemy.fabut;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import cloud.alchemy.fabut.assertt.FabutRepositoryAssert;
 import cloud.alchemy.fabut.assertt.SnapshotAssert;
-import cloud.alchemy.fabut.property.*;
-import cloud.alchemy.fabut.util.ReflectionUtil;
-import junit.framework.AssertionFailedError;
 import cloud.alchemy.fabut.enums.AssertType;
+import cloud.alchemy.fabut.property.*;
 import cloud.alchemy.fabut.report.FabutReportBuilder;
 import cloud.alchemy.fabut.util.ConversionUtil;
+import cloud.alchemy.fabut.util.ReflectionUtil;
+import junit.framework.AssertionFailedError;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Set of method for advanced asserting.
@@ -224,7 +224,7 @@ public class Fabut {
      * @return created object.
      */
     public static <T> Property<T> value(final PropertyPath<T> path, final T expectedValue) {
-        return new Property<T>(path.getPath(), expectedValue);
+        return new Property<>(path.getPath(), expectedValue);
     }
 
     /**

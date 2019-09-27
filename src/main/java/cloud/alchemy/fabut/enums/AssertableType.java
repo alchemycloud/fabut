@@ -1,7 +1,7 @@
 package cloud.alchemy.fabut.enums;
 
-import java.util.Map;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -37,6 +37,6 @@ public enum AssertableType {
     MAP_TYPE,
 
     /** Type that implemens {@link Optional}**/
-    OPTIONAL_TYPE;
+    OPTIONAL_TYPE
 
 }

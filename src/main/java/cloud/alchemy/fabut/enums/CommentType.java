@@ -33,7 +33,7 @@ public enum CommentType {
      * @param mark
      *            mark of comment type.
      */
-    private CommentType(final String mark) {
+    CommentType(final String mark) {
         this.mark = mark;
     }
 

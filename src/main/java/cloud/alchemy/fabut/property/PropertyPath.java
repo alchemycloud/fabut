@@ -4,7 +4,7 @@ package cloud.alchemy.fabut.property;
 public class PropertyPath<T> {
 
     private static final String DOT = ".";
-    private String path;
+    private final String path;
 
     public PropertyPath(String path) {
         this.path = path;
@@ -15,6 +15,6 @@ public class PropertyPath<T> {
     }
 
     public <S> PropertyPath<S> chain(PropertyPath<S> addPath) {
-        return new PropertyPath<S>(path + DOT + addPath.path);
+        return new PropertyPath<>(path + DOT + addPath.path);
     }
 }
