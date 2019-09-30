@@ -13,11 +13,9 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 
-import javax.xml.soap.Node;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.*;
-
 
 import static cloud.alchemy.fabut.ReflectionUtil.*;
 
@@ -38,10 +36,17 @@ public abstract class FabutTests {
         Assert.assertEquals(expected, actual);
     }
 
+    protected List<?> findAll(final Class<?> entityClass) {
+        throw new IllegalStateException("Override findAll method");
+    }
+
+    protected Object findById(final Class<?> entityClass, final Object id) {
+        throw new IllegalStateException("Override findById method");
+    }
+
     @Before
     public void fabutBeforeTest() {
         parameterSnapshot.clear();
-        ;
 
         dbSnapshot.clear();
         for (final Class<?> entityType : entityTypes) {
@@ -408,17 +413,14 @@ public abstract class FabutTests {
     }
 
 
-    protected void assertEntityPair(final FabutReport report, final String propertyName, final AssertPair pair, final List<ISingleProperty> properties, final NodesList nodesList) {
-
-        if (assertType == AssertType.OBJECT_ASSERT) {
-            return super.assertEntityPair(report, propertyName, pair, properties, nodesList);
-        }
+    private void assertEntityPair(final FabutReport report, final String propertyName, final AssertPair pair, final List<ISingleProperty> properties, final NodesList nodesList) {
 
         if (pair.isProperty()) {
-            return assertEntityById(report, propertyName, pair);
+            assertEntityById(report, propertyName, pair);
         } else {
-            return assertSubfields(report, pair, properties, nodesList, propertyName);
+            assertSubfields(report, pair, properties, nodesList, propertyName);
         }
+
     }
 
     private void assertEntityAsDeleted(final FabutReport report, final Object entity) {
@@ -471,21 +473,11 @@ public abstract class FabutTests {
         afterAssertEntity(new FabutReport(), object, false);
     }
 
-    private boolean afterAssertEntity(final FabutReport report, final Object entity, final boolean isProperty) {
+    private void afterAssertEntity(final FabutReport report, final Object entity, final boolean isProperty) {
         if (!isProperty) {
-            return markAsAsserted(report, entity);
-        } else {
-            return ASSERTED;
+            markAsAsserted(report, entity);
         }
-    }
 
-
-    private List<?> findAll(final Class<?> entityClass) {
-        return findAll(entityClass);
-    }
-
-    private Object findById(final Class<?> entityClass, final Object id) {
-        return findById(entityClass, id);
     }
 
     private void markAsAsserted(final FabutReport report, final Object entity) {
@@ -701,15 +693,15 @@ public abstract class FabutTests {
 
     }
 
-    private boolean assertPair(final String propertyName, final FabutReport report, final AssertPair pair, final List<ISingleProperty> properties, final NodesList nodesList) {
+    private void assertPair(final String propertyName, final FabutReport report, final AssertPair pair, final List<ISingleProperty> properties, final NodesList nodesList) {
 
         final ReferenceCheckType referenceCheck = checkByReference(report, pair, propertyName);
 
         if (referenceCheck == ReferenceCheckType.EQUAL_REFERENCE) {
-            return referenceCheck.isAssertResult();
+            return;
         }
         if (referenceCheck == ReferenceCheckType.EXCLUSIVE_NULL) {
-            return referenceCheck.isAssertResult();
+            return;
         }
 
         // check if any of the expected/actual object is recurring in nodes list
@@ -718,7 +710,7 @@ public abstract class FabutTests {
             if (nodeCheckType.getAssertValue()) {
                 report.checkByReference(propertyName, pair.getActual());
             }
-            return nodeCheckType.getAssertValue();
+            return;
         }
         nodesList.addPair(pair);
         switch (pair.getObjectType()) {
@@ -809,8 +801,8 @@ public abstract class FabutTests {
             }
         } else if (expected instanceof IgnoredProperty) {
             report.reportIgnoreProperty(propertyName);
-        } else if (expected instanceof Property) {
 
+        } else if (expected instanceof Property) {
             final Object expectedValue = ((Property) expected).getValue();
             final AssertPair assertPair = createAssertPair(expectedValue, actual, isProperty);
             assertPair(propertyName, report, assertPair, properties, nodesList);
@@ -837,7 +829,7 @@ public abstract class FabutTests {
     }
 
     private void assertMap(final String propertyName, final FabutReport report, final Map expected, final Map actual,
-                              final List<ISingleProperty> properties, final NodesList nodesList, final boolean isProperty) {
+                           final List<ISingleProperty> properties, final NodesList nodesList, final boolean isProperty) {
         // TODO add better reporting when asserting map objects, similar to list
         final TreeSet expectedKeys = new TreeSet(expected.keySet());
         final TreeSet actualKeys = new TreeSet(actual.keySet());
@@ -873,7 +865,7 @@ public abstract class FabutTests {
     }
 
     private void assertExcessExpected(final String propertyName, final FabutReport report, final Map expected,
-                                         final TreeSet expectedKeys, final TreeSet actualKeys) {
+                                      final TreeSet expectedKeys, final TreeSet actualKeys) {
         final TreeSet expectedKeysCopy = new TreeSet(expectedKeys);
         expectedKeysCopy.removeAll(actualKeys);
         if (expectedKeysCopy.size() > 0) {
@@ -884,7 +876,7 @@ public abstract class FabutTests {
     }
 
     private void assertExcessActual(final String propertyName, final FabutReport report, final Map actual,
-                                       final TreeSet expectedKeys, final TreeSet actualKeys) {
+                                    final TreeSet expectedKeys, final TreeSet actualKeys) {
         final TreeSet actualKeysCopy = new TreeSet(actualKeys);
         actualKeysCopy.removeAll(expectedKeys);
         if (actualKeysCopy.size() > 0) {
