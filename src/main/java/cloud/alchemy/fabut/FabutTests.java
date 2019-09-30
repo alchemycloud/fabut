@@ -838,8 +838,8 @@ public abstract class FabutTests {
         expectedKeysCopy.retainAll(actualKeys);
 
         for (final Object key : expectedKeysCopy) {
-            final AssertPair assertPair = createAssertPair(expected.get(key), actual.get(key));
             report.assertingMapKey(key);
+            final AssertPair assertPair = createAssertPair(expected.get(key), actual.get(key));
             assertPair(EMPTY_STRING, report, assertPair, properties, nodesList);
         }
         assertExcessExpected(propertyName, report, expected, expectedKeysCopy, actualKeys);
@@ -978,19 +978,6 @@ public abstract class FabutTests {
             }
         }
         return false;
-    }
-
-    private AssertPair createAssertPair(final Object expected, final Object actual) {
-
-        final AssertableType objectType = getObjectType(expected, actual);
-        return new AssertPair(expected, actual, objectType);
-    }
-
-    private AssertPair createAssertPair(final Object expected, final Object actual, final boolean isProperty) {
-
-        final AssertPair assertPair = createAssertPair(expected, actual);
-        assertPair.setProperty(isProperty);
-        return assertPair;
     }
 
 }
