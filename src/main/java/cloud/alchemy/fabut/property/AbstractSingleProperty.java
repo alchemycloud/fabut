@@ -14,7 +14,7 @@ public abstract class AbstractSingleProperty implements ISingleProperty {
 
     /**
      * Default constructor.
-     * 
+     *
      * @param path
      *            property path
      */
@@ -29,7 +29,7 @@ public abstract class AbstractSingleProperty implements ISingleProperty {
 
     /**
      * Set property path.
-     * 
+     *
      * @param path
      *            new path.
      */

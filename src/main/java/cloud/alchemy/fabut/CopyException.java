@@ -1,4 +1,4 @@
-package cloud.alchemy.fabut.exception;
+package cloud.alchemy.fabut;
 
 /**
  * Exception thrown when object copy fails.

@@ -8,7 +8,6 @@ import cloud.alchemy.fabut.util.ReflectionUtil;
  *
  * @author Dusko Vesin
  * @author Nikola Olah
- * @author Bojan Babic
  * @author Nikola Trkulja
  */
 public class IsomorphicNodePair extends Pair {

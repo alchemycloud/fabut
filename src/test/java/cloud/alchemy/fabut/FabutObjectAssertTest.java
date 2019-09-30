@@ -7,7 +7,6 @@ import cloud.alchemy.fabut.graph.NodesList;
 import cloud.alchemy.fabut.model.*;
 import cloud.alchemy.fabut.pair.AssertPair;
 import cloud.alchemy.fabut.pair.SnapshotPair;
-import cloud.alchemy.fabut.property.*;
 import cloud.alchemy.fabut.report.FabutReportBuilder;
 import org.junit.Test;
 

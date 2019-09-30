@@ -4,9 +4,9 @@
 //import java.lang.reflect.Method;
 //import java.util.*;
 //
-//import cloud.alchemy.fabut.enums.AssertableType;
+//import cloud.alchemy.fabut2.enums.AssertableType;
 //import cloud.alchemy.fabut.exception.CopyException;
-//import cloud.alchemy.fabut.graph.NodesList;
+//import cloud.alchemy.fabut2.graph.NodesList;
 //import org.junit.Assert;
 //import junit.framework.AssertionFailedError;
 //

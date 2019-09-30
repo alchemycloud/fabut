@@ -7,8 +7,8 @@
 //import java.util.Map;
 //import java.util.TreeSet;
 //
-//import cloud.alchemy.fabut.graph.NodesList;
-//import cloud.alchemy.fabut.pair.AssertPair;
+//import cloud.alchemy.fabut2.graph.NodesList;
+//import cloud.alchemy.fabut2.pair.AssertPair;
 //import cloud.alchemy.fabut.property.CopyAssert;
 //import cloud.alchemy.fabut.property.ISingleProperty;
 //import cloud.alchemy.fabut.report.FabutReportBuilder;
