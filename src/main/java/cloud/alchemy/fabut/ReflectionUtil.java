@@ -1,6 +1,5 @@
 package cloud.alchemy.fabut;
 
-import cloud.alchemy.fabut.exception.CopyException;
 import org.apache.commons.lang3.StringUtils;
 
 import java.lang.reflect.Field;
@@ -9,8 +8,8 @@ import java.util.*;
 
 public class ReflectionUtil {
 
-    static final String GET_METHOD_PREFIX = "get";
-    static final String IS_METHOD_PREFIX = "is";
+    private static final String GET_METHOD_PREFIX = "get";
+    private static final String IS_METHOD_PREFIX = "is";
     static final String GET_ID = "getId";
 
     ReflectionUtil() {
@@ -50,6 +49,25 @@ public class ReflectionUtil {
         }
     }
 
+
+    public static boolean hasIdMethod(final Object entity) {
+        try {
+            entity.getClass().getMethod(GET_ID);
+            return true;
+        } catch (final Exception e) {
+            return false;
+        }
+    }
+
+    public static Object getIdValue(final Object entity) {
+        try {
+            final Method method = entity.getClass().getMethod(GET_ID);
+            return method.invoke(entity);
+        } catch (final Exception e) {
+            return null;
+        }
+    }
+
     static boolean isListType(final Object object) {
         return object instanceof List;
     }
@@ -73,5 +91,6 @@ public class ReflectionUtil {
     static boolean isOneOfType(final Class classs, List<Class> classes) {
         return classes.stream().anyMatch(classs::isAssignableFrom);
     }
+
 
 }

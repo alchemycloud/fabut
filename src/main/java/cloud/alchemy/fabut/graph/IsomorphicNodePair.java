@@ -1,7 +1,7 @@
 package cloud.alchemy.fabut.graph;
 
 import cloud.alchemy.fabut.pair.Pair;
-import cloud.alchemy.fabut.util.ReflectionUtil;
+import cloud.alchemy.fabut.ReflectionUtil;
 
 /**
  * Class representing object pair from {@link IsomorphicGraph}.

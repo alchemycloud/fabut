@@ -1,13 +1,19 @@
 package cloud.alchemy.fabut;
 
+import cloud.alchemy.fabut.enums.AssertableType;
+import cloud.alchemy.fabut.enums.NodeCheckType;
+import cloud.alchemy.fabut.enums.ReferenceCheckType;
+import cloud.alchemy.fabut.graph.NodesList;
+import cloud.alchemy.fabut.pair.AssertPair;
+import cloud.alchemy.fabut.pair.SnapshotPair;
 import cloud.alchemy.fabut.property.*;
-import cloud.alchemy.fabut2.property.*;
 import junit.framework.AssertionFailedError;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 
+import javax.xml.soap.Node;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.*;
@@ -226,29 +232,11 @@ public abstract class FabutTests {
         return isOneOfType(classs, ignoredTypes);
     }
 
-    public boolean isIgnoredField(Class clazz, String fieldName) {
+    private boolean isIgnoredField(Class clazz, String fieldName) {
         return ignoredFields.getOrDefault(clazz, Collections.emptyList()).contains(fieldName);
     }
 
-    public boolean hasIdMethod(final Object entity) {
-        try {
-            entity.getClass().getMethod(GET_ID);
-            return true;
-        } catch (final Exception e) {
-            return false;
-        }
-    }
-
-    public Object getIdValue(final Object entity) {
-        try {
-            final Method method = entity.getClass().getMethod(GET_ID);
-            return method.invoke(entity);
-        } catch (final Exception e) {
-            return null;
-        }
-    }
-
-    public List<Method> getGetMethods(final Object object) {
+    private List<Method> getGetMethods(final Object object) {
 
         final List<Method> getMethods = new ArrayList<>();
         final List<Method> getMethodsComplexType = new ArrayList<>();
@@ -272,7 +260,7 @@ public abstract class FabutTests {
 
     }
 
-    public Method getGetMethod(final String methodName, final Object object) throws Exception {
+    private Method getGetMethod(final String methodName, final Object object) throws Exception {
         return object.getClass().getMethod(methodName);
     }
 
@@ -350,7 +338,6 @@ public abstract class FabutTests {
             return null;
         }
 
-
         if (isComplexType(propertyForCopying.getClass())) {
             // its complex object, we need its copy
             return createCopyObject(propertyForCopying.getClass(), nodes);
@@ -421,7 +408,8 @@ public abstract class FabutTests {
     }
 
 
-    protected boolean assertEntityPair(final FabutReport report, final String propertyName, final AssertPair pair, final List<ISingleProperty> properties, final NodesList nodesList) {
+    protected void assertEntityPair(final FabutReport report, final String propertyName, final AssertPair pair, final List<ISingleProperty> properties, final NodesList nodesList) {
+
         if (assertType == AssertType.OBJECT_ASSERT) {
             return super.assertEntityPair(report, propertyName, pair, properties, nodesList);
         }
@@ -433,9 +421,9 @@ public abstract class FabutTests {
         }
     }
 
-    private boolean assertEntityAsDeleted(final FabutReport report, final Object entity) {
+    private void assertEntityAsDeleted(final FabutReport report, final Object entity) {
 
-        final boolean ignoreEntity = ignoreEntity(report, entity);
+        ignoreEntity(report, entity);
 
         final Object findById = findById(entity.getClass(), getIdValue(entity));
         final boolean isDeletedInRepository = findById == null;
@@ -443,21 +431,13 @@ public abstract class FabutTests {
         if (!isDeletedInRepository) {
             report.notDeletedInRepository(entity);
         }
-        return ignoreEntity && isDeletedInRepository;
+
     }
 
-    private boolean ignoreEntity(final FabutReport report, final Object entity) {
-        return markAsAsserted(report, entity);
+    private void ignoreEntity(final FabutReport report, final Object entity) {
+        markAsAsserted(report, entity);
     }
 
-    /**
-     * Asserts specified entity with entity with of same class with same id in db snapshot.
-     *
-     * @param report
-     * @param entity
-     * @param properties
-     * @return <code>true</code> if entity can be asserted with one in the snapshot, <code>false</code> otherwise.
-     */
     private Object assertEntityWithSnapshot(final FabutReport report, final Object entity,
                                             final List<ISingleProperty> properties) {
 
@@ -486,12 +466,12 @@ public abstract class FabutTests {
         return map != null && map.get(id) != null;
     }
 
-    @Override
-    boolean afterAssertObject(final Object object) {
-        return afterAssertEntity(new FabutReport(), object, false);
+
+    private void afterAssertObject(final Object object) {
+        afterAssertEntity(new FabutReport(), object, false);
     }
 
-    final boolean afterAssertEntity(final FabutReport report, final Object entity, final boolean isProperty) {
+    private boolean afterAssertEntity(final FabutReport report, final Object entity, final boolean isProperty) {
         if (!isProperty) {
             return markAsAsserted(report, entity);
         } else {
@@ -508,20 +488,20 @@ public abstract class FabutTests {
         return findById(entityClass, id);
     }
 
-    private boolean markAsAsserted(final FabutReport report, final Object entity) {
+    private void markAsAsserted(final FabutReport report, final Object entity) {
 
         final Class<?> actualType = entity.getClass();
 
         final Object id = getIdValue(entity);
         if (id == null) {
             report.idNull(actualType);
-            return ASSERT_FAIL;
+            return;
         }
 
-        return markAsserted(id, entity, actualType);
+        markAsserted(id, entity, actualType);
     }
 
-    protected boolean markAsserted(final Object id, final Object copy, final Class<?> actualType) {
+    private void markAsserted(final Object id, final Object copy, final Class<?> actualType) {
         final Map<Object, CopyAssert> map = dbSnapshot.get(actualType);
         final boolean isTypeSupported = map != null;
         if (isTypeSupported) {
@@ -533,43 +513,10 @@ public abstract class FabutTests {
             copyAssert.setAsserted(true);
         }
 
-        final Class<?> superClassType = actualType.getSuperclass();
-        final boolean isSuperSuperTypeSupported = (superClassType != null)
-                && markAsserted(id, copy, superClassType);
-
-        return isTypeSupported || isSuperSuperTypeSupported;
+        markAsserted(id, copy, actualType);
     }
 
-    @Override
-    public boolean takeSnapshot(final FabutReport report, final Object... parameters) {
-        initDbSnapshot();
-        isRepositoryValid = true;
-        final boolean isParameterSnapshotOk = super.takeSnapshot(report, parameters);
-
-        boolean ok = ASSERTED;
-        for (final Entry<Class<?>, Map<Object, CopyAssert>> entry : dbSnapshot.entrySet()) {
-            final List<?> findAll = findAll(entry.getKey());
-
-            for (final Object entity : findAll) {
-                try {
-                    final Object copy = ReflectionUtil.createCopy(entity, getTypes(), getIgnoredFields());
-                    entry.getValue().put(ReflectionUtil.getIdValue(entity), new CopyAssert(copy));
-                } catch (final CopyException e) {
-                    report.noCopy(entity);
-                    ok = ASSERT_FAIL;
-                }
-            }
-        }
-        return ok && isParameterSnapshotOk;
-    }
-
-    /**
-     * Asserts db snapshot with after db state.
-     *
-     * @param report the report
-     * @return true, if successful
-     */
-    public boolean assertDbSnapshot(final FabutReport report) {
+    private void assertDbSnapshot(final FabutReport report) {
         boolean ok = true;
         // assert entities by classes
         for (final Map.Entry<Class<?>, Map<Object, CopyAssert>> snapshotEntry : dbSnapshot.entrySet()) {
@@ -578,63 +525,62 @@ public abstract class FabutTests {
             final TreeSet beforeIds = new TreeSet(snapshotEntry.getValue().keySet());
             final TreeSet afterIds = new TreeSet(afterEntities.keySet());
 
-            ok &= checkNotExistingInAfterDbState(beforeIds, afterIds, snapshotEntry.getValue(), report);
-            ok &= checkNewToAfterDbState(beforeIds, afterIds, afterEntities, report);
-            ok &= assertDbSnapshotWithAfterState(beforeIds, afterIds, snapshotEntry.getValue(), afterEntities, report);
+            checkNotExistingInAfterDbState(beforeIds, afterIds, snapshotEntry.getValue(), report);
+            checkNewToAfterDbState(beforeIds, afterIds, afterEntities, report);
+            assertDbSnapshotWithAfterState(beforeIds, afterIds, snapshotEntry.getValue(), afterEntities, report);
 
         }
-        return ok;
 
     }
 
-    boolean checkNotExistingInAfterDbState(final TreeSet beforeIds, final TreeSet afterIds,
-                                           final Map<Object, CopyAssert> beforeEntities, final FabutReport report) {
+    private void checkNotExistingInAfterDbState(final TreeSet beforeIds, final TreeSet afterIds,
+                                                final Map<Object, CopyAssert> beforeEntities, final FabutReport report) {
 
         final TreeSet beforeIdsCopy = new TreeSet(beforeIds);
-        boolean ok = ASSERTED;
+
         // does difference between db snapshot and after db state
         beforeIdsCopy.removeAll(afterIds);
         for (final Object id : beforeIdsCopy) {
             final CopyAssert copyAssert = beforeEntities.get(id);
             if (!copyAssert.isAsserted()) {
-                ok = ASSERT_FAIL;
+
                 report.noEntityInSnapshot(copyAssert.getEntity());
             }
         }
 
-        return ok;
+
     }
 
-    boolean checkNewToAfterDbState(final TreeSet beforeIds, final TreeSet afterIds,
-                                   final Map<Object, Object> afterEntities, final FabutReport report) {
+    private void checkNewToAfterDbState(final TreeSet beforeIds, final TreeSet afterIds,
+                                        final Map<Object, Object> afterEntities, final FabutReport report) {
 
         final TreeSet afterIdsCopy = new TreeSet(afterIds);
-        boolean ok = ASSERTED;
+
         // does difference between after db state and db snapshot
         afterIdsCopy.removeAll(beforeIds);
         for (final Object id : afterIdsCopy) {
             final Object entity = afterEntities.get(id);
-            ok = ASSERT_FAIL;
+
             report.entityNotAssertedInAfterState(entity);
         }
-        return ok;
+
     }
 
-    boolean assertDbSnapshotWithAfterState(final TreeSet beforeIds, final TreeSet afterIds,
-                                           final Map<Object, CopyAssert> beforeEntities, final Map<Object, Object> afterEntities,
-                                           final FabutReport report) {
+    private void assertDbSnapshotWithAfterState(final TreeSet beforeIds, final TreeSet afterIds,
+                                                final Map<Object, CopyAssert> beforeEntities, final Map<Object, Object> afterEntities,
+                                                final FabutReport report) {
 
         final TreeSet beforeIdsCopy = new TreeSet(beforeIds);
         // does intersection between db snapshot and after db state
         beforeIdsCopy.retainAll(afterIds);
-        boolean ok = ASSERTED;
+
         for (final Object id : beforeIdsCopy) {
             if (!beforeEntities.get(id).isAsserted()) {
-                ok &= assertObjects(report, beforeEntities.get(id).getEntity(), afterEntities.get(id),
+                assertObjects(report, beforeEntities.get(id).getEntity(), afterEntities.get(id),
                         new LinkedList<>());
             }
         }
-        return ok;
+
     }
 
     private Map getAfterEntities(final Class<?> clazz) {
@@ -653,165 +599,109 @@ public abstract class FabutTests {
         return dbSnapshot;
     }
 
-
-    /**
-     * Asserts two entities by their id.
-     *
-     * @param report       assert report builder
-     * @param propertyName name of current entity
-     * @return - <code>true</code> if and only if ids of two specified objects are equal, <code>false</code> otherwise
-     */
-    boolean assertEntityById(final FabutReport report, final String propertyName, final AssertPair pair) {
+    private void assertEntityById(final FabutReport report, final String propertyName, final AssertPair pair) {
 
         final Object expectedId = ReflectionUtil.getIdValue(pair.getExpected());
         final Object actualId = ReflectionUtil.getIdValue(pair.getActual());
         try {
-            assertEquals(expectedId, actualId);
-            //report.asserted(pair, propertyName);
-            return ASSERTED;
+            customAssertEquals(expectedId, actualId);
         } catch (final AssertionError e) {
-            report.assertFail(pair, propertyName);
-            return ASSERT_FAIL;
+            report.assertFail(propertyName, pair.getExpected(), pair.getActual());
         }
     }
 
-    /**
-     * Asserts object with with expected properties, every field of object must have property for it or assert will
-     * fail.
-     *
-     * @param report             the report
-     * @param actual             the actual
-     * @param expectedProperties the properties
-     * @return <code>true</code> if object can be asserted with list of properties, <code>false</code> otherwise.
-     */
-    public boolean assertObjectWithProperties(final FabutReport report, final Object actual,
-                                              final List<ISingleProperty> expectedProperties) {
+    private void assertObjectWithProperties(final FabutReport report, final Object actual,
+                                            final List<ISingleProperty> expectedProperties) {
 
         if (actual == null) {
             report.nullReference();
-            return ASSERT_FAIL;
+            return;
         }
 
-        final List<Method> methods = ReflectionUtil.getGetMethods(actual, types);
-        boolean result = ASSERTED;
+        final List<Method> methods = getGetMethods(actual);
+
         for (final Method method : methods) {
 
             final String fieldName = ReflectionUtil.getFieldName(method);
-            final boolean ignoredField = ReflectionUtil.isIgnoredField(ignoredFields, getRealClass(actual), fieldName);
+            final boolean ignoredField = isIgnoredField(actual.getClass(), fieldName);
 
             final ISingleProperty property = getPropertyFromList(fieldName, expectedProperties);
             try {
                 if (property != null) {
-                    result &= assertProperty(fieldName, report, property, method.invoke(actual), EMPTY_STRING,
+                    assertProperty(fieldName, report, property, method.invoke(actual), EMPTY_STRING,
                             expectedProperties, new NodesList(), true);
                 } else if (!ignoredField && hasInnerProperties(fieldName, expectedProperties)) {
-                    result &= assertInnerProperty(report, method.invoke(actual), expectedProperties, fieldName);
+                    assertInnerProperty(report, method.invoke(actual), expectedProperties, fieldName);
                 } else if (!ignoredField) {
                     // there is no matching property for field
                     report.noPropertyForField(fieldName, method.invoke(actual));
-                    result = ASSERT_FAIL;
                 }
             } catch (final Exception e) {
                 report.uncallableMethod(method, actual);
-                result = ASSERT_FAIL;
             }
-
-
         }
+
         if (!expectedProperties.isEmpty()) {
             for (ISingleProperty singleProperty : expectedProperties) {
                 report.excessExpectedProperty(singleProperty.getPath());
             }
-            result = ASSERT_FAIL;
-        }
-        if (result) {
-            afterAssertObject(actual);
         }
 
-        return result;
+        afterAssertObject(actual);
     }
 
-    public boolean assertInnerProperty(final FabutReport report, final Object actual,
-                                       final List<ISingleProperty> properties, final String parent) {
-        final List<ISingleProperty> extracts = extractPropertiesWithMatchingParent(parent, properties);
-        removeParentQualification(parent, extracts);
-        report.increaseDepth(parent);
-        final boolean t = assertObjectWithProperties(report, actual, extracts);
-        report.decreaseDepth();
-        return t;
-    }
-
-    public boolean assertInnerObject(final FabutReport report, final Object expected, final Object actual,
+    private void assertInnerProperty(final FabutReport report, final Object actual,
                                      final List<ISingleProperty> properties, final String parent) {
         final List<ISingleProperty> extracts = extractPropertiesWithMatchingParent(parent, properties);
         removeParentQualification(parent, extracts);
-        report.increaseDepth(parent);
-        final boolean t = assertObjects(report, expected, actual, extracts);
-        report.decreaseDepth();
-        return t;
+
+        assertObjectWithProperties(report, actual, extracts);
     }
 
-    /**
-     * Asserts two objects, if objects are primitives it will rely on custom user assert for primitives, if objects are
-     * complex it will assert them by values of their fields.
-     *
-     * @param report                    the report
-     * @param expected                  the expected
-     * @param actual                    the actual
-     * @param expectedChangedProperties use of this list is to remove the need for every field of actual object to match fields of expected
-     *                                  object, properties in this list take priority over fields in expected object
-     * @return <code>true</code> can be asserted, <code>false</code> otherwise
-     */
-    public boolean assertObjects(final FabutReport report, final Object expected, final Object actual,
-                                 final List<ISingleProperty> expectedChangedProperties) {
+    private void assertInnerObject(final FabutReport report, final Object expected, final Object actual,
+                                   final List<ISingleProperty> properties, final String parent) {
+        final List<ISingleProperty> extracts = extractPropertiesWithMatchingParent(parent, properties);
+        removeParentQualification(parent, extracts);
 
-        final AssertPair assertPair = ConversionUtil.createAssertPair(expected, actual, types);
-        final boolean assertResult = assertPair(EMPTY_STRING, report, assertPair, expectedChangedProperties,
-                new NodesList());
-        if (assertResult) {
-            afterAssertObject(actual);
-        }
-        return assertResult;
+        assertObjects(report, expected, actual, extracts);
     }
 
-    /**
-     * Makes snapshot of specified parameters.
-     *
-     * @param parameters array of parameters
-     */
-    public boolean takeSnapshot(final FabutReport report, final Object... parameters) {
-        initParametersSnapshot();
-        boolean ok = ASSERTED;
+    private void assertObjects(final FabutReport report, final Object expected, final Object actual,
+                               final List<ISingleProperty> expectedChangedProperties) {
+
+        final AssertPair assertPair = createAssertPair(expected, actual);
+        assertPair(EMPTY_STRING, report, assertPair, expectedChangedProperties, new NodesList());
+
+        afterAssertObject(actual);
+    }
+
+    private void takeSnapshot(final FabutReport report, final Object... parameters) {
+
         for (final Object object : parameters) {
             try {
-                final SnapshotPair snapshotPair = new SnapshotPair(object, ReflectionUtil.createCopy(object, types, ignoredFields));
+                final SnapshotPair snapshotPair = new SnapshotPair(object, createCopyObject(object, new NodesList()));
                 parameterSnapshot.add(snapshotPair);
             } catch (final CopyException e) {
                 report.noCopy(object);
-                ok = false;
             }
         }
-        return ok;
+
+        for (final Map.Entry<Class<?>, Map<Object, CopyAssert>> entry : dbSnapshot.entrySet()) {
+            final List<?> findAll = findAll(entry.getKey());
+
+            for (final Object entity : findAll) {
+                try {
+                    final Object copy = createCopyObject(entity, new NodesList());
+                    entry.getValue().put(ReflectionUtil.getIdValue(entity), new CopyAssert(copy));
+                } catch (final CopyException e) {
+                    report.noCopy(entity);
+                }
+            }
+        }
+
     }
 
-    /**
-     * Asserts object pair trough three phases:
-     * <ul type="circle">
-     * <li>Reference check, assert will only continue trough this phase if both object aren't null and aren't same
-     * instance</li>
-     * <li>Node check, assert will pass continue trough if object pair is new to nodes list
-     * <li>Asserting by type with each type having particular method of asserting</li>
-     * </ul>
-     *
-     * @param propertyName name of current property
-     * @param report       assert report builder
-     * @param pair         object pair for asserting
-     * @param properties   list of expected changed properties
-     * @param nodesList    list of object that had been asserted
-     * @return <code>true</code> if objects can be asserted, <code>false</code> otherwise.
-     */
-    public boolean assertPair(final String propertyName, final FabutReport report, final AssertPair pair,
-                              final List<ISingleProperty> properties, final NodesList nodesList) {
+    private boolean assertPair(final String propertyName, final FabutReport report, final AssertPair pair, final List<ISingleProperty> properties, final NodesList nodesList) {
 
         final ReferenceCheckType referenceCheck = checkByReference(report, pair, propertyName);
 
@@ -833,197 +723,120 @@ public abstract class FabutTests {
         nodesList.addPair(pair);
         switch (pair.getObjectType()) {
             case IGNORED_TYPE:
-                report.ignoredType(getRealClass(pair.getExpected()));
-                return ASSERTED;
+                report.ignoredType(pair.getExpected().getClass());
+                break;
             case COMPLEX_TYPE:
-                return assertSubfields(report, pair, properties, nodesList, propertyName);
+                assertSubfields(report, pair, properties, nodesList, propertyName);
+                break;
             case ENTITY_TYPE:
-                return assertEntityPair(report, propertyName, pair, properties, nodesList);
+                assertEntityPair(report, propertyName, pair, properties, nodesList);
+                break;
             case PRIMITIVE_TYPE:
-                return assertPrimitives(report, propertyName, pair);
+                assertPrimitives(report, propertyName, pair);
+                break;
             case LIST_TYPE:
-                return assertList(propertyName, report, (List) pair.getExpected(), (List) pair.getActual(), properties,
+                assertList(propertyName, report, (List) pair.getExpected(), (List) pair.getActual(), properties,
                         nodesList, true);
+                break;
             case MAP_TYPE:
-                return assertMap(propertyName, report, (Map) pair.getExpected(), (Map) pair.getActual(), properties,
+                assertMap(propertyName, report, (Map) pair.getExpected(), (Map) pair.getActual(), properties,
                         nodesList, true);
+                break;
             case OPTIONAL_TYPE:
-                return assertOptional(report, pair, properties, propertyName, nodesList);
+                assertOptional(report, pair, properties, propertyName, nodesList);
+                break;
             default:
                 throw new IllegalStateException("Unknown assert type: " + pair.getObjectType());
         }
     }
 
-    /**
-     * Asserts two entities.
-     *
-     * @param report       the report
-     * @param propertyName the property name
-     * @param pair         the pair
-     * @param properties   the properties
-     * @param nodesList    the nodes list
-     * @return <code>true</code> if objects can be asserted, <code>false</code> otherwise.
-     */
-    protected boolean assertEntityPair(final FabutReport report, final String propertyName,
-                                       final AssertPair pair, final List<ISingleProperty> properties, final NodesList nodesList) {
-        throw new IllegalStateException("Entities are not supported!");
-    }
+    private void assertSubfields(final FabutReport report, final AssertPair pair,
+                                 final List<ISingleProperty> properties, final NodesList nodesList, final String propertyName) {
 
-    /**
-     * Assert subfields of an actual object with ones from expected object, it gets the fields by invoking get methods
-     * of actual/expected objects via reflection, properties passed have priority over expected object fields.
-     *
-     * @param report     the report
-     * @param pair       the pair
-     * @param properties the properties
-     * @param nodesList  the nodes list
-     * @return <code>true</code> if objects can be asserted, <code>false</code> otherwise.
-     */
-    public boolean assertSubfields(final FabutReport report, final AssertPair pair,
-                                   final List<ISingleProperty> properties, final NodesList nodesList, final String propertyName) {
 
-        report.increaseDepth(propertyName);
-
-        boolean t = ASSERTED;
-        final List<Method> getMethods = ReflectionUtil.getGetMethods(pair.getExpected(), types);
+        final List<Method> getMethods = getGetMethods(pair.getExpected());
 
         for (final Method expectedMethod : getMethods) {
             final String fieldName = ReflectionUtil.getFieldName(expectedMethod);
-            if (!ReflectionUtil.isIgnoredField(ignoredFields, getRealClass(pair.getExpected()), fieldName)) {
+            if (!isIgnoredField(pair.getExpected().getClass(), fieldName)) {
                 try {
                     final ISingleProperty property = obtainProperty(expectedMethod.invoke(pair.getExpected()), fieldName,
                             properties);
 
-                    final Method actualMethod = ReflectionUtil.getGetMethod(expectedMethod.getName(), pair.getActual());
+                    final Method actualMethod = getGetMethod(expectedMethod.getName(), pair.getActual());
 
-                    t &= assertProperty(fieldName, report, property, actualMethod.invoke(pair.getActual()), fieldName,
+                    assertProperty(fieldName, report, property, actualMethod.invoke(pair.getActual()), fieldName,
                             properties, nodesList, true);
 
                 } catch (final Exception e) {
                     report.uncallableMethod(expectedMethod, pair.getActual());
-                    t = ASSERT_FAIL;
                 }
             }
         }
 
-        report.decreaseDepth();
-        return t;
+
     }
 
-    /**
-     * Asserts two primitives using abstract method assertEqualsObjects, reports result and returns it. Primitives are
-     * any class not marked as complex type, entity type or ignored type.
-     *
-     * @param report       assert report builder
-     * @param propertyName name of the current property
-     * @param pair         expected object and actual object
-     * @return - <code>true</code> if and only if objects are asserted, <code>false</code> if method customAssertEquals
-     * throws {@link AssertionError}.
-     */
-    boolean assertPrimitives(final FabutReport report, final String propertyName, final AssertPair pair) {
+    private void assertPrimitives(final FabutReport report, final String propertyName, final AssertPair pair) {
         try {
-            fabutTest.customAssertEquals(pair.getExpected(), pair.getActual());
-            //report.asserted(pair, propertyName);
-            return ASSERTED;
+            customAssertEquals(pair.getExpected(), pair.getActual());
         } catch (final AssertionError e) {
-            report.assertFail(pair, propertyName);
-            return ASSERT_FAIL;
+            report.assertFail(propertyName, pair.getExpected(), pair.getActual());
         }
     }
 
-    /**
-     * Handles asserting actual object by the specified expected property. Logs the result in the report and returns it.
-     *
-     * @param propertyName name of the current property
-     * @param report       assert report builder
-     * @param expected     property containing expected information
-     * @param actual       actual object
-     * @param fieldName    name of the field in parent actual object
-     * @param properties   list of properties that exclude fields from expected object
-     * @param nodesList    list of object that had been asserted
-     * @param isProperty   is actual property, important for entities
-     * @return - <code>true</code> if object is asserted with expected property, <code>false</code> otherwise.
-     */
-    public boolean assertProperty(final String propertyName, final FabutReport report, final ISingleProperty expected,
-                                  final Object actual, final String fieldName, final List<ISingleProperty> properties,
-                                  final NodesList nodesList, final boolean isProperty) {
+    private void assertProperty(final String propertyName, final FabutReport report, final ISingleProperty expected,
+                                final Object actual, final String fieldName, final List<ISingleProperty> properties,
+                                final NodesList nodesList, final boolean isProperty) {
 
         removeParentQualification(fieldName, properties);
 
-        // expected any not null value
-        if (expected instanceof NotNullProperty) {
-            final boolean ok = actual != null ? ASSERTED : ASSERT_FAIL;
-            if (!ok) {
+        if (expected instanceof NotNullProperty) { // expected any not null value
+            if (actual == null) {
                 report.notNullProperty(propertyName);
             }
-            return ok;
-        }
-
-        // expected null value
-        if (expected instanceof NullProperty) {
-            final boolean ok = actual == null ? ASSERTED : ASSERT_FAIL;
-            if (!ok) {
+        } else if (expected instanceof NullProperty) { // expected null value
+            if (actual != null) {
                 report.nullProperty(propertyName);
             }
-            return ok;
-        }
-
-        // expected any not empty value
-        if (expected instanceof NotEmptyProperty) {
-            final boolean ok = actual instanceof Optional && ((Optional) actual).isPresent() ? ASSERTED : ASSERT_FAIL;
-            if (!ok) {
+        } else if (expected instanceof NotEmptyProperty) { // expected any not empty value
+            if (!(actual instanceof Optional && ((Optional) actual).isPresent())) {
                 report.notEmptyProperty(propertyName);
             }
-            return ok;
-        }
-
-        // expected empty value
-        if (expected instanceof EmptyProperty) {
-            final boolean ok = actual instanceof Optional && !((Optional) actual).isPresent() ? ASSERTED : ASSERT_FAIL;
-            if (!ok) {
+        } else if (expected instanceof EmptyProperty) {// expected empty value
+            if (!(actual instanceof Optional && !((Optional) actual).isPresent())) {
                 report.emptyProperty(propertyName);
             }
-            return ok;
-        }
-
-        // any value
-        if (expected instanceof IgnoredProperty) {
+        } else if (expected instanceof IgnoredProperty) {
             report.reportIgnoreProperty(propertyName);
-            return ASSERTED;
-        }
+        } else if (expected instanceof Property) {
 
-        // assert by type
-        if (expected instanceof Property) {
             final Object expectedValue = ((Property) expected).getValue();
-            final AssertPair assertPair = createAssertPair(expectedValue, actual, types, isProperty);
-            return assertPair(propertyName, report, assertPair, properties, nodesList);
+            final AssertPair assertPair = createAssertPair(expectedValue, actual, isProperty);
+            assertPair(propertyName, report, assertPair, properties, nodesList);
         }
 
         throw new IllegalStateException();
     }
 
-    private boolean assertList(final String propertyName, final FabutReport report, final List expected,
-                              final List actual, final List<ISingleProperty> properties, final NodesList nodesList,
-                              final boolean isProperty) {
+    private void assertList(final String propertyName, final FabutReport report, final List expected,
+                            final List actual, final List<ISingleProperty> properties, final NodesList nodesList,
+                            final boolean isProperty) {
 
         // check sizes
         if (expected.size() != actual.size()) {
             report.listDifferentSizeComment(propertyName, expected.size(), actual.size());
-            return ASSERT_FAIL;
-        }
+        } else {
+            // assert every element by index
 
-        // assert every element by index
-        boolean assertResult = ASSERTED;
-        for (int i = 0; i < actual.size(); i++) {
-            report.assertingListElement(propertyName, i);
-            assertResult &= assertObjects(report, expected.get(i), actual.get(i), properties);
+            for (int i = 0; i < actual.size(); i++) {
+                report.assertingListElement(propertyName, i);
+                assertObjects(report, expected.get(i), actual.get(i), properties);
+            }
         }
-
-        return assertResult;
     }
 
-
-    private boolean assertMap(final String propertyName, final FabutReport report, final Map expected, final Map actual,
+    private void assertMap(final String propertyName, final FabutReport report, final Map expected, final Map actual,
                               final List<ISingleProperty> properties, final NodesList nodesList, final boolean isProperty) {
         // TODO add better reporting when asserting map objects, similar to list
         final TreeSet expectedKeys = new TreeSet(expected.keySet());
@@ -1031,35 +844,35 @@ public abstract class FabutTests {
         final TreeSet expectedKeysCopy = new TreeSet(expectedKeys);
 
         expectedKeysCopy.retainAll(actualKeys);
-        boolean ok = true;
+
         for (final Object key : expectedKeysCopy) {
             final AssertPair assertPair = createAssertPair(expected.get(key), actual.get(key));
             report.assertingMapKey(key);
-            ok &= assertPair(EMPTY_STRING, report, assertPair, properties, nodesList);
+            assertPair(EMPTY_STRING, report, assertPair, properties, nodesList);
         }
-        ok &= assertExcessExpected(propertyName, report, expected, expectedKeysCopy, actualKeys);
-        ok &= assertExcessActual(propertyName, report, actual, expectedKeysCopy, actualKeys);
-
-        return ok;
+        assertExcessExpected(propertyName, report, expected, expectedKeysCopy, actualKeys);
+        assertExcessActual(propertyName, report, actual, expectedKeysCopy, actualKeys);
     }
 
-    private boolean assertOptional(final FabutReport report, final AssertPair pair, final List<ISingleProperty> properties, String propertyName, final NodesList nodesList) {
+    private void assertOptional(final FabutReport report, final AssertPair pair, final List<ISingleProperty> properties, String propertyName, final NodesList nodesList) {
 
         if (!((Optional) pair.getExpected()).isPresent() && !((Optional) pair.getActual()).isPresent()) {
-            return ASSERTED;
+            return;
         }
+
         if (((Optional) pair.getExpected()).isPresent() ^ ((Optional) pair.getActual()).isPresent()) {
             report.assertFail(propertyName, pair.getExpected(), pair.getActual());
-            return ASSERT_FAIL;
+            return;
         }
 
         final Object expectedValue = ((Optional) pair.getExpected()).get();
         final Object actualValue = ((Optional) pair.getActual()).get();
         final AssertPair assertPair = createAssertPair(expectedValue, actualValue, true);
-        return assertPair(propertyName, report, assertPair, properties, nodesList);
+
+        assertPair(propertyName, report, assertPair, properties, nodesList);
     }
 
-    private boolean assertExcessExpected(final String propertyName, final FabutReport report, final Map expected,
+    private void assertExcessExpected(final String propertyName, final FabutReport report, final Map expected,
                                          final TreeSet expectedKeys, final TreeSet actualKeys) {
         final TreeSet expectedKeysCopy = new TreeSet(expectedKeys);
         expectedKeysCopy.removeAll(actualKeys);
@@ -1067,12 +880,10 @@ public abstract class FabutTests {
             for (final Object key : expectedKeysCopy) {
                 report.excessExpectedMap(key);
             }
-            return false;
         }
-        return true;
     }
 
-    private boolean assertExcessActual(final String propertyName, final FabutReport report, final Map actual,
+    private void assertExcessActual(final String propertyName, final FabutReport report, final Map actual,
                                        final TreeSet expectedKeys, final TreeSet actualKeys) {
         final TreeSet actualKeysCopy = new TreeSet(actualKeys);
         actualKeysCopy.removeAll(expectedKeys);
@@ -1080,9 +891,8 @@ public abstract class FabutTests {
             for (final Object key : actualKeysCopy) {
                 report.excessActualMap(key);
             }
-            return false;
         }
-        return true;
+
     }
 
     private List<ISingleProperty> removeParentQualification(final String parentPropertyName, final List<ISingleProperty> properties) {
@@ -1180,7 +990,7 @@ public abstract class FabutTests {
 
     private AssertPair createAssertPair(final Object expected, final Object actual) {
 
-        final AssertableType objectType = ReflectionUtil.getObjectType(expected, actual);
+        final AssertableType objectType = getObjectType(expected, actual);
         return new AssertPair(expected, actual, objectType);
     }
 
