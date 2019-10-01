@@ -21,6 +21,8 @@ public class FabutTest extends Fabut {
     private List<Object> entityWithListTypes = new ArrayList<>();
     private List<Object> noDefaultConstructorEntities = new ArrayList<>();
 
+    private boolean assertAfterTest;
+
     public FabutTest() {
         super();
         entityTypes.add(EntityTierOneType.class);
@@ -47,6 +49,19 @@ public class FabutTest extends Fabut {
         complexTypes.add(TierTwoTypeWithMap.class);
 
         ignoredTypes.add(IgnoredType.class);
+    }
+
+    @Override
+    public void fabutBeforeTest() {
+        super.fabutBeforeTest();
+        assertAfterTest = true;
+    }
+
+    @Override
+    public void fabutAfterTest() {
+        if (assertAfterTest) {
+            super.fabutAfterTest();
+        }
     }
 
     @Override
@@ -232,7 +247,8 @@ public class FabutTest extends Fabut {
         getEntityTierOneTypes().add(entityTierOneType);
 
         // method
-
+        assertAfterTest = false;
+        super.fabutAfterTest();
     }
 
     @Test(expected = AssertionFailedError.class)
@@ -242,6 +258,7 @@ public class FabutTest extends Fabut {
         getNoDefaultConstructorEntities().add(new NoDefaultConstructorEntity("test", 1));
 
         // method
+        assertAfterTest = false;
         takeSnapshot();
     }
 
@@ -272,7 +289,7 @@ public class FabutTest extends Fabut {
         assertObject(object, value(TierOneType.PROPERTY, "test"));
 
     }
-    
+
     @Test
     public void testAssertObjectWithEntityType() {
         // setup
@@ -353,10 +370,11 @@ public class FabutTest extends Fabut {
         ((EntityTierOneType) getEntityTierOneTypes().get(0)).setProperty("test");
         assertEntityWithSnapshot(entityTierOneType, value(EntityTierOneType.PROPERTY, "testtest"));
 
-
+        assertAfterTest = false;
+        super.fabutAfterTest();
     }
 
-    @Test(expected = IllegalStateException.class)
+    @Test(expected = AssertionFailedError.class)
     public void testAssertEntityWithSnapshotNotEntity() {
         // setup
 
@@ -366,7 +384,7 @@ public class FabutTest extends Fabut {
         assertEntityWithSnapshot(new TierOneType());
     }
 
-    @Test(expected = NullPointerException.class)
+    @Test(expected = IllegalStateException.class)
     public void testAssertEntityWithSnapshotNullEntity() {
         // setup
 
@@ -379,8 +397,6 @@ public class FabutTest extends Fabut {
         // method
         ((EntityTierOneType) getEntityTierOneTypes().get(0)).setProperty("test");
         assertEntityWithSnapshot(null, value(EntityTierOneType.PROPERTY, "test"));
-
-
     }
 
     @Test
@@ -449,7 +465,7 @@ public class FabutTest extends Fabut {
 
     }
 
-    @Test(expected = IllegalStateException.class)
+    @Test(expected = AssertionFailedError.class)
     public void testIgnoreEntityNotEntity() {
         // setup
 

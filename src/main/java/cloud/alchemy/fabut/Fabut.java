@@ -78,7 +78,7 @@ public abstract class Fabut extends Assert {
     public void assertObject(final String message, final Object object, final IProperty... properties) {
 
         final FabutReport report = new FabutReport(message);
-        if (isRepositoryAssert() && doesExistInSnapshot(object)) {
+        if (isEntityType(object.getClass()) && doesExistInSnapshot(object)) {
             report.entityInSnapshot(object);
             throw new AssertionFailedError(report.getMessage());
         }
@@ -216,10 +216,6 @@ public abstract class Fabut extends Assert {
         if (!isEntityType(entity.getClass())) {
             throw new IllegalStateException(entity.getClass() + " is not registered as entity type");
         }
-    }
-
-    private boolean isRepositoryAssert() {
-        return !entityTypes.isEmpty();
     }
 
     private boolean isEntityType(final Class<?> classs) {

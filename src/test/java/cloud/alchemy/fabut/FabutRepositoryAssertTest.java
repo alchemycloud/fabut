@@ -114,7 +114,7 @@ public class FabutRepositoryAssertTest extends Fabut {
         beforeList2.add(new EntityTierTwoType(PROPERTY + PROPERTY + PROPERTY, 4, new EntityTierOneType(TEST + TEST + TEST + TEST, 4)));
         setEntityTierTwoTypes(beforeList2);
 
-        takeSnapshott(new FabutReport());
+        takeSnapshot();
 
         final List<Object> afterList1 = new ArrayList<Object>();
         afterList1.add(new EntityTierOneType(TEST + TEST, 1));
@@ -123,13 +123,6 @@ public class FabutRepositoryAssertTest extends Fabut {
         final List<Object> afterist2 = new ArrayList<Object>();
         afterist2.add(new EntityTierTwoType(PROPERTY + PROPERTY + PROPERTY, 4, new EntityTierOneType(TEST + TEST + TEST + TEST, 4)));
         setEntityTierTwoTypes(afterist2);
-
-        // method
-        final FabutReport report = new FabutReport();
-        assertDbSnapshot(report);
-
-        // assert
-        assertTrue(report.isSuccess());
     }
 
     @Test
