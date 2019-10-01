@@ -17,7 +17,7 @@ import java.util.*;
 
 import static cloud.alchemy.fabut.ReflectionUtil.*;
 
-public abstract class Fabut extends Assert{
+public abstract class Fabut extends Assert {
 
     private static final String EMPTY_STRING = "";
     private static final String DOT = ".";
@@ -736,13 +736,11 @@ public abstract class Fabut extends Assert{
             final String fieldName = ReflectionUtil.getFieldName(expectedMethod);
             if (!isIgnoredField(expected.getClass(), fieldName)) {
                 try {
-                    final ISingleProperty property = obtainProperty(expectedMethod.invoke(expected), fieldName,
-                            properties);
+                    final ISingleProperty property = obtainProperty(expectedMethod.invoke(expected), fieldName, properties);
 
                     final Method actualMethod = getGetMethod(expectedMethod.getName(), actual);
 
-                    assertProperty(fieldName, report, property, actualMethod.invoke(actual), fieldName,
-                            properties, nodesList);
+                    assertProperty(fieldName, report, property, actualMethod.invoke(actual), fieldName, properties, nodesList);
 
                 } catch (final Exception e) {
                     report.uncallableMethod(expectedMethod, actual);
@@ -789,9 +787,10 @@ public abstract class Fabut extends Assert{
         } else if (expected instanceof Property) {
             final Object expectedValue = ((Property) expected).getValue();
             assertPair(propertyName, report, expectedValue, actual, properties, nodesList);
+        } else {
+            throw new IllegalStateException();
         }
 
-        throw new IllegalStateException();
     }
 
     void assertList(final String propertyName, final FabutReport report, final List expected,
