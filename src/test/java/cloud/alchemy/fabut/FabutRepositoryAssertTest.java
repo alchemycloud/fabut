@@ -302,7 +302,7 @@ public class FabutRepositoryAssertTest extends Fabut {
         setEntityTierOneTypes(list1);
 
         final EntityTierOneType actual = new EntityTierOneType(TEST, 1);
-        takeSnapshot(new FabutReport());
+        takeSnapshot();
 
         // method
         final FabutReport entityAssertReport = new FabutReport();
@@ -347,7 +347,7 @@ public class FabutRepositoryAssertTest extends Fabut {
         setEntityTierTwoTypes(list);
 
         // method
-        takeSnapshot(new FabutReport());
+        takeSnapshot();
         entity.setProperty(TEST + TEST);
         final FabutReport report = new FabutReport();
         markAsAsserted(report, new EntityTierTwoType(TEST, 1, new EntityTierOneType(PROPERTY, 10)));
