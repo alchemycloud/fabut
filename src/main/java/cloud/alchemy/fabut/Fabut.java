@@ -350,7 +350,7 @@ public abstract class Fabut extends Assert {
             return createCopyObject(propertyForCopying.getClass(), nodes);
         }
 
-        if (isListType(propertyForCopying)) {
+        if (isListType(propertyForCopying.getClass())) {
             // just creating new list with same elements
             return copyList((List<?>) propertyForCopying, nodes);
         }
@@ -711,14 +711,14 @@ public abstract class Fabut extends Assert {
                 } else if (isEntityType(expected.getClass())) {
                     assertEntityPair(report, propertyName, expected, actual, properties, nodesList);
 
-                } else if (isListType(expected.getClass())) {
+                } else if (isListType(expected.getClass()) && isListType(actual.getClass())) {
                     assertList(propertyName, report, (List) expected, (List) actual, properties, nodesList);
 
-                } else if (isMapType(expected.getClass())) {
+                } else if (isMapType(expected.getClass()) && isMapType(actual.getClass())) {
                     assertMap(propertyName, report, (Map) expected, (Map) actual, properties, nodesList);
 
-                } else if (isOptionalType(expected.getClass())) {
-                    assertOptional(report, expected, actual, properties, propertyName, nodesList);
+                } else if (isOptionalType(expected.getClass()) && isOptionalType(actual.getClass())) {
+                    assertOptional(report, (Optional) expected, (Optional) actual, properties, propertyName, nodesList);
 
                 } else {
                     assertPrimitives(report, propertyName, expected, actual);
@@ -828,19 +828,19 @@ public abstract class Fabut extends Assert {
         assertExcessActual(propertyName, report, actual, expectedKeysCopy, actualKeys);
     }
 
-    private void assertOptional(final FabutReport report, Object expected, Object actual, final List<ISingleProperty> properties, String propertyName, final NodesList nodesList) {
+    private void assertOptional(final FabutReport report, Optional expected, Optional actual, final List<ISingleProperty> properties, String propertyName, final NodesList nodesList) {
 
-        if (!((Optional) expected).isPresent() && !((Optional) actual).isPresent()) {
+        if (!expected.isPresent() && !actual.isPresent()) {
             return;
         }
 
-        if (((Optional) expected).isPresent() ^ ((Optional) actual).isPresent()) {
+        if (expected.isPresent() ^ actual.isPresent()) {
             report.assertFail(propertyName, expected, actual);
             return;
         }
 
-        final Object expectedValue = ((Optional) expected).get();
-        final Object actualValue = ((Optional) actual).get();
+        final Object expectedValue = expected.get();
+        final Object actualValue = actual.get();
 
         assertPair(propertyName, report, expectedValue, actualValue, properties, nodesList);
     }

@@ -38,7 +38,7 @@ public class ReflectionUtil {
         return StringUtils.uncapitalize(fieldName);
     }
 
-    static Field findField(final Class<?> fieldClass, final String fieldName) {
+    private static Field findField(final Class<?> fieldClass, final String fieldName) {
         if (fieldClass == null) {
             return null;
         }
@@ -68,24 +68,24 @@ public class ReflectionUtil {
         }
     }
 
-    static boolean isListType(final Object object) {
-        return object instanceof List;
-    }
-
-    static boolean isCollectionClass(final Class classs) {
-        return classs.isAssignableFrom(List.class) || classs.isAssignableFrom(Set.class) || classs.isAssignableFrom(Map.class);
+    static boolean isListType(final Class classs) {
+        return List.class.isAssignableFrom(classs);
     }
 
     static boolean isSetType(final Class classs) {
-        return classs.isAssignableFrom(Set.class);
+        return Set.class.isAssignableFrom(classs);
     }
 
     static boolean isMapType(final Class classs) {
-        return classs.isAssignableFrom(Map.class);
+        return Map.class.isAssignableFrom(classs);
+    }
+
+    static boolean isCollectionClass(final Class classs) {
+        return isListType(classs) || isSetType(classs) || isMapType(classs);
     }
 
     static boolean isOptionalType(final Class classs) {
-        return classs.isAssignableFrom(Optional.class);
+        return Optional.class.isAssignableFrom(classs);
     }
 
     static boolean isOneOfType(final Class classs, List<Class> classes) {
