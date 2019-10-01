@@ -1,6 +1,5 @@
 package cloud.alchemy.fabut;
 
-import cloud.alchemy.fabut.enums.NodeCheckType;
 import cloud.alchemy.fabut.enums.ReferenceCheckType;
 import cloud.alchemy.fabut.graph.NodesList;
 import cloud.alchemy.fabut.pair.SnapshotPair;
@@ -693,35 +692,39 @@ public abstract class Fabut extends Assert {
         }
 
         // check if any of the expected/actual object is recurring in nodes list
-        final NodeCheckType nodeCheckType = nodesList.nodeCheck(expected, actual);
-        if (nodeCheckType != NodeCheckType.NEW_PAIR) {
-            if (nodeCheckType.getAssertValue()) {
+        switch (nodesList.nodeCheck(expected, actual)) {
+            case SINGLE_NODE:
                 report.checkByReference(propertyName, actual);
-            }
-            return;
-        }
-        nodesList.addPair(expected, actual);
+                return;
+            case CONTAINS_PAIR:
+                return;
+            case NEW_PAIR:
 
-        if (isIgnoredType(expected.getClass())) {
-            report.ignoredType(expected.getClass());
+                nodesList.addPair(expected, actual);
 
-        } else if (isComplexType(expected.getClass())) {
-            assertSubfields(report, expected, actual, properties, nodesList, propertyName);
+                if (isIgnoredType(expected.getClass())) {
+                    report.ignoredType(expected.getClass());
 
-        } else if (isEntityType(expected.getClass())) {
-            assertEntityPair(report, propertyName, expected, actual, properties, nodesList);
+                } else if (isComplexType(expected.getClass())) {
+                    assertSubfields(report, expected, actual, properties, nodesList, propertyName);
 
-        } else if (isListType(expected.getClass())) {
-            assertList(propertyName, report, (List) expected, (List) actual, properties, nodesList);
+                } else if (isEntityType(expected.getClass())) {
+                    assertEntityPair(report, propertyName, expected, actual, properties, nodesList);
 
-        } else if (isMapType(expected.getClass())) {
-            assertMap(propertyName, report, (Map) expected, (Map) actual, properties, nodesList);
+                } else if (isListType(expected.getClass())) {
+                    assertList(propertyName, report, (List) expected, (List) actual, properties, nodesList);
 
-        } else if (isOptionalType(expected.getClass())) {
-            assertOptional(report, expected, actual, properties, propertyName, nodesList);
+                } else if (isMapType(expected.getClass())) {
+                    assertMap(propertyName, report, (Map) expected, (Map) actual, properties, nodesList);
 
-        } else {
-            assertPrimitives(report, propertyName, expected, actual);
+                } else if (isOptionalType(expected.getClass())) {
+                    assertOptional(report, expected, actual, properties, propertyName, nodesList);
+
+                } else {
+                    assertPrimitives(report, propertyName, expected, actual);
+                }
+
+                break;
         }
     }
 
