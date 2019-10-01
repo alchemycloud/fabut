@@ -275,11 +275,7 @@ public class FabutTest extends Fabut {
 
     }
 
-    /**
-     * Test for {@link Fabut#assertObject(Object, IProperty...)} when object is complex type
-     * and can be asserted.
-     */
-    @Test
+    @Test(expected = AssertionFailedError.class)
     public void testAssertObjectWithComplexType() {
         // setup
 

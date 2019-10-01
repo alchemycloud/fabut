@@ -15,21 +15,22 @@ import java.lang.reflect.Method;
 import java.util.*;
 
 import static cloud.alchemy.fabut.ReflectionUtil.*;
+import static java.util.Optional.empty;
+import static java.util.Optional.of;
 
 public abstract class Fabut extends Assert {
 
-    private static final String EMPTY_STRING = "";
     private static final String DOT = ".";
 
-    protected final List<Class> entityTypes = new ArrayList<>();
-    protected final List<Class> complexTypes = new ArrayList<>();
-    protected final List<Class> ignoredTypes = new ArrayList<>();
-    protected final Map<Class, List<String>> ignoredFields = new HashMap<>();
+    final List<Class> entityTypes = new ArrayList<>();
+    final List<Class> complexTypes = new ArrayList<>();
+    final List<Class> ignoredTypes = new ArrayList<>();
+    private final Map<Class, List<String>> ignoredFields = new HashMap<>();
 
-    protected final Map<Class<?>, Map<Object, CopyAssert>> dbSnapshot = new HashMap<>();
-    protected final List<SnapshotPair> parameterSnapshot = new ArrayList<>();
+    private final Map<Class<?>, Map<Object, CopyAssert>> dbSnapshot = new HashMap<>();
+    final List<SnapshotPair> parameterSnapshot = new ArrayList<>();
 
-    protected void customAssertEquals(Object expected, Object actual) {
+    private void customAssertEquals(Object expected, Object actual) {
         Assert.assertEquals(expected, actual);
     }
 
@@ -66,7 +67,7 @@ public abstract class Fabut extends Assert {
         }
     }
 
-    public void takeSnapshot(final Object... parameters) {
+    void takeSnapshot(final Object... parameters) {
         final FabutReport report = new FabutReport("Take snapshot");
         takeSnapshott(report, parameters);
 
@@ -75,7 +76,7 @@ public abstract class Fabut extends Assert {
         }
     }
 
-    public void assertObject(final String message, final Object object, final IProperty... properties) {
+    private void assertObject(final String message, final Object object, final IProperty... properties) {
 
         final FabutReport report = new FabutReport(message);
         if (isEntityType(object.getClass()) && doesExistInSnapshot(object)) {
@@ -90,11 +91,11 @@ public abstract class Fabut extends Assert {
         }
     }
 
-    public void assertObject(final Object expected, final IProperty... properties) {
+    void assertObject(final Object expected, final IProperty... properties) {
         assertObject("", expected, properties);
     }
 
-    public <T> T assertEntityWithSnapshot(final T entity, final IProperty... expectedChanges) {
+    <T> T assertEntityWithSnapshot(final T entity, final IProperty... expectedChanges) {
         checkIfEntity(entity);
         final FabutReport report = new FabutReport("Assert with snapshot");
 
@@ -112,7 +113,7 @@ public abstract class Fabut extends Assert {
         return (T) freshEntity;
     }
 
-    public void assertEntityAsDeleted(final Object entity) {
+    void assertEntityAsDeleted(final Object entity) {
         checkIfEntity(entity);
 
         final FabutReport report = new FabutReport("Assert entity as deleted");
@@ -122,7 +123,7 @@ public abstract class Fabut extends Assert {
         }
     }
 
-    public void ignoreEntity(final Object entity) {
+    void ignoreEntity(final Object entity) {
         checkIfEntity(entity);
 
         final FabutReport report = new FabutReport("Ignore entity");
@@ -132,7 +133,7 @@ public abstract class Fabut extends Assert {
         }
     }
 
-    public <T> Property<T> value(final PropertyPath<T> path, final T expectedValue) {
+    <T> Property<T> value(final PropertyPath<T> path, final T expectedValue) {
         return new Property<>(path.getPath(), expectedValue);
     }
 
@@ -150,11 +151,11 @@ public abstract class Fabut extends Assert {
         return new MultiProperties(properties);
     }
 
-    public NotNullProperty notNull(final PropertyPath<?> path) {
+    NotNullProperty notNull(final PropertyPath<?> path) {
         return new NotNullProperty(path.getPath());
     }
 
-    public MultiProperties notNull(final PropertyPath<?>... paths) {
+    protected MultiProperties notNull(final PropertyPath<?>... paths) {
         final List<ISingleProperty> properties = new ArrayList<>();
 
         for (final PropertyPath<?> path : paths) {
@@ -164,11 +165,11 @@ public abstract class Fabut extends Assert {
         return new MultiProperties(properties);
     }
 
-    public NullProperty isNull(final PropertyPath<?> path) {
+    NullProperty isNull(final PropertyPath<?> path) {
         return new NullProperty(path.getPath());
     }
 
-    public MultiProperties isNull(final PropertyPath<?>... paths) {
+    protected MultiProperties isNull(final PropertyPath<?>... paths) {
         final List<ISingleProperty> properties = new ArrayList<>();
 
         for (final PropertyPath<?> path : paths) {
@@ -178,7 +179,7 @@ public abstract class Fabut extends Assert {
         return new MultiProperties(properties);
     }
 
-    public NotEmptyProperty notEmpty(final PropertyPath<?> path) {
+    private NotEmptyProperty notEmpty(final PropertyPath<?> path) {
         return new NotEmptyProperty(path.getPath());
     }
 
@@ -192,7 +193,7 @@ public abstract class Fabut extends Assert {
         return new MultiProperties(properties);
     }
 
-    public EmptyProperty isEmpty(final PropertyPath<?> path) {
+    private EmptyProperty isEmpty(final PropertyPath<?> path) {
         return new EmptyProperty(path.getPath());
     }
 
@@ -390,7 +391,7 @@ public abstract class Fabut extends Assert {
     private <T> Optional<T> copyOptional(final Optional<T> optional, NodesList nodes) throws CopyException {
 
         if (optional.isPresent()) {
-            return Optional.of((T) copyProperty(optional.get(), nodes));
+            return of((T) copyProperty(optional.get(), nodes));
         } else {
             return Optional.empty();
         }
@@ -406,9 +407,14 @@ public abstract class Fabut extends Assert {
     }
 
 
-    private void assertEntityPair(final FabutReport report, final String propertyName, Object expected, Object actual, final List<ISingleProperty> properties, final NodesList nodesList) {
+    private void assertEntityPair(final FabutReport report, final Optional<String> propertyName, Object expected, Object actual, final List<ISingleProperty> properties, final NodesList nodesList) {
 
-        assertEntityById(report, propertyName, expected, actual);
+        if (propertyName.isPresent()) {
+            assertEntityById(report, propertyName.get(), expected, actual);
+        } else {
+            assertSubfields(report, empty(), expected, actual, properties, nodesList);
+        }
+
     }
 
     void assertEntityAsDeleted(final FabutReport report, final Object entity) {
@@ -577,8 +583,7 @@ public abstract class Fabut extends Assert {
         }
     }
 
-    void assertObjectWithProperties(final FabutReport report, final Object actual,
-                                    final List<ISingleProperty> expectedProperties) {
+    void assertObjectWithProperties(final FabutReport report, final Object actual, final List<ISingleProperty> expectedProperties) {
 
         if (actual == null) {
             report.nullReference();
@@ -595,7 +600,7 @@ public abstract class Fabut extends Assert {
             final ISingleProperty property = getPropertyFromList(fieldName, expectedProperties);
             try {
                 if (property != null) {
-                    assertProperty(fieldName, report, property, method.invoke(actual), EMPTY_STRING, expectedProperties, new NodesList());
+                    assertProperty(report, fieldName, property, method.invoke(actual), expectedProperties, new NodesList());
                 } else if (!ignoredField && hasInnerProperties(fieldName, expectedProperties)) {
                     assertInnerProperty(report, method.invoke(actual), expectedProperties, fieldName);
                 } else if (!ignoredField) {
@@ -634,7 +639,7 @@ public abstract class Fabut extends Assert {
 
     void assertObjects(final FabutReport report, final Object expected, final Object actual, final List<ISingleProperty> expectedChangedProperties) {
 
-        assertPair(EMPTY_STRING, report, expected, actual, expectedChangedProperties, new NodesList());
+        assertPair(report, empty(), expected, actual, expectedChangedProperties, new NodesList());
 
         afterAssertObject(report, actual);
     }
@@ -665,7 +670,7 @@ public abstract class Fabut extends Assert {
 
     }
 
-    void assertPair(final String propertyName, final FabutReport report, Object expected, Object actual, final List<ISingleProperty> properties, final NodesList nodesList) {
+    void assertPair(final FabutReport report, final Optional<String> propertyName, Object expected, Object actual, final List<ISingleProperty> properties, final NodesList nodesList) {
 
         final ReferenceCheckType referenceCheck = checkByReference(report, expected, actual, propertyName);
 
@@ -679,7 +684,7 @@ public abstract class Fabut extends Assert {
         // check if any of the expected/actual object is recurring in nodes list
         switch (nodesList.nodeCheck(expected, actual)) {
             case SINGLE_NODE:
-                report.checkByReference(propertyName, actual);
+                report.checkByReference(propertyName.orElse(""), actual);
                 return;
             case CONTAINS_PAIR:
                 return;
@@ -691,19 +696,19 @@ public abstract class Fabut extends Assert {
                     report.ignoredType(expected.getClass());
 
                 } else if (isComplexType(expected.getClass())) {
-                    assertSubfields(report, expected, actual, properties, nodesList, propertyName);
+                    assertSubfields(report, propertyName, expected, actual, properties, nodesList);
 
                 } else if (isEntityType(expected.getClass())) {
                     assertEntityPair(report, propertyName, expected, actual, properties, nodesList);
 
                 } else if (isListType(expected.getClass()) && isListType(actual.getClass())) {
-                    assertList(propertyName, report, (List) expected, (List) actual, properties, nodesList);
+                    assertList(report, propertyName, (List) expected, (List) actual, properties, nodesList);
 
                 } else if (isMapType(expected.getClass()) && isMapType(actual.getClass())) {
-                    assertMap(propertyName, report, (Map) expected, (Map) actual, properties, nodesList);
+                    assertMap(report, propertyName, (Map) expected, (Map) actual, properties, nodesList);
 
                 } else if (isOptionalType(expected.getClass()) && isOptionalType(actual.getClass())) {
-                    assertOptional(report, (Optional) expected, (Optional) actual, properties, propertyName, nodesList);
+                    assertOptional(report, propertyName, (Optional) expected, (Optional) actual, properties, nodesList);
 
                 } else {
                     assertPrimitives(report, propertyName, expected, actual);
@@ -713,8 +718,8 @@ public abstract class Fabut extends Assert {
         }
     }
 
-    private void assertSubfields(final FabutReport report, Object expected, Object actual,
-                                 final List<ISingleProperty> properties, final NodesList nodesList, final String propertyName) {
+    private void assertSubfields(final FabutReport report, final Optional<String> propertyName, Object expected, Object actual,
+                                 final List<ISingleProperty> properties, final NodesList nodesList) {
 
 
         final List<Method> getMethods = getGetMethods(expected);
@@ -727,7 +732,7 @@ public abstract class Fabut extends Assert {
 
                     final Method actualMethod = getGetMethod(expectedMethod.getName(), actual);
 
-                    assertProperty(fieldName, report, property, actualMethod.invoke(actual), fieldName, properties, nodesList);
+                    assertProperty(report, fieldName, property, actualMethod.invoke(actual), properties, nodesList);
 
                 } catch (final Exception e) {
                     report.uncallableMethod(expectedMethod, actual);
@@ -738,67 +743,65 @@ public abstract class Fabut extends Assert {
 
     }
 
-    private void assertPrimitives(final FabutReport report, final String propertyName, Object expected, Object actual) {
+    private void assertPrimitives(final FabutReport report, final Optional<String> propertyName, Object expected, Object actual) {
         try {
             customAssertEquals(expected, actual);
         } catch (final AssertionError e) {
-            report.assertFail(propertyName, expected, actual);
+            report.assertFail(propertyName.orElse(""), expected, actual);
         }
     }
 
-    void assertProperty(final String propertyName, final FabutReport report, final ISingleProperty expected,
-                        final Object actual, final String fieldName, final List<ISingleProperty> properties,
-                        final NodesList nodesList) {
+    void assertProperty(final FabutReport report, final String fieldName, final ISingleProperty expected, final Object actual, final List<ISingleProperty> properties, final NodesList nodesList) {
 
         removeParentQualification(fieldName, properties);
 
         if (expected instanceof NotNullProperty) { // expected any not null value
             if (actual == null) {
-                report.notNullProperty(propertyName);
+                report.notNullProperty(expected.getPath());
             }
         } else if (expected instanceof NullProperty) { // expected null value
             if (actual != null) {
-                report.nullProperty(propertyName);
+                report.nullProperty(expected.getPath());
             }
         } else if (expected instanceof NotEmptyProperty) { // expected any not empty value
             if (!(actual instanceof Optional && ((Optional) actual).isPresent())) {
-                report.notEmptyProperty(propertyName);
+                report.notEmptyProperty(expected.getPath());
             }
         } else if (expected instanceof EmptyProperty) {// expected empty value
             if (!(actual instanceof Optional && !((Optional) actual).isPresent())) {
-                report.emptyProperty(propertyName);
+                report.emptyProperty(expected.getPath());
             }
         } else if (expected instanceof IgnoredProperty) {
-            report.reportIgnoreProperty(propertyName);
+            report.reportIgnoreProperty(expected.getPath());
 
         } else if (expected instanceof Property) {
             final Object expectedValue = ((Property) expected).getValue();
-            assertPair(propertyName, report, expectedValue, actual, properties, nodesList);
+            assertPair(report, of(expected.getPath()), expectedValue, actual, properties, nodesList);
         } else {
             throw new IllegalStateException();
         }
 
     }
 
-    void assertList(final String propertyName, final FabutReport report, final List expected,
+    void assertList(final FabutReport report, final Optional<String> propertyName, final List expected,
                     final List actual, final List<ISingleProperty> properties, final NodesList nodesList) {
 
         // check sizes
         if (expected.size() != actual.size()) {
-            report.listDifferentSizeComment(propertyName, expected.size(), actual.size());
+            report.listDifferentSizeComment(propertyName.orElse(""), expected.size(), actual.size());
         } else {
             // assert every element by index
 
             for (int i = 0; i < actual.size(); i++) {
-                report.assertingListElement(propertyName, i);
+                report.assertingListElement(propertyName.orElse(""), i);
                 assertObjects(report, expected.get(i), actual.get(i), properties);
             }
         }
     }
 
-    void assertMap(final String propertyName, final FabutReport report, final Map expected, final Map actual,
+    void assertMap(final FabutReport report, final Optional<String> propertyName, final Map expected, final Map actual,
                    final List<ISingleProperty> properties, final NodesList nodesList) {
-        // TODO add better reporting when asserting map objects, similar to list
+
         final TreeSet expectedKeys = new TreeSet(expected.keySet());
         final TreeSet actualKeys = new TreeSet(actual.keySet());
         final TreeSet expectedKeysCopy = new TreeSet(expectedKeys);
@@ -807,30 +810,30 @@ public abstract class Fabut extends Assert {
 
         for (final Object key : expectedKeysCopy) {
             report.assertingMapKey(key);
-            assertPair(EMPTY_STRING, report, expected.get(key), actual.get(key), properties, nodesList);
+            assertPair(report, propertyName, expected.get(key), actual.get(key), properties, nodesList);
         }
         assertExcessExpected(propertyName, report, expected, expectedKeysCopy, actualKeys);
         assertExcessActual(propertyName, report, actual, expectedKeysCopy, actualKeys);
     }
 
-    private void assertOptional(final FabutReport report, Optional expected, Optional actual, final List<ISingleProperty> properties, String propertyName, final NodesList nodesList) {
+    private void assertOptional(final FabutReport report, Optional<String> propertyName, Optional expected, Optional actual, final List<ISingleProperty> properties, final NodesList nodesList) {
 
         if (!expected.isPresent() && !actual.isPresent()) {
             return;
         }
 
         if (expected.isPresent() ^ actual.isPresent()) {
-            report.assertFail(propertyName, expected, actual);
+            report.assertFail(propertyName.orElse(""), expected, actual);
             return;
         }
 
         final Object expectedValue = expected.get();
         final Object actualValue = actual.get();
 
-        assertPair(propertyName, report, expectedValue, actualValue, properties, nodesList);
+        assertPair(report, propertyName, expectedValue, actualValue, properties, nodesList);
     }
 
-    void assertExcessExpected(final String propertyName, final FabutReport report, final Map expected,
+    void assertExcessExpected(final Optional<String> propertyName, final FabutReport report, final Map expected,
                               final TreeSet expectedKeys, final TreeSet actualKeys) {
         final TreeSet expectedKeysCopy = new TreeSet(expectedKeys);
         expectedKeysCopy.removeAll(actualKeys);
@@ -841,7 +844,7 @@ public abstract class Fabut extends Assert {
         }
     }
 
-    void assertExcessActual(final String propertyName, final FabutReport report, final Map actual,
+    void assertExcessActual(final Optional<String> propertyName, final FabutReport report, final Map actual,
                             final TreeSet expectedKeys, final TreeSet actualKeys) {
         final TreeSet actualKeysCopy = new TreeSet(actualKeys);
         actualKeysCopy.removeAll(expectedKeys);
@@ -885,7 +888,7 @@ public abstract class Fabut extends Assert {
         return null;
     }
 
-    ReferenceCheckType checkByReference(final FabutReport report, Object expected, Object actual, final String propertyName) {
+    ReferenceCheckType checkByReference(final FabutReport report, Object expected, Object actual, final Optional<String> propertyName) {
 
         if (expected == actual) {
             //report.asserted(pair, propertyName);
@@ -893,7 +896,7 @@ public abstract class Fabut extends Assert {
         }
 
         if (expected == null ^ actual == null) {
-            report.assertFail(propertyName, expected, actual);
+            report.assertFail(propertyName.orElse(""), expected, actual);
             return ReferenceCheckType.EXCLUSIVE_NULL;
         }
         return ReferenceCheckType.NOT_NULL_PAIR;

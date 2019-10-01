@@ -12,6 +12,9 @@ import org.junit.Test;
 
 import java.util.*;
 
+import static java.util.Optional.empty;
+import static java.util.Optional.of;
+
 public class FabutObjectAssertTest extends Fabut {
     private static final String EMPTY_STRING = "";
     private static final String TEST = "test";
@@ -511,7 +514,7 @@ public class FabutObjectAssertTest extends Fabut {
 
         // method
         final FabutReport report = new FabutReport();
-        assertPair(EMPTY_STRING, report, expected, actual, new ArrayList<>(), nodesList);
+        assertPair(report, empty(), expected, actual, new ArrayList<>(), nodesList);
 
         // assert
         assertTrue(report.getMessage(), report.isSuccess());
@@ -528,7 +531,7 @@ public class FabutObjectAssertTest extends Fabut {
 
         // method
         final FabutReport report = new FabutReport();
-        assertPair(EMPTY_STRING, report, expected, actual, new ArrayList<>(), nodesList);
+        assertPair(report, empty(), expected, actual, new ArrayList<>(), nodesList);
 
         // assert
         assertTrue(report.getMessage(), report.isSuccess());
@@ -547,7 +550,7 @@ public class FabutObjectAssertTest extends Fabut {
 
         // method
         final FabutReport report = new FabutReport();
-        assertPair(EMPTY_STRING, report, expected, actual, new ArrayList<>(), nodesList);
+        assertPair(report, empty(), expected, actual, new ArrayList<>(), nodesList);
 
         // assert
         assertTrue(report.getMessage(), report.isSuccess());
@@ -557,7 +560,7 @@ public class FabutObjectAssertTest extends Fabut {
     public void testAssertChangedPropertyBothNulls() {
         // method
         final FabutReport report = new FabutReport();
-        assertPair(EMPTY_STRING, report, null, null, new ArrayList<>(), new NodesList());
+        assertPair(report, empty(), null, null, new ArrayList<>(), new NodesList());
 
         // assert
         assertTrue(report.getMessage(), report.isSuccess());
@@ -572,7 +575,7 @@ public class FabutObjectAssertTest extends Fabut {
 
         // method
         final FabutReport report = new FabutReport();
-        assertPair(EMPTY_STRING, report, expected, actual, new ArrayList<>(), new NodesList());
+        assertPair(report, empty(), expected, actual, new ArrayList<>(), new NodesList());
 
         // assert
         assertTrue(report.getMessage(), report.isSuccess());
@@ -586,7 +589,7 @@ public class FabutObjectAssertTest extends Fabut {
 
         // method
         final FabutReport report = new FabutReport();
-        assertPair(EMPTY_STRING, report, expected, actual, new ArrayList<>(), new NodesList());
+        assertPair(report, empty(), expected, actual, new ArrayList<>(), new NodesList());
 
         // assert
         assertTrue(report.getMessage(), report.isSuccess());
@@ -598,9 +601,7 @@ public class FabutObjectAssertTest extends Fabut {
 
         // method
         final FabutReport report = new FabutReport();
-        assertPair(EMPTY_STRING, report,
-                TEST, TEST,
-                new ArrayList<>(), new NodesList());
+        assertPair(report, empty(), TEST, TEST, new ArrayList<>(), new NodesList());
 
         // assert
         assertTrue(report.getMessage(), report.isSuccess());
@@ -613,9 +614,7 @@ public class FabutObjectAssertTest extends Fabut {
 
         // method
         final FabutReport report = new FabutReport();
-        assertPair(EMPTY_STRING, report,
-                expected, TEST,
-                new ArrayList<>(), new NodesList());
+        assertPair(report, empty(), expected, TEST, new ArrayList<>(), new NodesList());
 
         // assert
         assertFalse(report.getMessage(), report.isSuccess());
@@ -633,9 +632,7 @@ public class FabutObjectAssertTest extends Fabut {
 
         // method
         final FabutReport report = new FabutReport();
-        assertPair(EMPTY_STRING, report,
-                expected, actual, new LinkedList<>(),
-                new NodesList());
+        assertPair(report, empty(), expected, actual, new LinkedList<>(), new NodesList());
 
         // assert
         assertTrue(report.getMessage(), report.isSuccess());
@@ -645,7 +642,7 @@ public class FabutObjectAssertTest extends Fabut {
     public void testAssertPropertiesNotNullPropertyTrue() {
         // method
         final FabutReport report = new FabutReport();
-        assertProperty(EMPTY_STRING, report, notNull(TierOneType.PROPERTY), new TierOneType(TEST), "", new ArrayList<>(), null);
+        assertProperty(report, EMPTY_STRING, notNull(TierOneType.PROPERTY), new TierOneType(TEST), new ArrayList<>(), null);
 
         // assert
         assertTrue(report.getMessage(), report.isSuccess());
@@ -655,8 +652,8 @@ public class FabutObjectAssertTest extends Fabut {
     public void testAssertPropertiesNotNullPropertyFalse() {
         // method
         final FabutReport report = new FabutReport();
-        assertProperty(EMPTY_STRING, report,
-                notNull(TierOneType.PROPERTY), null, "", new ArrayList<>(), null);
+        assertProperty(report, EMPTY_STRING,
+                notNull(TierOneType.PROPERTY), null, new ArrayList<>(), null);
 
         // assert
         assertFalse(report.getMessage(), report.isSuccess());
@@ -666,8 +663,7 @@ public class FabutObjectAssertTest extends Fabut {
     public void testAssertPropertiesNullPropertyTrue() {
         // method
         final FabutReport report = new FabutReport();
-        assertProperty(EMPTY_STRING, report,
-                isNull(TierOneType.PROPERTY), null, "", new ArrayList<>(), null);
+        assertProperty(report, EMPTY_STRING, isNull(TierOneType.PROPERTY), null, new ArrayList<>(), null);
 
         // assert
         assertTrue(report.getMessage(), report.isSuccess());
@@ -677,8 +673,7 @@ public class FabutObjectAssertTest extends Fabut {
     public void testAssertPropertiesNullPropertyFalse() {
         // method
         final FabutReport report = new FabutReport();
-        assertProperty(EMPTY_STRING, report,
-                isNull(TierOneType.PROPERTY), new TierOneType(TEST), "", new ArrayList<>(), null);
+        assertProperty(report, EMPTY_STRING, isNull(TierOneType.PROPERTY), new TierOneType(TEST), new ArrayList<>(), null);
 
         // assert
         assertFalse(report.getMessage(), report.isSuccess());
@@ -688,8 +683,7 @@ public class FabutObjectAssertTest extends Fabut {
     public void testAssertPropertiesIgnoreProperty() {
         // method
         final FabutReport report = new FabutReport();
-        assertProperty(EMPTY_STRING, report,
-                ignored(TierOneType.PROPERTY), new TierOneType(TEST), "", new ArrayList<>(), null);
+        assertProperty(report, EMPTY_STRING, ignored(TierOneType.PROPERTY), new TierOneType(TEST), new ArrayList<>(), null);
 
         // assert
         assertTrue(report.getMessage(), report.isSuccess());
@@ -706,7 +700,7 @@ public class FabutObjectAssertTest extends Fabut {
 
         // method
         final FabutReport report = new FabutReport();
-        assertList(EMPTY_STRING, report, expected, actual, new ArrayList<>(), new NodesList());
+        assertList(report, empty(), expected, actual, new ArrayList<>(), new NodesList());
 
         // assert
         assertFalse(report.getMessage(), report.isSuccess());
@@ -724,7 +718,7 @@ public class FabutObjectAssertTest extends Fabut {
 
         // method
         final FabutReport report = new FabutReport();
-        assertList(EMPTY_STRING, report, expected, actual, new ArrayList<>(), new NodesList());
+        assertList(report, empty(), expected, actual, new ArrayList<>(), new NodesList());
 
         // assert
         assertTrue(report.getMessage(), report.isSuccess());
@@ -742,7 +736,7 @@ public class FabutObjectAssertTest extends Fabut {
 
         // method
         final FabutReport report = new FabutReport();
-        assertList(EMPTY_STRING, report, expected, actual, new ArrayList<>(), new NodesList());
+        assertList(report, empty(), expected, actual, new ArrayList<>(), new NodesList());
 
         // assert
         assertFalse(report.getMessage(), report.isSuccess());
@@ -901,7 +895,7 @@ public class FabutObjectAssertTest extends Fabut {
     @Test
     public void testCheckForNullsTrueNull() {
         // method
-        final ReferenceCheckType report = checkByReference(new FabutReport(), null, null, TEST);
+        final ReferenceCheckType report = checkByReference(new FabutReport(), null, null, of(TEST));
 
         // assert
         assertEquals(ReferenceCheckType.EQUAL_REFERENCE, report);
@@ -913,7 +907,7 @@ public class FabutObjectAssertTest extends Fabut {
         final TierOneType expected = new TierOneType();
 
         // method
-        final ReferenceCheckType re = checkByReference(new FabutReport(), expected, expected, TEST);
+        final ReferenceCheckType re = checkByReference(new FabutReport(), expected, expected, of(TEST));
 
         // assert
         assertEquals(ReferenceCheckType.EQUAL_REFERENCE, re);
@@ -922,8 +916,8 @@ public class FabutObjectAssertTest extends Fabut {
     @Test
     public void testCheckForNullsFalse() {
         // method
-        final ReferenceCheckType report1 = checkByReference(new FabutReport(), new Object(), null, TEST);
-        final ReferenceCheckType report2 = checkByReference(new FabutReport(), null, new Object(), TEST);
+        final ReferenceCheckType report1 = checkByReference(new FabutReport(), new Object(), null, of(TEST));
+        final ReferenceCheckType report2 = checkByReference(new FabutReport(), null, new Object(), of(TEST));
 
         // assert
         assertEquals(ReferenceCheckType.EXCLUSIVE_NULL, report1);
@@ -934,7 +928,7 @@ public class FabutObjectAssertTest extends Fabut {
     public void testCheckForNullsNull() {
         // method
 
-        final ReferenceCheckType referenceCheckType = checkByReference(new FabutReport(), new Object(), new Object(), TEST);
+        final ReferenceCheckType referenceCheckType = checkByReference(new FabutReport(), new Object(), new Object(), of(TEST));
 
         // assert
         assertEquals(ReferenceCheckType.NOT_NULL_PAIR, referenceCheckType);
@@ -1123,7 +1117,7 @@ public class FabutObjectAssertTest extends Fabut {
 
         // method
         final FabutReport report = new FabutReport();
-        assertMap("", report, expected, actual, new ArrayList<>(), new NodesList());
+        assertMap(report, empty(), expected, actual, new ArrayList<>(), new NodesList());
 
         // assert
         assertTrue(report.getMessage(), report.isSuccess());
@@ -1142,7 +1136,7 @@ public class FabutObjectAssertTest extends Fabut {
 
         // method
         final FabutReport report = new FabutReport();
-        assertMap("", report, expected, actual, new ArrayList<>(), new NodesList());
+        assertMap(report, empty(), expected, actual, new ArrayList<>(), new NodesList());
 
         // assert
         assertFalse(report.getMessage(), report.isSuccess());
@@ -1161,7 +1155,7 @@ public class FabutObjectAssertTest extends Fabut {
 
         // method
         final FabutReport report = new FabutReport();
-        assertMap("", report, expected, actual, new ArrayList<>(), new NodesList());
+        assertMap(report, empty(), expected, actual, new ArrayList<>(), new NodesList());
 
         // assert
         assertFalse(report.getMessage(), report.isSuccess());
@@ -1179,7 +1173,7 @@ public class FabutObjectAssertTest extends Fabut {
 
         // method
         final FabutReport report = new FabutReport();
-        assertExcessExpected("", report, expected, expectedKeys, actualKeys);
+        assertExcessExpected(empty(), report, expected, expectedKeys, actualKeys);
 
         // assert
         assertTrue(report.getMessage(), report.isSuccess());
@@ -1195,7 +1189,7 @@ public class FabutObjectAssertTest extends Fabut {
         final TreeSet<String> actualKeys = new TreeSet<>();
         final FabutReport report = new FabutReport();
         // method
-        assertExcessExpected("", report, expected, expectedKeys, actualKeys);
+        assertExcessExpected(empty(), report, expected, expectedKeys, actualKeys);
 
         // assert
         assertFalse(report.getMessage(), report.isSuccess());
@@ -1213,7 +1207,7 @@ public class FabutObjectAssertTest extends Fabut {
 
         // method
         final FabutReport report = new FabutReport();
-        assertExcessActual("", report, actual, expectedKeys, actualKeys);
+        assertExcessActual(empty(), report, actual, expectedKeys, actualKeys);
 
         // assert
         assertTrue(report.getMessage(), report.isSuccess());
@@ -1229,7 +1223,7 @@ public class FabutObjectAssertTest extends Fabut {
         actualKeys.add("first");
         final FabutReport report = new FabutReport();
         // method
-        assertExcessActual("", report, actual, expectedKeys, actualKeys);
+        assertExcessActual(empty(), report, actual, expectedKeys, actualKeys);
 
         // assert
         assertFalse(report.getMessage(), report.isSuccess());
