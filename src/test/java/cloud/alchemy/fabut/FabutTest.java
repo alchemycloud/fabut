@@ -235,9 +235,6 @@ public class FabutTest extends Fabut {
 
     }
 
-    /**
-     * Test for {@link Fabut#takeSnapshot(Object...)} when there are entites in repository that cannot be copied.
-     */
     @Test(expected = AssertionFailedError.class)
     public void testTakeSnapshotFail() {
         // setup
@@ -248,9 +245,7 @@ public class FabutTest extends Fabut {
         takeSnapshot();
     }
 
-    /**
-     * Test for {@link Fabut#takeSnapshot(Object...)} when repository can be copied.
-     */
+
     @Test
     public void testTakeSnapshotSuccess() {
         // setup
@@ -277,11 +272,7 @@ public class FabutTest extends Fabut {
         assertObject(object, value(TierOneType.PROPERTY, "test"));
 
     }
-
-    /**
-     * Test for {@link Fabut#assertObject(Object, IProperty...)} when object is entity type and
-     * can be asserted.
-     */
+    
     @Test
     public void testAssertObjectWithEntityType() {
         // setup
@@ -299,10 +290,6 @@ public class FabutTest extends Fabut {
 
     }
 
-    /**
-     * Test for {@link Fabut#assertObject(Object, IProperty...)} when object is entity type with list field and
-     * can be asserted.
-     */
     @Test
     public void testAssertObjectWithEntityTypeWithListField() {
         // setup
@@ -319,10 +306,6 @@ public class FabutTest extends Fabut {
 
     }
 
-    /**
-     * Test for {@link Fabut#assertObject(Object, IProperty...)} when object is entity and
-     * cannot be asserted.
-     */
     @Test(expected = AssertionFailedError.class)
     public void testAssertObjectWithEntityTypeFail() {
         // setup
@@ -339,10 +322,6 @@ public class FabutTest extends Fabut {
 
     }
 
-    /**
-     * Test for {@link Fabut#assertEntityWithSnapshot(Object, IProperty...)} when entity can be
-     * asserted with one in snapshot.
-     */
     @Test
     public void testAssertEntityWithSnapshotSuccess() {
         // setup
@@ -360,10 +339,6 @@ public class FabutTest extends Fabut {
 
     }
 
-    /**
-     * Test for {@link Fabut#assertEntityWithSnapshot(Object, IProperty...)} when entity cannot
-     * be asserted with one in snapshot.
-     */
     @Test(expected = AssertionFailedError.class)
     public void testAssertEntityWithSnapshotFail() {
         // setup
@@ -381,10 +356,6 @@ public class FabutTest extends Fabut {
 
     }
 
-    /**
-     * Test for {@link Fabut#assertEntityWithSnapshot(Object, IProperty...)} when specified
-     * object is not an entity.
-     */
     @Test(expected = IllegalStateException.class)
     public void testAssertEntityWithSnapshotNotEntity() {
         // setup
@@ -412,9 +383,6 @@ public class FabutTest extends Fabut {
 
     }
 
-    /**
-     * Test for {@link Fabut#assertEntityAsDeleted(Object)} when specified entity is successfully asserted as deleted.
-     */
     @Test
     public void assertEntityAsDeletedSuccess() {
         // setup
@@ -430,9 +398,6 @@ public class FabutTest extends Fabut {
 
     }
 
-    /**
-     * Test for {@link Fabut#assertEntityAsDeleted(Object)} when specified entity is not deleted in repository.
-     */
     @Test(expected = AssertionFailedError.class)
     public void assertEntityAsDeletedFail() {
         // setup
@@ -445,10 +410,7 @@ public class FabutTest extends Fabut {
         assertEntityAsDeleted(entity);
     }
 
-    /**
-     * Test for {@link Fabut#assertEntityAsDeleted(Object)} when specified object is not entity.
-     */
-    @Test(expected = IllegalStateException.class)
+    @Test(expected = AssertionFailedError.class)
     public void assertEntityAsDeletedNotEntity() {
         // setup
 
@@ -457,13 +419,8 @@ public class FabutTest extends Fabut {
 
         // method
         assertEntityAsDeleted(object);
-
-
     }
 
-    /**
-     * Test for {@link Fabut#ignoreEntity(Object)} when entity can ignored.
-     */
     @Test
     public void testIgnoreEntitySuccess() {
         // setup
@@ -478,9 +435,6 @@ public class FabutTest extends Fabut {
 
     }
 
-    /**
-     * Test for {@link Fabut#ignoreEntity(Object)} when entity cannot be ignored.
-     */
     @Test(expected = AssertionFailedError.class)
     public void testIgnoreEntityFail() {
         // setup
@@ -495,9 +449,6 @@ public class FabutTest extends Fabut {
 
     }
 
-    /**
-     * Test for {@link Fabut#ignoreEntity(Object)} when object is not entity.
-     */
     @Test(expected = IllegalStateException.class)
     public void testIgnoreEntityNotEntity() {
         // setup
@@ -510,10 +461,6 @@ public class FabutTest extends Fabut {
 
     }
 
-    /**
-     * Integration test for {@link Fabut#assertObject(Object, IProperty...)} when inner
-     * properties are used for asserting.
-     */
     @Test
     public void testAssertObject() {
         // method

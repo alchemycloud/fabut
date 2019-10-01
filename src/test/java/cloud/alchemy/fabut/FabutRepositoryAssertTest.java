@@ -71,6 +71,13 @@ public class FabutRepositoryAssertTest extends Fabut {
                 }
             }
         }
+        if (entityClass == EntityTierTwoType.class) {
+            for (final Object entity : entityTierTwoTypes) {
+                if (((EntityTierTwoType) entity).getId() == id) {
+                    return entity;
+                }
+            }
+        }
         if (entityClass == EntityWithList.class) {
             for (final Object entity : entityWithListTypes) {
                 if (((EntityWithList) entity).getId().equals(id)) {
@@ -104,8 +111,7 @@ public class FabutRepositoryAssertTest extends Fabut {
         setEntityTierOneTypes(beforeList1);
 
         final List<Object> beforeList2 = new ArrayList<Object>();
-        beforeList2.add(new EntityTierTwoType(PROPERTY + PROPERTY + PROPERTY, 4, new EntityTierOneType(TEST + TEST
-                + TEST + TEST, 4)));
+        beforeList2.add(new EntityTierTwoType(PROPERTY + PROPERTY + PROPERTY, 4, new EntityTierOneType(TEST + TEST + TEST + TEST, 4)));
         setEntityTierTwoTypes(beforeList2);
 
         takeSnapshott(new FabutReport());
@@ -115,8 +121,7 @@ public class FabutRepositoryAssertTest extends Fabut {
         setEntityTierOneTypes(afterList1);
 
         final List<Object> afterist2 = new ArrayList<Object>();
-        afterist2.add(new EntityTierTwoType(PROPERTY + PROPERTY + PROPERTY, 4, new EntityTierOneType(TEST + TEST + TEST
-                + TEST, 4)));
+        afterist2.add(new EntityTierTwoType(PROPERTY + PROPERTY + PROPERTY, 4, new EntityTierOneType(TEST + TEST + TEST + TEST, 4)));
         setEntityTierTwoTypes(afterist2);
 
         // method

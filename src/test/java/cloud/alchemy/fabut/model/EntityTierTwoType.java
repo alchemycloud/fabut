@@ -14,7 +14,7 @@ public class EntityTierTwoType extends TierOneType {
     public static final String ID = "id";
 
     /** The id. */
-    private int id;
+    private Integer id;
 
     /** The sub property. */
     private EntityTierOneType subProperty;
@@ -29,7 +29,7 @@ public class EntityTierTwoType extends TierOneType {
      * @param subProperty
      *            the sub property
      */
-    public EntityTierTwoType(final String property, final int id, final EntityTierOneType subProperty) {
+    public EntityTierTwoType(final String property, final Integer id, final EntityTierOneType subProperty) {
         super(property);
         this.id = id;
         this.subProperty = subProperty;
@@ -47,7 +47,7 @@ public class EntityTierTwoType extends TierOneType {
      * 
      * @return the id
      */
-    public int getId() {
+    public Integer getId() {
         return id;
     }
 

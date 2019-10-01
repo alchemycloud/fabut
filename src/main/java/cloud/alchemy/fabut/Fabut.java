@@ -491,7 +491,6 @@ public abstract class Fabut extends Assert {
     }
 
     void assertDbSnapshot(final FabutReport report) {
-        boolean ok = true;
         // assert entities by classes
         for (final Map.Entry<Class<?>, Map<Object, CopyAssert>> snapshotEntry : dbSnapshot.entrySet()) {
 
