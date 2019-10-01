@@ -23,13 +23,11 @@ public class FabutTest extends Fabut {
 
     public FabutTest() {
         super();
-        entityTypes = new LinkedList<>();
         entityTypes.add(EntityTierOneType.class);
         entityTypes.add(EntityTierTwoType.class);
         entityTypes.add(EntityWithList.class);
         entityTypes.add(NoDefaultConstructorEntity.class);
 
-        complexTypes = new LinkedList<>();
         complexTypes.add(A.class);
         complexTypes.add(B.class);
         complexTypes.add(C.class);
@@ -48,7 +46,6 @@ public class FabutTest extends Fabut {
         complexTypes.add(Start.class);
         complexTypes.add(TierTwoTypeWithMap.class);
 
-        ignoredTypes = new LinkedList<>();
         ignoredTypes.add(IgnoredType.class);
     }
 

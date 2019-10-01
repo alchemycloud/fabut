@@ -1,17 +1,10 @@
 package cloud.alchemy.fabut;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeSet;
-
-import cloud.alchemy.fabut.graph.NodesList;
 import cloud.alchemy.fabut.model.*;
-import cloud.alchemy.fabut.property.CopyAssert;
-import cloud.alchemy.fabut.property.ISingleProperty;
 import org.junit.Test;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class FabutRepositoryAssertTest extends Fabut {
 
@@ -26,13 +19,11 @@ public class FabutRepositoryAssertTest extends Fabut {
 
     public FabutRepositoryAssertTest() {
         super();
-        entityTypes = new LinkedList<>();
         entityTypes.add(EntityTierOneType.class);
         entityTypes.add(EntityTierTwoType.class);
         entityTypes.add(EntityWithList.class);
         entityTypes.add(NoDefaultConstructorEntity.class);
 
-        complexTypes = new LinkedList<>();
         complexTypes.add(A.class);
         complexTypes.add(B.class);
         complexTypes.add(C.class);
@@ -51,7 +42,6 @@ public class FabutRepositoryAssertTest extends Fabut {
         complexTypes.add(Start.class);
         complexTypes.add(TierTwoTypeWithMap.class);
 
-        ignoredTypes = new LinkedList<>();
         ignoredTypes.add(IgnoredType.class);
     }
 

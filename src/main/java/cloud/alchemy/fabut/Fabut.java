@@ -22,13 +22,13 @@ public abstract class Fabut extends Assert{
     private static final String EMPTY_STRING = "";
     private static final String DOT = ".";
 
-    protected List<Class> entityTypes;
-    protected List<Class> complexTypes;
-    protected List<Class> ignoredTypes;
-    protected Map<Class, List<String>> ignoredFields;
+    protected final List<Class> entityTypes = new ArrayList<>();
+    protected final List<Class> complexTypes = new ArrayList<>();
+    protected final List<Class> ignoredTypes = new ArrayList<>();
+    protected final Map<Class, List<String>> ignoredFields = new HashMap<>();
 
-    private Map<Class<?>, Map<Object, CopyAssert>> dbSnapshot = new HashMap<>();
-    List<SnapshotPair> parameterSnapshot = new ArrayList<>();
+    protected final Map<Class<?>, Map<Object, CopyAssert>> dbSnapshot = new HashMap<>();
+    protected final List<SnapshotPair> parameterSnapshot = new ArrayList<>();
 
     protected void customAssertEquals(Object expected, Object actual) {
         Assert.assertEquals(expected, actual);
