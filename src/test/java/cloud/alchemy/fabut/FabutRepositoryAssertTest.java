@@ -310,7 +310,7 @@ public class FabutRepositoryAssertTest extends Fabut {
         assertTrue(entityAssertReport.isSuccess());
     }
 
-    @Test
+    @Test(expected = NullPointerException.class)
     public void testMarkAssertedNotTyrpeSupportedFalse() {
         // method
         takeSnapshot();
@@ -561,7 +561,7 @@ public class FabutRepositoryAssertTest extends Fabut {
         assertEntityWithSnapshot(fabutReport, entity, properties);
 
         // assert
-        assertTrue(fabutReport.isSuccess());
+        assertTrue(fabutReport.getMessage(), fabutReport.isSuccess());
 
     }
 
