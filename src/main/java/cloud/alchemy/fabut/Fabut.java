@@ -434,7 +434,7 @@ public abstract class Fabut extends Assert {
         markAsAsserted(report, entity);
     }
 
-    private Object assertEntityWithSnapshot(final FabutReport report, final Object entity,
+    Object assertEntityWithSnapshot(final FabutReport report, final Object entity,
                                             final List<ISingleProperty> properties) {
 
         final Object id = getIdValue(entity);
@@ -469,7 +469,7 @@ public abstract class Fabut extends Assert {
         }
     }
 
-    private void markAsAsserted(final FabutReport report, final Object entity) {
+    void markAsAsserted(final FabutReport report, final Object entity) {
         final Class<?> actualType = entity.getClass();
 
         final Object id = getIdValue(entity);
@@ -508,8 +508,8 @@ public abstract class Fabut extends Assert {
 
     }
 
-    private void checkNotExistingInAfterDbState(final TreeSet beforeIds, final TreeSet afterIds,
-                                                final Map<Object, CopyAssert> beforeEntities, final FabutReport report) {
+    void checkNotExistingInAfterDbState(final TreeSet beforeIds, final TreeSet afterIds,
+                                        final Map<Object, CopyAssert> beforeEntities, final FabutReport report) {
 
         final TreeSet beforeIdsCopy = new TreeSet(beforeIds);
 
@@ -524,8 +524,8 @@ public abstract class Fabut extends Assert {
         }
     }
 
-    private void checkNewToAfterDbState(final TreeSet beforeIds, final TreeSet afterIds,
-                                        final Map<Object, Object> afterEntities, final FabutReport report) {
+    void checkNewToAfterDbState(final TreeSet beforeIds, final TreeSet afterIds,
+                                final Map<Object, Object> afterEntities, final FabutReport report) {
 
         final TreeSet afterIdsCopy = new TreeSet(afterIds);
 
@@ -539,9 +539,9 @@ public abstract class Fabut extends Assert {
 
     }
 
-    private void assertDbSnapshotWithAfterState(final TreeSet beforeIds, final TreeSet afterIds,
-                                                final Map<Object, CopyAssert> beforeEntities, final Map<Object, Object> afterEntities,
-                                                final FabutReport report) {
+    void assertDbSnapshotWithAfterState(final TreeSet beforeIds, final TreeSet afterIds,
+                                        final Map<Object, CopyAssert> beforeEntities, final Map<Object, Object> afterEntities,
+                                        final FabutReport report) {
 
         final TreeSet beforeIdsCopy = new TreeSet(beforeIds);
         // does intersection between db snapshot and after db state

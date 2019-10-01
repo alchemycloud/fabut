@@ -1,10 +1,12 @@
 package cloud.alchemy.fabut;
 
 import cloud.alchemy.fabut.model.*;
+import cloud.alchemy.fabut.property.CopyAssert;
+import cloud.alchemy.fabut.property.ISingleProperty;
+import junit.framework.AssertionFailedError;
 import org.junit.Test;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 public class FabutRepositoryAssertTest extends Fabut {
 
@@ -16,6 +18,7 @@ public class FabutRepositoryAssertTest extends Fabut {
     private List<Object> entityTierTwoTypes = new ArrayList<>();
     private List<Object> entityWithListTypes = new ArrayList<>();
     private List<Object> noDefaultConstructorEntities = new ArrayList<>();
+    private boolean assertAfterTest = true;
 
     public FabutRepositoryAssertTest() {
         super();
@@ -95,6 +98,19 @@ public class FabutRepositoryAssertTest extends Fabut {
         return null;
     }
 
+    @Override
+    public void fabutBeforeTest() {
+        super.fabutBeforeTest();
+        assertAfterTest = true;
+    }
+
+    @Override
+    public void fabutAfterTest() {
+        if (assertAfterTest) {
+            super.fabutAfterTest();
+        }
+    }
+
     private void setEntityTierOneTypes(final List<Object> list1) {
         entityTierOneTypes = list1;
     }
@@ -106,21 +122,21 @@ public class FabutRepositoryAssertTest extends Fabut {
     @Test
     public void testAssertDbStateTrue() {
         // setup
-        final List<Object> beforeList1 = new ArrayList<Object>();
+        final List<Object> beforeList1 = new ArrayList<>();
         beforeList1.add(new EntityTierOneType(TEST + TEST, 1));
         setEntityTierOneTypes(beforeList1);
 
-        final List<Object> beforeList2 = new ArrayList<Object>();
+        final List<Object> beforeList2 = new ArrayList<>();
         beforeList2.add(new EntityTierTwoType(PROPERTY + PROPERTY + PROPERTY, 4, new EntityTierOneType(TEST + TEST + TEST + TEST, 4)));
         setEntityTierTwoTypes(beforeList2);
 
         takeSnapshot();
 
-        final List<Object> afterList1 = new ArrayList<Object>();
+        final List<Object> afterList1 = new ArrayList<>();
         afterList1.add(new EntityTierOneType(TEST + TEST, 1));
         setEntityTierOneTypes(afterList1);
 
-        final List<Object> afterist2 = new ArrayList<Object>();
+        final List<Object> afterist2 = new ArrayList<>();
         afterist2.add(new EntityTierTwoType(PROPERTY + PROPERTY + PROPERTY, 4, new EntityTierOneType(TEST + TEST + TEST + TEST, 4)));
         setEntityTierTwoTypes(afterist2);
     }
@@ -129,21 +145,21 @@ public class FabutRepositoryAssertTest extends Fabut {
     public void testAssertDbStateFalse() {
         // setup
 
-        final List<Object> beforeList1 = new ArrayList<Object>();
+        final List<Object> beforeList1 = new ArrayList<>();
         beforeList1.add(new EntityTierOneType(TEST, 1));
         setEntityTierOneTypes(beforeList1);
 
-        final List<Object> beforeList2 = new ArrayList<Object>();
+        final List<Object> beforeList2 = new ArrayList<>();
         beforeList2.add(new EntityTierTwoType(PROPERTY, 4, new EntityTierOneType(TEST, 7)));
         setEntityTierTwoTypes(beforeList2);
 
         takeSnapshott(new FabutReport());
 
-        final List<Object> afterList1 = new ArrayList<Object>();
+        final List<Object> afterList1 = new ArrayList<>();
         afterList1.add(new EntityTierOneType(TEST + TEST, 1));
         setEntityTierOneTypes(afterList1);
 
-        final List<Object> afterList2 = new ArrayList<Object>();
+        final List<Object> afterList2 = new ArrayList<>();
         afterList2.add(new EntityTierTwoType(PROPERTY + PROPERTY, 4, new EntityTierOneType(TEST + TEST, 7)));
         setEntityTierTwoTypes(afterList2);
 
@@ -158,7 +174,7 @@ public class FabutRepositoryAssertTest extends Fabut {
     @Test
     public void testAssertEntityAsDeletedEntity() {
         // setup
-        final List<Object> list1 = new ArrayList<Object>();
+        final List<Object> list1 = new ArrayList<>();
         list1.add(new EntityTierOneType(TEST, 1));
         list1.add(new EntityTierOneType(TEST, 2));
         setEntityTierOneTypes(list1);
@@ -166,7 +182,7 @@ public class FabutRepositoryAssertTest extends Fabut {
         final EntityTierOneType actual = new EntityTierOneType(TEST, 1);
         takeSnapshott(new FabutReport());
 
-        final List<Object> list2 = new ArrayList<Object>();
+        final List<Object> list2 = new ArrayList<>();
         list2.add(new EntityTierOneType(TEST, 2));
         setEntityTierOneTypes(list2);
 
@@ -186,7 +202,7 @@ public class FabutRepositoryAssertTest extends Fabut {
     @Test
     public void testIgnoreEntityEntity() {
         // setup
-        final List<Object> list1 = new ArrayList<Object>();
+        final List<Object> list1 = new ArrayList<>();
         list1.add(new EntityTierOneType(TEST, 1));
         list1.add(new EntityTierOneType(TEST, 2));
         setEntityTierOneTypes(list1);
@@ -194,7 +210,7 @@ public class FabutRepositoryAssertTest extends Fabut {
         final EntityTierOneType actual = new EntityTierOneType(TEST, 1);
         takeSnapshott(new FabutReport());
 
-        final List<Object> list2 = new ArrayList<Object>();
+        final List<Object> list2 = new ArrayList<>();
         list2.add(new EntityTierOneType(TEST, 2));
         setEntityTierOneTypes(list2);
 
@@ -213,7 +229,7 @@ public class FabutRepositoryAssertTest extends Fabut {
     @Test
     public void testAfterAssertEntityParentEntityNotProperty() {
         // setup
-        final List<Object> list1 = new ArrayList<Object>();
+        final List<Object> list1 = new ArrayList<>();
         list1.add(new EntityTierOneType(TEST, 1));
         list1.add(new EntityTierOneType(TEST, 2));
         setEntityTierOneTypes(list1);
@@ -221,7 +237,7 @@ public class FabutRepositoryAssertTest extends Fabut {
         final EntityTierOneType actual = new EntityTierOneType(TEST, 1);
         takeSnapshott(new FabutReport());
 
-        final List<Object> list2 = new ArrayList<Object>();
+        final List<Object> list2 = new ArrayList<>();
         list2.add(new EntityTierOneType(TEST, 2));
         setEntityTierOneTypes(list2);
 
@@ -237,435 +253,333 @@ public class FabutRepositoryAssertTest extends Fabut {
         assertTrue(report.isSuccess());
     }
 
-//    @Test(expected = AssertionError.class)
-//    public void testAfterAssertEntityIsProperty() {
-//        // setup
-//        final List<Object> list1 = new ArrayList<Object>();
-//        list1.add(new EntityTierOneType(TEST, 1));
-//        list1.add(new EntityTierOneType(TEST, 2));
-//        setEntityTierOneTypes(list1);
-//
-//        final EntityTierOneType actual = new EntityTierOneType(TEST, 1);
-//        takeSnapshot(new FabutReport());
-//
-//        final List<Object> list2 = new ArrayList<Object>();
-//        list2.add(new EntityTierOneType(TEST, 2));
-//        setEntityTierOneTypes(list2);
-//
-//        // method
-//        afterAssertEntity(new FabutReport(), actual, true);
-//        final FabutReport report = new FabutReport();
-//        assertDbSnapshot(report);
-//        ;
-//
-//        // assert
-//        assertTrue(assertResult);
-//    }
-//
-//    @Test
-//    public void testAfterAssertEntityNotEntity() {
-//        // setup
-//        final List<Object> list1 = new ArrayList<Object>();
-//        list1.add(new EntityTierOneType(TEST, 1));
-//        list1.add(new EntityTierOneType(TEST, 2));
-//        setEntityTierOneTypes(list1);
-//
-//        final TierOneType actual = new TierOneType();
-//        takeSnapshot(new FabutReport());
-//
-//        final List<Object> list2 = new ArrayList<Object>();
-//        list2.add(new EntityTierOneType(TEST, 2));
-//        setEntityTierOneTypes(list2);
-//
-//        // method
-//        afterAssertEntity(new FabutReport(), actual, false);
-//        final FabutReport report = new FabutReport();
-//        assertDbSnapshot(report);
-//        ;
-//
-//        // assert
-//        assertFalse(assertResult);
-//    }
-//
-//    @Test
-//    public void testAfterAssertEntityWithoutID() {
-//        // setup
-//        final List<Object> list1 = new ArrayList<Object>();
-//        list1.add(new EntityTierOneType(TEST, 1));
-//        list1.add(new EntityTierOneType(TEST, 2));
-//        setEntityTierOneTypes(list1);
-//
-//        final EntityTierOneType actual = new EntityTierOneType(TEST, 1);
-//        takeSnapshot(new FabutReport());
-//
-//        // method
-//        final boolean afterAssertEntity = afterAssertEntity(new FabutReport(),
-//                actual, false);
-//        final boolean assertDbState = final FabutReport report = new FabutReport();
-//        assertDbSnapshot(report);
-//        ;
-//
-//        // assert
-//        assertTrue(afterAssertEntity);
-//        assertTrue(assertDbState);
-//    }
-//
-//    @Test
-//    public void testMarkAssertedNotTypeSupportedTrue() {
-//        // setup
-//        final List<Object> list = new ArrayList<>();
-//        setEntityTierTwoTypes(list);
-//
-//        // method
-//        takeSnapshot(new FabutReport());
-//        list.add(new EntityTierTwoType(TEST, 1, new EntityTierOneType(PROPERTY, 10)));
-//        final boolean assertValue = markAsAsserted(new FabutReport(),
-//                new EntityTierThreeType(TEST, 1, new EntityTierOneType(PROPERTY, 10)), EntityTierThreeType.class);
-//
-//        // assert
-//        assertTrue( final FabutReport report = new FabutReport();
-//        assertDbSnapshot(report););
-//        assertTrue(assertValue);
-//    }
-//
-//    @Test
-//    public void testMarkAssertedNotTyrpeSupportedFalse() {
-//        // method
-//        takeSnapshot(new FabutReport());
-//        final boolean assertValue = markAsAsserted(new FabutReport(),
-//                new UnknownEntityType(4), UnknownEntityType.class);
-//
-//        // assert
-//        assertTrue( final FabutReport report = new FabutReport();
-//        assertDbSnapshot(report););
-//        assertFalse(assertValue);
-//    }
-//
-//    @Test
-//    public void testMarkAssertedCopyAssertNull() {
-//        // setup
-//        final List<Object> list = new ArrayList<Object>();
-//        setEntityTierTwoTypes(list);
-//
-//        // method
-//        takeSnapshot(new FabutReport());
-//        list.add(new EntityTierTwoType(TEST, 1, new EntityTierOneType(PROPERTY, 10)));
-//        final boolean assertValue = markAsAsserted(new FabutReport(),
-//                new EntityTierTwoType(TEST, 1, new EntityTierOneType(PROPERTY, 10)), EntityTierTwoType.class);
-//
-//        // assert
-//        assertTrue( final FabutReport report = new FabutReport();
-//        assertDbSnapshot(report););
-//        assertTrue(assertValue);
-//    }
-//
-//    @Test
-//    public void testMarkAssertedCopyAssertNotNull() {
-//        // setup
-//        final EntityTierTwoType entity = new EntityTierThreeType(TEST, 1, new EntityTierOneType(PROPERTY, 10));
-//        final List<Object> list = new ArrayList<Object>();
-//        list.add(entity);
-//        setEntityTierTwoTypes(list);
-//
-//        // method
-//        takeSnapshot(new FabutReport());
-//        entity.setProperty(TEST + TEST);
-//        final boolean assertValue = markAsAsserted(new FabutReport(),
-//                new EntityTierTwoType(TEST, 1, new EntityTierOneType(PROPERTY, 10)), EntityTierTwoType.class);
-//
-//        // assert
-//        assertTrue( final FabutReport report = new FabutReport();
-//        assertDbSnapshot(report););
-//        assertTrue(assertValue);
-//    }
-//
-//    @SuppressWarnings({"rawtypes", "unchecked"})
-//    @Test
-//    public void testCheckNotExistingInAfterDbStateTrue() {
-//        // setup
-//        final TreeSet beforeIds = new TreeSet();
-//        beforeIds.add(1);
-//        beforeIds.add(2);
-//        beforeIds.add(3);
-//
-//        final TreeSet afterIds = new TreeSet();
-//        afterIds.add(1);
-//        afterIds.add(3);
-//
-//        final Map<Object, CopyAssert> beforeEntities = new HashMap<Object, CopyAssert>();
-//
-//        final CopyAssert copyAssert1 = new CopyAssert(new EntityTierOneType());
-//        beforeEntities.put(1, copyAssert1);
-//
-//        final CopyAssert copyAssert2 = new CopyAssert(new EntityTierOneType());
-//        copyAssert2.setAsserted(true);
-//        beforeEntities.put(2, copyAssert2);
-//
-//        final CopyAssert copyAssert3 = new CopyAssert(new EntityTierOneType());
-//        beforeEntities.put(3, copyAssert3);
-//
-//        // method
-//        checkNotExistingInAfterDbState(beforeIds, afterIds,
-//                beforeEntities, new FabutReport());
-//
-//        // assert
-//        assertTrue(assertResult);
-//    }
-//
-//    @SuppressWarnings({"rawtypes", "unchecked"})
-//    @Test
-//    public void testCheckNotExistingInAfterDbStateFalse() {
-//        // setup
-//        final TreeSet beforeIds = new TreeSet();
-//        beforeIds.add(1);
-//        beforeIds.add(2);
-//        beforeIds.add(3);
-//
-//        final TreeSet afterIds = new TreeSet();
-//        afterIds.add(1);
-//        afterIds.add(3);
-//
-//        final Map<Object, CopyAssert> beforeEntities = new HashMap<Object, CopyAssert>();
-//
-//        final CopyAssert copyAssert1 = new CopyAssert(new EntityTierOneType());
-//        beforeEntities.put(1, copyAssert1);
-//
-//        final CopyAssert copyAssert2 = new CopyAssert(new EntityTierOneType());
-//        beforeEntities.put(2, copyAssert2);
-//
-//        final CopyAssert copyAssert3 = new CopyAssert(new EntityTierOneType());
-//        beforeEntities.put(3, copyAssert3);
-//
-//        // method
-//        checkNotExistingInAfterDbState(beforeIds, afterIds,
-//                beforeEntities, new FabutReport());
-//
-//        // assert
-//        assertFalse(assertResult);
-//    }
-//
-//    @SuppressWarnings({"rawtypes", "unchecked"})
-//    @Test
-//    public void testCheckAddedToAfterDbStateFalse() {
-//        // setup
-//        final TreeSet beforeIds = new TreeSet();
-//        beforeIds.add(1);
-//        beforeIds.add(2);
-//
-//        final TreeSet afterIds = new TreeSet();
-//        afterIds.add(1);
-//        afterIds.add(3);
-//
-//        final Map<Object, Object> afterEntities = new HashMap<Object, Object>();
-//        afterEntities.put(1, new EntityTierOneType());
-//        afterEntities.put(3, new EntityTierOneType());
-//
-//        // method
-//        checkNewToAfterDbState(beforeIds, afterIds,
-//                afterEntities, new FabutReport());
-//
-//        // assert
-//        assertFalse(assertResult);
-//    }
-//
-//    @SuppressWarnings({"rawtypes", "unchecked"})
-//    @Test
-//    public void testCheckAddedToAfterDbStateTrue() {
-//        // setup
-//        final TreeSet beforeIds = new TreeSet();
-//        beforeIds.add(1);
-//        beforeIds.add(3);
-//
-//        final TreeSet afterIds = new TreeSet();
-//        afterIds.add(1);
-//        afterIds.add(3);
-//
-//        final Map<Object, Object> afterEntities = new HashMap<Object, Object>();
-//        afterEntities.put(1, new EntityTierOneType());
-//        afterEntities.put(3, new EntityTierOneType());
-//
-//        // method
-//        checkNewToAfterDbState(beforeIds, afterIds,
-//                afterEntities, new FabutReport());
-//
-//        // assert
-//        assertTrue(assertResult);
-//    }
-//
-//
-//    @SuppressWarnings({"rawtypes", "unchecked"})
-//    @Test
-//    public void testAssertDbSnapshotWithAfterStateTrue() {
-//        // setup
-//        final TreeSet beforeIds = new TreeSet();
-//        beforeIds.add(1);
-//        beforeIds.add(3);
-//
-//        final TreeSet afterIds = new TreeSet();
-//        afterIds.add(1);
-//        afterIds.add(3);
-//
-//        final Map<Object, Object> afterEntities = new HashMap<Object, Object>();
-//        afterEntities.put(1, new EntityTierOneType());
-//        afterEntities.put(3, new EntityTierOneType(TEST, 3));
-//
-//        final Map<Object, CopyAssert> beforeEntities = new HashMap<Object, CopyAssert>();
-//
-//        final CopyAssert copyAssert1 = new CopyAssert(new EntityTierOneType(TEST, 1));
-//        copyAssert1.setAsserted(true);
-//        beforeEntities.put(1, copyAssert1);
-//
-//        final CopyAssert copyAssert2 = new CopyAssert(new EntityTierOneType());
-//        copyAssert2.setAsserted(true);
-//        beforeEntities.put(2, copyAssert2);
-//
-//        final CopyAssert copyAssert3 = new CopyAssert(new EntityTierOneType(TEST, 3));
-//        beforeEntities.put(3, copyAssert3);
-//
-//        // method
-//        assertDbSnapshotWithAfterState(beforeIds, afterIds,
-//                beforeEntities, afterEntities, new FabutReport());
-//
-//        // assert
-//        assertTrue(assertResult);
-//    }
-//
-//    @SuppressWarnings({"rawtypes", "unchecked"})
-//    @Test
-//    public void testAssertDbSnapshotWithAfterStateFalse() {
-//        // setup
-//        final TreeSet beforeIds = new TreeSet();
-//        beforeIds.add(1);
-//        beforeIds.add(3);
-//
-//        final TreeSet afterIds = new TreeSet();
-//        afterIds.add(1);
-//        afterIds.add(3);
-//
-//        final Map<Object, Object> afterEntities = new HashMap<Object, Object>();
-//        afterEntities.put(1, new EntityTierOneType());
-//        afterEntities.put(3, new EntityTierOneType(TEST + TEST, 3));
-//
-//        final Map<Object, CopyAssert> beforeEntities = new HashMap<Object, CopyAssert>();
-//
-//        final CopyAssert copyAssert1 = new CopyAssert(new EntityTierOneType(TEST, 1));
-//        copyAssert1.setAsserted(true);
-//        beforeEntities.put(1, copyAssert1);
-//
-//        final CopyAssert copyAssert2 = new CopyAssert(new EntityTierOneType());
-//        copyAssert2.setAsserted(true);
-//        beforeEntities.put(2, copyAssert2);
-//
-//        final CopyAssert copyAssert3 = new CopyAssert(new EntityTierOneType(TEST, 3));
-//        beforeEntities.put(3, copyAssert3);
-//
-//        // method
-//        assertDbSnapshotWithAfterState(beforeIds, afterIds,
-//                beforeEntities, afterEntities, new FabutReport());
-//
-//        // assert
-//        assertFalse(assertResult);
-//    }
-//
-//    @Test
-//    public void testAssertPairNotPropertyAsserted() {
-//        // setup
-//        final AssertPair entityPair = ConversionUtil.createAssertPair(new EntityTierOneType(TEST, 1),
-//                new EntityTierOneType(TEST, 1), getTypes());
-//
-//        // method
-//        assertPair("", new FabutReport(), entityPair,
-//                new LinkedList<ISingleProperty>(), new NodesList());
-//
-//        // assert
-//        assertTrue(assertResult);
-//    }
-//
-//    @Test
-//    public void testAssertPairNotPropertyAssertFail() {
-//        // setup
-//        final AssertPair entityPair = ConversionUtil.createAssertPair(
-//                new EntityTierOneType(TEST + TEST, 1), new EntityTierOneType(TEST, 1),
-//                getTypes());
-//
-//        // method
-//        assertPair("", new FabutReport(), entityPair,
-//                new LinkedList<>(), new NodesList());
-//
-//        // assert
-//        assertFalse(assertResult);
-//    }
-//
-//    @Test
-//    public void testAssertPairPropertyAsserted() {
-//        // setup
-//        final AssertPair entityPair = ConversionUtil.createAssertPair(new EntityTierOneType(TEST, 1),
-//                new EntityTierOneType(TEST, 1), getTypes());
-//        entityPair.setProperty(true);
-//
-//        // method
-//        assertPair("", new FabutReport(), entityPair,
-//                new LinkedList<ISingleProperty>(), new NodesList());
-//
-//        // assert
-//        assertTrue(assertResult);
-//    }
-//
-//    @Test
-//    public void testAssertPairPropertyAssertFail() {
-//        // setup
-//        final AssertPair entityPair = ConversionUtil.createAssertPair(
-//                new EntityTierOneType(TEST + TEST, 1), new EntityTierOneType(TEST, 2),
-//                getTypes());
-//        entityPair.setProperty(true);
-//
-//        // method
-//        assertPair("", new FabutReport(), entityPair, new LinkedList<ISingleProperty>(), new NodesList());
-//
-//        // assert
-//        assertFalse(assertResult);
-//    }
-//
-//    @Test
-//    public void testAssertEntityWithSnapshotTrue() {
-//        // setup
-//        final List<Object> list1 = new ArrayList<Object>();
-//        list1.add(new EntityTierOneType(TEST, 1));
-//        setEntityTierOneTypes(list1);
-//        final EntityTierOneType entity = new EntityTierOneType(TEST + TEST, 1);
-//        final List<ISingleProperty> properties = new LinkedList<ISingleProperty>();
-//        properties.add(Fabut.value(EntityTierOneType.PROPERTY, TEST + TEST));
-//
-//        // method
-//        takeSnapshot(new FabutReport());
-//        final boolean assertEntityWithSnapshot = assertEntityWithSnapshot(
-//                new FabutReport(), entity, properties);
-//
-//        // assert
-//        assertTrue(assertEntityWithSnapshot);
-//        assertTrue( final FabutReport report = new FabutReport();
-//        assertDbSnapshot(report););
-//
-//    }
-//
-//    @Test
-//    public void testAssertEntityWithSnapshotFalse() {
-//        // setup
-//        final List<Object> list1 = new ArrayList<Object>();
-//        setEntityTierOneTypes(list1);
-//        final EntityTierOneType entity = new EntityTierOneType(TEST + TEST, 1);
-//        final List<ISingleProperty> properties = new LinkedList<ISingleProperty>();
-//        properties.add(Fabut.value(EntityTierOneType.PROPERTY, TEST + TEST));
-//
-//        // method
-//        takeSnapshot(new FabutReport());
-//        final boolean assertEntityWithSnapshot = assertEntityWithSnapshot(
-//                new FabutReport(), entity, properties);
-//
-//        // assert
-//        assertFalse(assertEntityWithSnapshot);
-//        assertTrue( final FabutReport report = new FabutReport();
-//        assertDbSnapshot(report););
-//
-//    }
+    @Test(expected = AssertionError.class)
+    public void testAfterAssertEntityIsProperty() {
+        // setup
+        final List<Object> list1 = new ArrayList<>();
+        list1.add(new EntityTierOneType(TEST, 1));
+        list1.add(new EntityTierOneType(TEST, 2));
+        setEntityTierOneTypes(list1);
+
+        final EntityTierOneType actual = new EntityTierOneType(TEST, 1);
+        takeSnapshot(new FabutReport());
+
+        final List<Object> list2 = new ArrayList<>();
+        list2.add(new EntityTierOneType(TEST, 2));
+        setEntityTierOneTypes(list2);
+
+        // method
+        assertAfterTest = false;
+        super.fabutAfterTest();
+    }
+
+    @Test(expected = AssertionFailedError.class)
+    public void testAfterAssertEntityNotEntity() {
+        // setup
+        final List<Object> list1 = new ArrayList<>();
+        list1.add(new EntityTierOneType(TEST, 1));
+        list1.add(new EntityTierOneType(TEST, 2));
+        setEntityTierOneTypes(list1);
+
+        final TierOneType actual = new TierOneType();
+        takeSnapshot(new FabutReport());
+
+        final List<Object> list2 = new ArrayList<>();
+        list2.add(new EntityTierOneType(TEST, 2));
+        setEntityTierOneTypes(list2);
+
+        // method
+        assertAfterTest = false;
+        super.fabutAfterTest();
+    }
+
+    @Test
+    public void testAfterAssertEntityWithoutID() {
+        // setup
+        final List<Object> list1 = new ArrayList<>();
+        list1.add(new EntityTierOneType(TEST, 1));
+        list1.add(new EntityTierOneType(TEST, 2));
+        setEntityTierOneTypes(list1);
+
+        final EntityTierOneType actual = new EntityTierOneType(TEST, 1);
+        takeSnapshot(new FabutReport());
+
+        // method
+        final FabutReport entityAssertReport = new FabutReport();
+        afterAssertObject(entityAssertReport, actual);
+        assertTrue(entityAssertReport.isSuccess());
+    }
+
+    @Test
+    public void testMarkAssertedNotTyrpeSupportedFalse() {
+        // method
+        takeSnapshot();
+        final FabutReport report = new FabutReport();
+        markAsAsserted(report, new UnknownEntityType(4));
+
+        // assert
+        assertTrue(report.isSuccess());
+    }
+
+    @Test
+    public void testMarkAssertedCopyAssertNull() {
+        // setup
+        final List<Object> list = new ArrayList<>();
+        setEntityTierTwoTypes(list);
+
+        // method
+        takeSnapshot();
+        list.add(new EntityTierTwoType(TEST, 1, new EntityTierOneType(PROPERTY, 10)));
+
+        final FabutReport report = new FabutReport();
+        markAsAsserted(report, new EntityTierTwoType(TEST, 1, new EntityTierOneType(PROPERTY, 10)));
+
+        // assert
+        assertTrue(report.isSuccess());
+    }
+
+    @Test
+    public void testMarkAssertedCopyAssertNotNull() {
+        // setup
+        final EntityTierTwoType entity = new EntityTierThreeType(TEST, 1, new EntityTierOneType(PROPERTY, 10));
+        final List<Object> list = new ArrayList<>();
+        list.add(entity);
+        setEntityTierTwoTypes(list);
+
+        // method
+        takeSnapshot(new FabutReport());
+        entity.setProperty(TEST + TEST);
+        final FabutReport report = new FabutReport();
+        markAsAsserted(report, new EntityTierTwoType(TEST, 1, new EntityTierOneType(PROPERTY, 10)));
+
+        // assert
+        assertTrue(report.isSuccess());
+    }
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    @Test
+    public void testCheckNotExistingInAfterDbStateTrue() {
+        // setup
+        final TreeSet beforeIds = new TreeSet();
+        beforeIds.add(1);
+        beforeIds.add(2);
+        beforeIds.add(3);
+
+        final TreeSet afterIds = new TreeSet();
+        afterIds.add(1);
+        afterIds.add(3);
+
+        final Map<Object, CopyAssert> beforeEntities = new HashMap<>();
+
+        final CopyAssert copyAssert1 = new CopyAssert(new EntityTierOneType());
+        beforeEntities.put(1, copyAssert1);
+
+        final CopyAssert copyAssert2 = new CopyAssert(new EntityTierOneType());
+        copyAssert2.setAsserted(true);
+        beforeEntities.put(2, copyAssert2);
+
+        final CopyAssert copyAssert3 = new CopyAssert(new EntityTierOneType());
+        beforeEntities.put(3, copyAssert3);
+
+        // method
+        final FabutReport report = new FabutReport();
+        checkNotExistingInAfterDbState(beforeIds, afterIds, beforeEntities, report);
+
+        // assert
+        assertTrue(report.isSuccess());
+    }
+
+    @Test
+    public void testCheckNotExistingInAfterDbStateFalse() {
+        // setup
+        final TreeSet beforeIds = new TreeSet();
+        beforeIds.add(1);
+        beforeIds.add(2);
+        beforeIds.add(3);
+
+        final TreeSet afterIds = new TreeSet();
+        afterIds.add(1);
+        afterIds.add(3);
+
+        final Map<Object, CopyAssert> beforeEntities = new HashMap<>();
+
+        final CopyAssert copyAssert1 = new CopyAssert(new EntityTierOneType());
+        beforeEntities.put(1, copyAssert1);
+
+        final CopyAssert copyAssert2 = new CopyAssert(new EntityTierOneType());
+        beforeEntities.put(2, copyAssert2);
+
+        final CopyAssert copyAssert3 = new CopyAssert(new EntityTierOneType());
+        beforeEntities.put(3, copyAssert3);
+
+        // method
+        final FabutReport report = new FabutReport();
+        checkNotExistingInAfterDbState(beforeIds, afterIds, beforeEntities, report);
+
+        // assert
+        assertFalse(report.isSuccess());
+    }
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    @Test
+    public void testCheckAddedToAfterDbStateFalse() {
+        // setup
+        final TreeSet beforeIds = new TreeSet();
+        beforeIds.add(1);
+        beforeIds.add(2);
+
+        final TreeSet afterIds = new TreeSet();
+        afterIds.add(1);
+        afterIds.add(3);
+
+        final Map<Object, Object> afterEntities = new HashMap<>();
+        afterEntities.put(1, new EntityTierOneType());
+        afterEntities.put(3, new EntityTierOneType());
+
+        // method
+        final FabutReport report = new FabutReport();
+        checkNewToAfterDbState(beforeIds, afterIds, afterEntities, report);
+
+        // assert
+        assertFalse(report.isSuccess());
+    }
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    @Test
+    public void testCheckAddedToAfterDbStateTrue() {
+        // setup
+        final TreeSet beforeIds = new TreeSet();
+        beforeIds.add(1);
+        beforeIds.add(3);
+
+        final TreeSet afterIds = new TreeSet();
+        afterIds.add(1);
+        afterIds.add(3);
+
+        final Map<Object, Object> afterEntities = new HashMap<>();
+        afterEntities.put(1, new EntityTierOneType());
+        afterEntities.put(3, new EntityTierOneType());
+
+        // method
+        final FabutReport report = new FabutReport();
+        checkNewToAfterDbState(beforeIds, afterIds, afterEntities, report);
+
+        // assert
+        assertTrue(report.isSuccess());
+    }
+
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    @Test
+    public void testAssertDbSnapshotWithAfterStateTrue() {
+        // setup
+        final TreeSet beforeIds = new TreeSet();
+        beforeIds.add(1);
+        beforeIds.add(3);
+
+        final TreeSet afterIds = new TreeSet();
+        afterIds.add(1);
+        afterIds.add(3);
+
+        final Map<Object, Object> afterEntities = new HashMap<>();
+        afterEntities.put(1, new EntityTierOneType());
+        afterEntities.put(3, new EntityTierOneType(TEST, 3));
+
+        final Map<Object, CopyAssert> beforeEntities = new HashMap<>();
+
+        final CopyAssert copyAssert1 = new CopyAssert(new EntityTierOneType(TEST, 1));
+        copyAssert1.setAsserted(true);
+        beforeEntities.put(1, copyAssert1);
+
+        final CopyAssert copyAssert2 = new CopyAssert(new EntityTierOneType());
+        copyAssert2.setAsserted(true);
+        beforeEntities.put(2, copyAssert2);
+
+        final CopyAssert copyAssert3 = new CopyAssert(new EntityTierOneType(TEST, 3));
+        beforeEntities.put(3, copyAssert3);
+
+        // method
+        final FabutReport report = new FabutReport();
+        assertDbSnapshotWithAfterState(beforeIds, afterIds, beforeEntities, afterEntities, report);
+
+        // assert
+        assertTrue(report.isSuccess());
+    }
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    @Test
+    public void testAssertDbSnapshotWithAfterStateFalse() {
+        // setup
+        final TreeSet beforeIds = new TreeSet();
+        beforeIds.add(1);
+        beforeIds.add(3);
+
+        final TreeSet afterIds = new TreeSet();
+        afterIds.add(1);
+        afterIds.add(3);
+
+        final Map<Object, Object> afterEntities = new HashMap<>();
+        afterEntities.put(1, new EntityTierOneType());
+        afterEntities.put(3, new EntityTierOneType(TEST + TEST, 3));
+
+        final Map<Object, CopyAssert> beforeEntities = new HashMap<>();
+
+        final CopyAssert copyAssert1 = new CopyAssert(new EntityTierOneType(TEST, 1));
+        copyAssert1.setAsserted(true);
+        beforeEntities.put(1, copyAssert1);
+
+        final CopyAssert copyAssert2 = new CopyAssert(new EntityTierOneType());
+        copyAssert2.setAsserted(true);
+        beforeEntities.put(2, copyAssert2);
+
+        final CopyAssert copyAssert3 = new CopyAssert(new EntityTierOneType(TEST, 3));
+        beforeEntities.put(3, copyAssert3);
+
+        // method
+        final FabutReport report = new FabutReport();
+        assertDbSnapshotWithAfterState(beforeIds, afterIds, beforeEntities, afterEntities, report);
+
+        // assert
+        assertFalse(report.isSuccess());
+    }
+
+
+    @Test
+    public void testAssertEntityWithSnapshotTrue() {
+        // setup
+        final List<Object> list1 = new ArrayList<>();
+        list1.add(new EntityTierOneType(TEST, 1));
+        setEntityTierOneTypes(list1);
+        final EntityTierOneType entity = new EntityTierOneType(TEST + TEST, 1);
+        final List<ISingleProperty> properties = new LinkedList<>();
+        properties.add(value(EntityTierOneType.PROPERTY, TEST + TEST));
+
+        // method
+        takeSnapshot();
+
+        final FabutReport fabutReport = new FabutReport();
+        assertEntityWithSnapshot(fabutReport, entity, properties);
+
+        // assert
+        assertTrue(fabutReport.isSuccess());
+
+    }
+
+    @Test
+    public void testAssertEntityWithSnapshotFalse() {
+        // setup
+        final List<Object> list1 = new ArrayList<>();
+        setEntityTierOneTypes(list1);
+        final EntityTierOneType entity = new EntityTierOneType(TEST + TEST, 1);
+        final List<ISingleProperty> properties = new LinkedList<>();
+        properties.add(value(EntityTierOneType.PROPERTY, TEST + TEST));
+
+        // method
+        takeSnapshot();
+        final FabutReport report = new FabutReport();
+        assertEntityWithSnapshot(report, entity, properties);
+
+        // assert
+        assertFalse(report.isSuccess());
+    }
 }
