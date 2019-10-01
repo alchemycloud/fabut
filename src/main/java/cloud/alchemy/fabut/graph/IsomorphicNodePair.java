@@ -28,10 +28,17 @@ public class IsomorphicNodePair extends Pair {
         try {
             final IsomorphicNodePair node = (IsomorphicNodePair) arg0;
             if (ReflectionUtil.hasIdMethod(arg0)) {
-                return ReflectionUtil.getIdValue(node.getActual()) == ReflectionUtil.getIdValue(getActual()) &&
-                        ReflectionUtil.getIdValue(node.getExpected()) == ReflectionUtil.getIdValue(getExpected());
+                final Object nodeActualId = ReflectionUtil.getIdValue(node.getActual());
+                final Object actualId = ReflectionUtil.getIdValue(getActual());
+                final Object nodeExpectedId = ReflectionUtil.getIdValue(node.getExpected());
+                final Object expectedId = ReflectionUtil.getIdValue(getExpected());
+
+                return (nodeActualId == actualId && nodeExpectedId == expectedId) || (nodeActualId == expectedId && nodeExpectedId == actualId);
+
             } else {
-                return node.getActual() == getActual() && node.getExpected() == getExpected();
+
+                return (node.getActual() == getActual() && node.getExpected() == getExpected()) ||
+                        (node.getActual() == getExpected() && node.getExpected() == getActual());
             }
 
         } catch (final Exception e) {

@@ -476,11 +476,10 @@ public class FabutObjectAssertTest extends Fabut {
 
         // method
         final FabutReport report = new FabutReport();
-        assertObjects(report, expected, actual,
-                new LinkedList<>());
+        assertObjects(report, expected, actual, new LinkedList<>());
 
         // assert
-        assertTrue(report.getMessage(), report.isSuccess());
+        assertFalse(report.getMessage(), report.isSuccess());
     }
 
     /**
@@ -554,7 +553,6 @@ public class FabutObjectAssertTest extends Fabut {
         // assert
         assertTrue(report.getMessage(), report.isSuccess());
     }
-
 
     @Test
     public void testAssertChangedPropertyBothNulls() {
