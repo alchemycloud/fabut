@@ -1001,10 +1001,8 @@ public class FabutObjectAssertTest extends Fabut {
     @Test
     public void testAssertObjectsMultiProperty() {
         // setup
-        final TierTwoTypeWithPrimitiveProperty actual = new TierTwoTypeWithPrimitiveProperty(new TierOneType(TEST),
-                TEST);
-        final TierTwoTypeWithPrimitiveProperty expected = new TierTwoTypeWithPrimitiveProperty(new TierOneType(TEST
-                + TEST), TEST + TEST);
+        final TierTwoTypeWithPrimitiveProperty actual = new TierTwoTypeWithPrimitiveProperty(new TierOneType(TEST), TEST);
+        final TierTwoTypeWithPrimitiveProperty expected = new TierTwoTypeWithPrimitiveProperty(new TierOneType(TEST + TEST), TEST + TEST);
 
         // method
         assertObjects(new FabutReport(), expected, actual, extractProperties(ignored(TierTwoType.PROPERTY.chain(TierOneType.PROPERTY).chain(TierTwoTypeWithPrimitiveProperty.PROPERTY2))));
@@ -1016,7 +1014,7 @@ public class FabutObjectAssertTest extends Fabut {
         final TierOneType tierOneType = new TierOneType(TEST);
 
         // method
-        takeSnapshot(new FabutReport(), tierOneType);
+        takeSnapshott(new FabutReport(), tierOneType);
 
         // assert
         assertEquals(parameterSnapshot.size(), 1);

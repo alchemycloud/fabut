@@ -68,7 +68,7 @@ public abstract class Fabut extends Assert {
 
     public void takeSnapshot(final Object... parameters) {
         final FabutReport report = new FabutReport("Take snapshot");
-        takeSnapshot(report, parameters);
+        takeSnapshott(report, parameters);
 
         if (!report.isSuccess()) {
             throw new AssertionFailedError(report.getMessage());
@@ -654,7 +654,7 @@ public abstract class Fabut extends Assert {
         afterAssertObject(actual);
     }
 
-    private void takeSnapshot(final FabutReport report, final Object... parameters) {
+    void takeSnapshott(final FabutReport report, final Object... parameters) {
 
         for (final Object object : parameters) {
             try {

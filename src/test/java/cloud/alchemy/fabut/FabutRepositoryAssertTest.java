@@ -108,7 +108,7 @@ public class FabutRepositoryAssertTest extends Fabut {
                 + TEST + TEST, 4)));
         setEntityTierTwoTypes(beforeList2);
 
-        takeSnapshot(new FabutReport());
+        takeSnapshott(new FabutReport());
 
         final List<Object> afterList1 = new ArrayList<Object>();
         afterList1.add(new EntityTierOneType(TEST + TEST, 1));
@@ -139,7 +139,7 @@ public class FabutRepositoryAssertTest extends Fabut {
         beforeList2.add(new EntityTierTwoType(PROPERTY, 4, new EntityTierOneType(TEST, 7)));
         setEntityTierTwoTypes(beforeList2);
 
-        takeSnapshot(new FabutReport());
+        takeSnapshott(new FabutReport());
 
         final List<Object> afterList1 = new ArrayList<Object>();
         afterList1.add(new EntityTierOneType(TEST + TEST, 1));
@@ -166,7 +166,7 @@ public class FabutRepositoryAssertTest extends Fabut {
         setEntityTierOneTypes(list1);
 
         final EntityTierOneType actual = new EntityTierOneType(TEST, 1);
-        takeSnapshot(new FabutReport());
+        takeSnapshott(new FabutReport());
 
         final List<Object> list2 = new ArrayList<Object>();
         list2.add(new EntityTierOneType(TEST, 2));
@@ -194,7 +194,7 @@ public class FabutRepositoryAssertTest extends Fabut {
         setEntityTierOneTypes(list1);
 
         final EntityTierOneType actual = new EntityTierOneType(TEST, 1);
-        takeSnapshot(new FabutReport());
+        takeSnapshott(new FabutReport());
 
         final List<Object> list2 = new ArrayList<Object>();
         list2.add(new EntityTierOneType(TEST, 2));
@@ -221,7 +221,7 @@ public class FabutRepositoryAssertTest extends Fabut {
         setEntityTierOneTypes(list1);
 
         final EntityTierOneType actual = new EntityTierOneType(TEST, 1);
-        takeSnapshot(new FabutReport());
+        takeSnapshott(new FabutReport());
 
         final List<Object> list2 = new ArrayList<Object>();
         list2.add(new EntityTierOneType(TEST, 2));
