@@ -391,6 +391,7 @@ public class FabutTest extends Fabut {
         takeSnapshot();
 
         // method
+        assertAfterTest = false;
         ((EntityTierOneType) getEntityTierOneTypes().get(0)).setProperty("test");
         assertEntityWithSnapshot(null, value(EntityTierOneType.PROPERTY, "test"));
     }

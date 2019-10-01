@@ -435,7 +435,7 @@ public abstract class Fabut extends Assert {
     }
 
     Object assertEntityWithSnapshot(final FabutReport report, final Object entity,
-                                            final List<ISingleProperty> properties) {
+                                    final List<ISingleProperty> properties) {
 
         final Object id = getIdValue(entity);
         final Class<?> entityClass = entity.getClass();
@@ -448,6 +448,7 @@ public abstract class Fabut extends Assert {
             assertObjects(report, expected, freshEntity, properties);
             return freshEntity;
         } else {
+            report.noEntityInSnapshot(entity);
             return null;
         }
 
