@@ -2,13 +2,12 @@ package cloud.alchemy.fabut.property;
 
 import cloud.alchemy.fabut.Fabut;
 import cloud.alchemy.fabut.model.EntityTierOneType;
-import org.junit.Assert;
 import org.junit.Test;
 
 /**
  * Tests for {@link AbstractSingleProperty}.
  */
-public class PropertyTest extends Assert {
+public class PropertyTest extends Fabut {
 
     /**
      * Test for ignored when varargs are passed.
@@ -16,10 +15,10 @@ public class PropertyTest extends Assert {
     @Test
     public void testIgnored() {
         // setup
-        final PropertyPath[] properties = new PropertyPath[] {EntityTierOneType.PROPERTY, EntityTierOneType.ID};
+        final PropertyPath[] properties = new PropertyPath[]{EntityTierOneType.PROPERTY, EntityTierOneType.ID};
 
         // method
-        final MultiProperties multi = Fabut.ignored(properties);
+        final MultiProperties multi = ignored(properties);
 
         // assert
         assertEquals(properties.length, multi.getProperties().size());
@@ -36,10 +35,10 @@ public class PropertyTest extends Assert {
     @Test
     public void testNulll() {
         // setup
-        final PropertyPath[] properties = new PropertyPath[] {EntityTierOneType.PROPERTY, EntityTierOneType.ID};
+        final PropertyPath[] properties = new PropertyPath[]{EntityTierOneType.PROPERTY, EntityTierOneType.ID};
 
         // method
-        final MultiProperties multi = Fabut.isNull(properties);
+        final MultiProperties multi = isNull(properties);
 
         // assert
         assertEquals(properties.length, multi.getProperties().size());
@@ -56,10 +55,10 @@ public class PropertyTest extends Assert {
     @Test
     public void testNotNull() {
         // setup
-        final PropertyPath[] properties = new PropertyPath[] {EntityTierOneType.PROPERTY, EntityTierOneType.ID};
+        final PropertyPath[] properties = new PropertyPath[]{EntityTierOneType.PROPERTY, EntityTierOneType.ID};
 
         // method
-        final MultiProperties multi = Fabut.notNull(properties);
+        final MultiProperties multi = notNull(properties);
 
         // assert
         assertEquals(properties.length, multi.getProperties().size());

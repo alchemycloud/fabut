@@ -1,9 +1,6 @@
 package cloud.alchemy.fabut;
 
-import cloud.alchemy.fabut.model.EntityTierOneType;
-import cloud.alchemy.fabut.model.EntityWithList;
-import cloud.alchemy.fabut.model.NoDefaultConstructorEntity;
-import cloud.alchemy.fabut.model.TierOneType;
+import cloud.alchemy.fabut.model.*;
 import cloud.alchemy.fabut.model.test.Address;
 import cloud.alchemy.fabut.model.test.Faculty;
 import cloud.alchemy.fabut.model.test.Student;
@@ -12,12 +9,123 @@ import cloud.alchemy.fabut.property.*;
 import junit.framework.AssertionFailedError;
 import org.junit.Test;
 
-import java.util.Arrays;
-import java.util.Collections;
+import java.util.*;
 
-public class FabutTest extends AbstractFabutRepositoryAssertTest {
+public class FabutTest extends Fabut {
 
     private static final String TEST = "test";
+
+    // mock lists
+    private List<Object> entityTierOneTypes = new ArrayList<>();
+    private List<Object> entityTierTwoTypes = new ArrayList<>();
+    private List<Object> entityWithListTypes = new ArrayList<>();
+    private List<Object> noDefaultConstructorEntities = new ArrayList<>();
+
+    public FabutTest() {
+        super();
+        entityTypes = new LinkedList<>();
+        entityTypes.add(EntityTierOneType.class);
+        entityTypes.add(EntityTierTwoType.class);
+        entityTypes.add(EntityWithList.class);
+        entityTypes.add(NoDefaultConstructorEntity.class);
+
+        complexTypes = new LinkedList<>();
+        complexTypes.add(A.class);
+        complexTypes.add(B.class);
+        complexTypes.add(C.class);
+        complexTypes.add(TierOneType.class);
+        complexTypes.add(TierTwoType.class);
+        complexTypes.add(TierThreeType.class);
+        complexTypes.add(TierFourType.class);
+        complexTypes.add(TierFiveType.class);
+        complexTypes.add(TierSixType.class);
+        complexTypes.add(NoGetMethodsType.class);
+        complexTypes.add(IgnoredMethodsType.class);
+        complexTypes.add(TierTwoTypeWithIgnoreProperty.class);
+        complexTypes.add(TierTwoTypeWithListProperty.class);
+        complexTypes.add(TierTwoTypeWithPrimitiveProperty.class);
+        complexTypes.add(DoubleLink.class);
+        complexTypes.add(Start.class);
+        complexTypes.add(TierTwoTypeWithMap.class);
+
+        ignoredTypes = new LinkedList<>();
+        ignoredTypes.add(IgnoredType.class);
+    }
+
+    @Override
+    public List<Object> findAll(final Class<?> entityClass) {
+        if (entityClass == EntityTierOneType.class) {
+            return entityTierOneTypes;
+        }
+        if (entityClass == EntityTierTwoType.class) {
+            return entityTierTwoTypes;
+        }
+        if (entityClass == EntityWithList.class) {
+            return entityWithListTypes;
+        }
+        if (entityClass == NoDefaultConstructorEntity.class) {
+            return noDefaultConstructorEntities;
+        }
+        return null;
+    }
+
+    @Override
+    public Object findById(final Class<?> entityClass, final Object id) {
+        if (entityClass == EntityTierOneType.class) {
+            for (final Object entity : entityTierOneTypes) {
+                if (((EntityTierOneType) entity).getId().equals(id)) {
+                    return entity;
+                }
+            }
+        }
+        if (entityClass == EntityWithList.class) {
+            for (final Object entity : entityWithListTypes) {
+                if (((EntityWithList) entity).getId().equals(id)) {
+                    return entity;
+                }
+            }
+        }
+        if (entityClass == NoDefaultConstructorEntity.class) {
+            for (final Object entity : noDefaultConstructorEntities) {
+                if (((NoDefaultConstructorEntity) entity).getId().equals(id)) {
+                    return entity;
+                }
+            }
+        }
+        return null;
+    }
+
+    public List<Object> getEntityTierOneTypes() {
+        return entityTierOneTypes;
+    }
+
+    public void setEntityTierOneTypes(final List<Object> list1) {
+        entityTierOneTypes = list1;
+    }
+
+    public List<Object> getEntityWithListTypes() {
+        return entityWithListTypes;
+    }
+
+    public void setEntityWithListTypes(final List<Object> list1) {
+        entityWithListTypes = list1;
+    }
+
+    public List<Object> getEntityTierTwoTypes() {
+        return entityTierTwoTypes;
+    }
+
+    public void setEntityTierTwoTypes(final List<Object> list2) {
+        entityTierTwoTypes = list2;
+    }
+
+    public List<Object> getNoDefaultConstructorEntities() {
+        return noDefaultConstructorEntities;
+    }
+
+    public void setNoDefaultConstructorEntities(final List<Object> noDefaultConstructorEntities) {
+        this.noDefaultConstructorEntities = noDefaultConstructorEntities;
+    }
 
     /**
      * Test for ignored when varargs are passed.
@@ -28,7 +136,7 @@ public class FabutTest extends AbstractFabutRepositoryAssertTest {
         final PropertyPath[] properties = new PropertyPath[]{EntityTierOneType.PROPERTY, EntityTierOneType.ID};
 
         // method
-        final MultiProperties multi = Fabut.ignored(properties);
+        final MultiProperties multi = ignored(properties);
 
         // assert
         assertEquals(properties.length, multi.getProperties().size());
@@ -48,7 +156,7 @@ public class FabutTest extends AbstractFabutRepositoryAssertTest {
         final PropertyPath[] properties = new PropertyPath[]{EntityTierOneType.PROPERTY, EntityTierOneType.ID};
 
         // method
-        final MultiProperties multi = Fabut.isNull(properties);
+        final MultiProperties multi = isNull(properties);
 
         // assert
         assertEquals(properties.length, multi.getProperties().size());
@@ -68,7 +176,7 @@ public class FabutTest extends AbstractFabutRepositoryAssertTest {
         final PropertyPath[] properties = new PropertyPath[]{EntityTierOneType.PROPERTY, EntityTierOneType.ID};
 
         // method
-        final MultiProperties multi = Fabut.notNull(properties);
+        final MultiProperties multi = notNull(properties);
 
         // assert
         assertEquals(properties.length, multi.getProperties().size());
@@ -85,7 +193,7 @@ public class FabutTest extends AbstractFabutRepositoryAssertTest {
     @Test
     public void testNotNull() {
         // method
-        final NotNullProperty notNullProperty = Fabut.notNull(EntityTierOneType.PROPERTY);
+        final NotNullProperty notNullProperty = notNull(EntityTierOneType.PROPERTY);
 
         // assert
         assertEquals(EntityTierOneType.PROPERTY.getPath(), notNullProperty.getPath());
@@ -97,7 +205,7 @@ public class FabutTest extends AbstractFabutRepositoryAssertTest {
     @Test
     public void testNulll() {
         // method
-        final NullProperty nullProperty = Fabut.isNull(EntityTierOneType.PROPERTY);
+        final NullProperty nullProperty = isNull(EntityTierOneType.PROPERTY);
 
         // assert
         assertEquals(EntityTierOneType.PROPERTY.getPath(), nullProperty.getPath());
@@ -109,7 +217,7 @@ public class FabutTest extends AbstractFabutRepositoryAssertTest {
     @Test
     public void testIgnored() {
         // method
-        final IgnoredProperty ignoreProperty = Fabut.ignored(EntityTierOneType.PROPERTY);
+        final IgnoredProperty ignoreProperty = ignored(EntityTierOneType.PROPERTY);
 
         // assert
         assertEquals(EntityTierOneType.PROPERTY.getPath(), ignoreProperty.getPath());
@@ -121,49 +229,33 @@ public class FabutTest extends AbstractFabutRepositoryAssertTest {
     @Test
     public void testValue() {
         // method
-        final Property<String> changedProperty = Fabut.value(EntityTierOneType.PROPERTY, TEST);
+        final Property<String> changedProperty = value(EntityTierOneType.PROPERTY, TEST);
 
         // assert
         assertEquals(TEST, changedProperty.getValue());
         assertEquals(EntityTierOneType.PROPERTY.getPath(), changedProperty.getPath());
     }
 
-    /**
-     * Test for {@link Fabut#beforeTest(Object)} if it throws {@link IllegalStateException} if specified test instance
-     * doesn't implement {@link IFabutTest} or {@link IFabutRepositoryTest}.
-     */
-    @Test(expected = IllegalStateException.class)
-    public void testBeforeTest() {
-        // method
-        Fabut.beforeTest(new Object());
-    }
-
-    /**
-     * Test for {@link Fabut#afterTest()} when snapshot matches after state.
-     */
     @Test
     public void testAfterTestSucess() {
         // setup
-        Fabut.beforeTest(this);
-        Fabut.takeSnapshot();
+        
+        takeSnapshot();
 
         // method
-        Fabut.afterTest();
+
     }
 
-    /**
-     * Test for {@link Fabut#afterTest()} when snapshot doesn't match after state.
-     */
     @Test(expected = AssertionFailedError.class)
     public void testAfterTestFail() {
         // setup
-        Fabut.beforeTest(this);
-        Fabut.takeSnapshot();
+        
+        takeSnapshot();
         final EntityTierOneType entityTierOneType = new EntityTierOneType("test", 1);
         getEntityTierOneTypes().add(entityTierOneType);
 
         // method
-        Fabut.afterTest();
+
     }
 
     /**
@@ -172,11 +264,11 @@ public class FabutTest extends AbstractFabutRepositoryAssertTest {
     @Test(expected = AssertionFailedError.class)
     public void testTakeSnapshotFail() {
         // setup
-        Fabut.beforeTest(this);
+        
         getNoDefaultConstructorEntities().add(new NoDefaultConstructorEntity("test", 1));
 
         // method
-        Fabut.takeSnapshot();
+        takeSnapshot();
     }
 
     /**
@@ -185,13 +277,13 @@ public class FabutTest extends AbstractFabutRepositoryAssertTest {
     @Test
     public void testTakeSnapshotSuccess() {
         // setup
-        Fabut.beforeTest(this);
+        
         final EntityTierOneType entityTierOneType = new EntityTierOneType("test", 1);
         getEntityTierOneTypes().add(entityTierOneType);
-        Fabut.takeSnapshot();
+        takeSnapshot();
 
         // method
-        Fabut.afterTest();
+
     }
 
     /**
@@ -201,11 +293,11 @@ public class FabutTest extends AbstractFabutRepositoryAssertTest {
     @Test
     public void testAssertObjectWithComplexType() {
         // setup
-        Fabut.beforeTest(this);
+        
         final TierOneType object = new TierOneType("test");
 
         // method
-        Fabut.assertObject(object, Fabut.value(TierOneType.PROPERTY, "test"));
+        assertObject(object, value(TierOneType.PROPERTY, "test"));
 
     }
 
@@ -216,18 +308,18 @@ public class FabutTest extends AbstractFabutRepositoryAssertTest {
     @Test
     public void testAssertObjectWithEntityType() {
         // setup
-        Fabut.beforeTest(this);
+        
         final EntityTierOneType entity = new EntityTierOneType();
         entity.setProperty("test");
         entity.setId(1);
 
         // method
-        Fabut.takeSnapshot();
+        takeSnapshot();
         getEntityTierOneTypes().add(entity);
-        Fabut.assertObject(entity, Fabut.value(EntityTierOneType.ID, 1),
-                Fabut.value(EntityTierOneType.PROPERTY, "test"));
+        assertObject(entity, value(EntityTierOneType.ID, 1),
+                value(EntityTierOneType.PROPERTY, "test"));
 
-        Fabut.afterTest();
+
 
     }
 
@@ -238,17 +330,17 @@ public class FabutTest extends AbstractFabutRepositoryAssertTest {
     @Test
     public void testAssertObjectWithEntityTypeWithListField() {
         // setup
-        Fabut.beforeTest(this);
+        
         final EntityWithList entity = new EntityWithList();
         entity.setList(Collections.singletonList(new EntityTierOneType("test", 1)));
         entity.setId(1);
 
         // method
-        Fabut.takeSnapshot();
+        takeSnapshot();
         getEntityWithListTypes().add(entity);
-        Fabut.assertObject(entity, Fabut.value(EntityWithList.ID, 1));
+        assertObject(entity, value(EntityWithList.ID, 1));
 
-        Fabut.afterTest();
+
 
     }
 
@@ -259,16 +351,16 @@ public class FabutTest extends AbstractFabutRepositoryAssertTest {
     @Test(expected = AssertionFailedError.class)
     public void testAssertObjectWithEntityTypeFail() {
         // setup
-        Fabut.beforeTest(this);
+        
         final EntityTierOneType entity = new EntityTierOneType();
         entity.setProperty("test");
         entity.setId(1);
 
         // method
-        Fabut.takeSnapshot();
+        takeSnapshot();
         getEntityTierOneTypes().add(entity);
-        Fabut.assertObject(entity, Fabut.value(EntityTierOneType.ID, 1),
-                Fabut.value(EntityTierOneType.PROPERTY, "fail"));
+        assertObject(entity, value(EntityTierOneType.ID, 1),
+                value(EntityTierOneType.PROPERTY, "fail"));
 
     }
 
@@ -279,18 +371,18 @@ public class FabutTest extends AbstractFabutRepositoryAssertTest {
     @Test
     public void testAssertEntityWithSnapshotSuccess() {
         // setup
-        Fabut.beforeTest(this);
+        
         final EntityTierOneType entityTierOneType = new EntityTierOneType();
         entityTierOneType.setId(10);
         entityTierOneType.setProperty("property");
         getEntityTierOneTypes().add(entityTierOneType);
-        Fabut.takeSnapshot();
+        takeSnapshot();
 
         // method
         ((EntityTierOneType) getEntityTierOneTypes().get(0)).setProperty("test");
-        Fabut.assertEntityWithSnapshot(entityTierOneType, Fabut.value(EntityTierOneType.PROPERTY, "test"));
+        assertEntityWithSnapshot(entityTierOneType, value(EntityTierOneType.PROPERTY, "test"));
 
-        Fabut.afterTest();
+
     }
 
     /**
@@ -300,18 +392,18 @@ public class FabutTest extends AbstractFabutRepositoryAssertTest {
     @Test(expected = AssertionFailedError.class)
     public void testAssertEntityWithSnapshotFail() {
         // setup
-        Fabut.beforeTest(this);
+        
         final EntityTierOneType entityTierOneType = new EntityTierOneType();
         entityTierOneType.setId(10);
         entityTierOneType.setProperty("property");
         getEntityTierOneTypes().add(entityTierOneType);
-        Fabut.takeSnapshot();
+        takeSnapshot();
 
         // method
         ((EntityTierOneType) getEntityTierOneTypes().get(0)).setProperty("test");
-        Fabut.assertEntityWithSnapshot(entityTierOneType, Fabut.value(EntityTierOneType.PROPERTY, "testtest"));
+        assertEntityWithSnapshot(entityTierOneType, value(EntityTierOneType.PROPERTY, "testtest"));
 
-        Fabut.afterTest();
+
     }
 
     /**
@@ -321,28 +413,28 @@ public class FabutTest extends AbstractFabutRepositoryAssertTest {
     @Test(expected = IllegalStateException.class)
     public void testAssertEntityWithSnapshotNotEntity() {
         // setup
-        Fabut.beforeTest(this);
-        Fabut.takeSnapshot();
+        
+        takeSnapshot();
 
         // method
-        Fabut.assertEntityWithSnapshot(new TierOneType());
+        assertEntityWithSnapshot(new TierOneType());
     }
 
     @Test(expected = NullPointerException.class)
     public void testAssertEntityWithSnapshotNullEntity() {
         // setup
-        Fabut.beforeTest(this);
+        
         final EntityTierOneType entityTierOneType = new EntityTierOneType();
         entityTierOneType.setId(10);
         entityTierOneType.setProperty("property");
         getEntityTierOneTypes().add(entityTierOneType);
-        Fabut.takeSnapshot();
+        takeSnapshot();
 
         // method
         ((EntityTierOneType) getEntityTierOneTypes().get(0)).setProperty("test");
-        Fabut.assertEntityWithSnapshot(null, Fabut.value(EntityTierOneType.PROPERTY, "test"));
+        assertEntityWithSnapshot(null, value(EntityTierOneType.PROPERTY, "test"));
 
-        Fabut.afterTest();
+
     }
 
     /**
@@ -351,16 +443,16 @@ public class FabutTest extends AbstractFabutRepositoryAssertTest {
     @Test
     public void assertEntityAsDeletedSuccess() {
         // setup
-        Fabut.beforeTest(this);
+        
         final EntityTierOneType entity = new EntityTierOneType(TEST, 1);
         getEntityTierOneTypes().add(entity);
-        Fabut.takeSnapshot();
+        takeSnapshot();
 
         // method
         getEntityTierOneTypes().remove(0);
-        Fabut.assertEntityAsDeleted(entity);
+        assertEntityAsDeleted(entity);
 
-        Fabut.afterTest();
+
     }
 
     /**
@@ -369,15 +461,15 @@ public class FabutTest extends AbstractFabutRepositoryAssertTest {
     @Test(expected = AssertionFailedError.class)
     public void assertEntityAsDeletedFail() {
         // setup
-        Fabut.beforeTest(this);
+        
         final EntityTierOneType entity = new EntityTierOneType(TEST, 1);
         getEntityTierOneTypes().add(entity);
-        Fabut.takeSnapshot();
+        takeSnapshot();
 
         // method
-        Fabut.assertEntityAsDeleted(entity);
+        assertEntityAsDeleted(entity);
 
-        Fabut.afterTest();
+
     }
 
     /**
@@ -386,14 +478,14 @@ public class FabutTest extends AbstractFabutRepositoryAssertTest {
     @Test(expected = IllegalStateException.class)
     public void assertEntityAsDeletedNotEntity() {
         // setup
-        Fabut.beforeTest(this);
+        
         final TierOneType object = new TierOneType();
-        Fabut.takeSnapshot();
+        takeSnapshot();
 
         // method
-        Fabut.assertEntityAsDeleted(object);
+        assertEntityAsDeleted(object);
 
-        Fabut.afterTest();
+
     }
 
     /**
@@ -402,15 +494,15 @@ public class FabutTest extends AbstractFabutRepositoryAssertTest {
     @Test
     public void testIgnoreEntitySuccess() {
         // setup
-        Fabut.beforeTest(this);
+        
         final EntityTierOneType entity = new EntityTierOneType(TEST, 1);
-        Fabut.takeSnapshot();
+        takeSnapshot();
         getEntityTierOneTypes().add(entity);
 
         // method
-        Fabut.ignoreEntity(entity);
+        ignoreEntity(entity);
 
-        Fabut.afterTest();
+
     }
 
     /**
@@ -419,15 +511,15 @@ public class FabutTest extends AbstractFabutRepositoryAssertTest {
     @Test(expected = AssertionFailedError.class)
     public void testIgnoreEntityFail() {
         // setup
-        Fabut.beforeTest(this);
+        
         final EntityTierOneType entity = new EntityTierOneType(TEST, null);
-        Fabut.takeSnapshot();
+        takeSnapshot();
         getEntityTierOneTypes().add(entity);
 
         // method
-        Fabut.ignoreEntity(entity);
+        ignoreEntity(entity);
 
-        Fabut.afterTest();
+
     }
 
     /**
@@ -436,14 +528,13 @@ public class FabutTest extends AbstractFabutRepositoryAssertTest {
     @Test(expected = IllegalStateException.class)
     public void testIgnoreEntityNotEntity() {
         // setup
-        Fabut.beforeTest(this);
+
         final TierOneType object = new TierOneType();
-        Fabut.takeSnapshot();
+        takeSnapshot();
 
         // method
-        Fabut.ignoreEntity(object);
+        ignoreEntity(object);
 
-        Fabut.afterTest();
     }
 
     /**
@@ -453,7 +544,6 @@ public class FabutTest extends AbstractFabutRepositoryAssertTest {
     @Test
     public void testAssertObject() {
         // method
-        Fabut.beforeTest(this);
         final Student student = new Student();
         student.setName("Nikola");
         student.setLastName("Olah");
@@ -474,22 +564,22 @@ public class FabutTest extends AbstractFabutRepositoryAssertTest {
         address2.setStreetNumber("10");
         teacher.setAddress(address2);
         teacher.setStudent(student);
-        Fabut.takeSnapshot();
+        takeSnapshot();
 
         // assert
-        Fabut.assertObject(student,
-                Fabut.value(new PropertyPath<>("name"), "Nikola"),
-                Fabut.value(new PropertyPath<>("lastName"), "Olah"),
-                Fabut.value(new PropertyPath<>("address.city"), "Temerin"),
-                Fabut.value(new PropertyPath<>("address.street"), "Novosadska"),
-                Fabut.value(new PropertyPath<>("address.streetNumber"), "627"),
-                Fabut.value(new PropertyPath<>("faculty.name"), "PMF"),
-                Fabut.value(new PropertyPath<>("faculty.teacher.name"), "Djura"),
-                Fabut.value(new PropertyPath<>("faculty.teacher.address.city"), "Kamenica"),
-                Fabut.value(new PropertyPath<>("faculty.teacher.address.street"), "Ljubicica"),
-                Fabut.value(new PropertyPath<>("faculty.teacher.student"), student),
-                Fabut.value(new PropertyPath<>("faculty.teacher.address.streetNumber"), "10"));
-        Fabut.afterTest();
+        assertObject(student,
+                value(new PropertyPath<>("name"), "Nikola"),
+                value(new PropertyPath<>("lastName"), "Olah"),
+                value(new PropertyPath<>("address.city"), "Temerin"),
+                value(new PropertyPath<>("address.street"), "Novosadska"),
+                value(new PropertyPath<>("address.streetNumber"), "627"),
+                value(new PropertyPath<>("faculty.name"), "PMF"),
+                value(new PropertyPath<>("faculty.teacher.name"), "Djura"),
+                value(new PropertyPath<>("faculty.teacher.address.city"), "Kamenica"),
+                value(new PropertyPath<>("faculty.teacher.address.street"), "Ljubicica"),
+                value(new PropertyPath<>("faculty.teacher.student"), student),
+                value(new PropertyPath<>("faculty.teacher.address.streetNumber"), "10"));
+        
     }
 
 }

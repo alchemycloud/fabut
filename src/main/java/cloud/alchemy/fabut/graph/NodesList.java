@@ -1,14 +1,13 @@
 package cloud.alchemy.fabut.graph;
 
 import cloud.alchemy.fabut.enums.NodeCheckType;
-import cloud.alchemy.fabut.pair.AssertPair;
 
 import java.util.LinkedList;
 import java.util.List;
 
 /**
  * Implementing class for {@link IsomorphicGraph} using {@link LinkedList} as container.
- * 
+ *
  * @author Dusko Vesin
  * @author Nikola Olah
  * @author Bojan Babic
@@ -32,11 +31,6 @@ public class NodesList implements IsomorphicGraph {
     @Override
     public void addPair(final Object expected, final Object actual) {
         isomorphicNodes.add(new IsomorphicNodePair(expected, actual));
-    }
-
-    // FIXME this method is only used in tests, we can remove it
-    public void addPair(final AssertPair assertPair) {
-        addPair(assertPair.getExpected(), assertPair.getActual());
     }
 
     @SuppressWarnings("unchecked")
@@ -78,10 +72,6 @@ public class NodesList implements IsomorphicGraph {
             return NodeCheckType.SINGLE_NODE;
         }
         return NodeCheckType.NEW_PAIR;
-    }
-
-    public NodeCheckType nodeCheck(final AssertPair assertPair) {
-        return nodeCheck(assertPair.getExpected(), assertPair.getActual());
     }
 
 }
