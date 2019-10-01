@@ -39,7 +39,6 @@ public class FabutObjectAssertTest extends Fabut {
         complexTypes.add(Student.class);
         complexTypes.add(Teacher.class);
 
-        final List<Class<?>> ignoredTypes = new LinkedList<>();
         ignoredTypes.add(IgnoredType.class);
     }
 
@@ -166,10 +165,6 @@ public class FabutObjectAssertTest extends Fabut {
         assertTrue(report.getMessage(), report.isSuccess());
     }
 
-    /**
-     * Test for asssertObject with {@link Property} when expected value is null and actual value is null with a
-     * {@link TierOneType}.
-     */
     @Test
     public void testAssertObjectChangedPropertyExpectedNullActualNull() {
         // setup
@@ -185,10 +180,6 @@ public class FabutObjectAssertTest extends Fabut {
         assertTrue(report.getMessage(), report.isSuccess());
     }
 
-    /**
-     * Test if assertObject throws {@link AssertionError} when expected value is not null and
-     * actual value is null and we assert it with {@link Property} with a {@link TierOneType}.
-     */
     @Test
     public void testAssertObjectChangedPropertyActualNull() {
         // setup
@@ -204,10 +195,6 @@ public class FabutObjectAssertTest extends Fabut {
         assertFalse(report.getMessage(), report.isSuccess());
     }
 
-    /**
-     * Test if assertObject throws {@link AssertionError} when expected value is null and actual
-     * value is not null and we assert it with {@link Property} with a {@link TierOneType}.
-     */
     @Test
     public void testAssertObjectChangedPropertyExpectedNull() {
         // setup
@@ -224,10 +211,6 @@ public class FabutObjectAssertTest extends Fabut {
         assertFalse(report.getMessage(), report.isSuccess());
     }
 
-    /**
-     * Test for assertObject with {@link Property} when expected value is equal to actual value
-     * with a {@link TierOneType}.
-     */
     @Test
     public void testAssertObjectChangedPropertyEqual() {
         // setup
@@ -243,10 +226,6 @@ public class FabutObjectAssertTest extends Fabut {
         assertTrue(report.getMessage(), report.isSuccess());
     }
 
-    /**
-     * Test for assertObject with {@link Property} when expected value is not equal to actual
-     * value with a {@link TierOneType}.
-     */
     @Test
     public void testAssertObjectChangedPropertyNotEqual() {
         // setup
@@ -262,23 +241,19 @@ public class FabutObjectAssertTest extends Fabut {
         assertFalse(report.getMessage(), report.isSuccess());
     }
 
-    /**
-     * Test for assertObject when ignored type is property of complex object.
-     */
     @Test
     public void testAssertObjectChangedPropertyWithIgnoredType() {
         // setup
-        final TierTwoTypeWithIgnoreProperty tierTwoTypeWithIgnoreProperty = new TierTwoTypeWithIgnoreProperty(
-                new IgnoredType());
-        final Property<IgnoredType> jokerProperty = value(TierTwoTypeWithIgnoreProperty.IGNORED_TYPE,
-                new IgnoredType());
+        final TierTwoTypeWithIgnoreProperty tierTwoTypeWithIgnoreProperty = new TierTwoTypeWithIgnoreProperty(new IgnoredType());
+
+        final Property<IgnoredType> jokerProperty = value(TierTwoTypeWithIgnoreProperty.IGNORED_TYPE, new IgnoredType());
+
         final List<ISingleProperty> properties = new LinkedList<>();
         properties.add(jokerProperty);
 
         // method
         final FabutReport report = new FabutReport();
-        assertObjectWithProperties(report,
-                tierTwoTypeWithIgnoreProperty, properties);
+        assertObjectWithProperties(report, tierTwoTypeWithIgnoreProperty, properties);
 
         // assert
         assertTrue(report.getMessage(), report.isSuccess());

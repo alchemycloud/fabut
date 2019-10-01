@@ -88,36 +88,12 @@ public class FabutRepositoryAssertTest extends Fabut {
         return null;
     }
 
-    public List<Object> getEntityTierOneTypes() {
-        return entityTierOneTypes;
-    }
-
-    public void setEntityTierOneTypes(final List<Object> list1) {
+    private void setEntityTierOneTypes(final List<Object> list1) {
         entityTierOneTypes = list1;
     }
 
-    public List<Object> getEntityWithListTypes() {
-        return entityWithListTypes;
-    }
-
-    public void setEntityWithListTypes(final List<Object> list1) {
-        entityWithListTypes = list1;
-    }
-
-    public List<Object> getEntityTierTwoTypes() {
-        return entityTierTwoTypes;
-    }
-
-    public void setEntityTierTwoTypes(final List<Object> list2) {
+    private void setEntityTierTwoTypes(final List<Object> list2) {
         entityTierTwoTypes = list2;
-    }
-
-    public List<Object> getNoDefaultConstructorEntities() {
-        return noDefaultConstructorEntities;
-    }
-
-    public void setNoDefaultConstructorEntities(final List<Object> noDefaultConstructorEntities) {
-        this.noDefaultConstructorEntities = noDefaultConstructorEntities;
     }
 
     @Test

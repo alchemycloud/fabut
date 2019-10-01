@@ -611,8 +611,7 @@ public abstract class Fabut extends Assert {
             final ISingleProperty property = getPropertyFromList(fieldName, expectedProperties);
             try {
                 if (property != null) {
-                    assertProperty(fieldName, report, property, method.invoke(actual), EMPTY_STRING,
-                            expectedProperties, new NodesList());
+                    assertProperty(fieldName, report, property, method.invoke(actual), EMPTY_STRING, expectedProperties, new NodesList());
                 } else if (!ignoredField && hasInnerProperties(fieldName, expectedProperties)) {
                     assertInnerProperty(report, method.invoke(actual), expectedProperties, fieldName);
                 } else if (!ignoredField) {
