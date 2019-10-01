@@ -461,19 +461,13 @@ public abstract class Fabut extends Assert {
     }
 
 
-    private void afterAssertObject(final Object object) {
-        afterAssertEntity(new FabutReport(), object, false);
-    }
-
-    void afterAssertEntity(final FabutReport report, final Object entity, final boolean isProperty) {
-        if (!isProperty) {
-            markAsAsserted(report, entity);
+    void afterAssertObject(final FabutReport report, final Object object) {
+        if (isEntityType(object.getClass())) {
+            markAsAsserted(report, object);
         }
-
     }
 
     private void markAsAsserted(final FabutReport report, final Object entity) {
-
         final Class<?> actualType = entity.getClass();
 
         final Object id = getIdValue(entity);
@@ -487,17 +481,13 @@ public abstract class Fabut extends Assert {
 
     private void markAsserted(final Object id, final Object copy, final Class<?> actualType) {
         final Map<Object, CopyAssert> map = dbSnapshot.get(actualType);
-        final boolean isTypeSupported = map != null;
-        if (isTypeSupported) {
-            CopyAssert copyAssert = map.get(id);
-            if (copyAssert == null) {
-                copyAssert = new CopyAssert(copy);
-                map.put(getIdValue(copy), copyAssert);
-            }
-            copyAssert.setAsserted(true);
-        }
 
-        markAsserted(id, copy, actualType);
+        CopyAssert copyAssert = map.get(id);
+        if (copyAssert == null) {
+            copyAssert = new CopyAssert(copy);
+            map.put(getIdValue(copy), copyAssert);
+        }
+        copyAssert.setAsserted(true);
     }
 
     void assertDbSnapshot(final FabutReport report) {
@@ -628,7 +618,7 @@ public abstract class Fabut extends Assert {
             }
         }
 
-        afterAssertObject(actual);
+        afterAssertObject(report, actual);
     }
 
     void assertInnerProperty(final FabutReport report, final Object actual,
@@ -651,7 +641,7 @@ public abstract class Fabut extends Assert {
 
         assertPair(EMPTY_STRING, report, expected, actual, expectedChangedProperties, new NodesList());
 
-        afterAssertObject(actual);
+        afterAssertObject(report, actual);
     }
 
     void takeSnapshott(final FabutReport report, final Object... parameters) {

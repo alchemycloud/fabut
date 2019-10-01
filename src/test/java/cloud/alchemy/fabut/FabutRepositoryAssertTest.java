@@ -229,7 +229,7 @@ public class FabutRepositoryAssertTest extends Fabut {
 
         // method
         final FabutReport assertReport = new FabutReport();
-        afterAssertEntity(assertReport, actual, false);
+        afterAssertObject(assertReport, actual);
         final FabutReport report = new FabutReport();
         assertDbSnapshot(report);
 
