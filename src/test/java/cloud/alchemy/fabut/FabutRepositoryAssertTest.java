@@ -569,6 +569,34 @@ public class FabutRepositoryAssertTest extends AbstractFabutTest {
     }
 
     @Test
+    public void testAssertEntityWithSnapshotFalse_noNeedForAssert() {
+        // setup
+        final List<Object> list1 = new ArrayList<>();
+        list1.add(new EntityTierOneType(TEST, 1));
+        setEntityTierOneTypes(list1);
+
+        // method
+        takeSnapshot();
+
+        final EntityTierOneType entity = new EntityTierOneType(TEST + TEST, 1);
+        final List<ISingleProperty> properties = new LinkedList<>();
+
+        final List<Object> list2 = new ArrayList<>();
+        list2.add(entity);
+        setEntityTierOneTypes(list2);
+
+        properties.add(value(EntityTierOneType.PROPERTY, TEST + TEST));
+        properties.add(value(EntityTierOneType.ID, 1));
+
+        final FabutReport fabutReport = new FabutReport();
+        assertEntityWithSnapshot(fabutReport, entity, properties);
+
+        // assert
+        assertFabutReportFailure(fabutReport, "■>Property: id is same in expected and actual object, no need for assert");
+    }
+
+
+    @Test
     public void testAssertEntityWithSnapshotFalse() {
         // setup
         final List<Object> list1 = new ArrayList<>();

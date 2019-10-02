@@ -653,6 +653,7 @@ public abstract class Fabut extends Assert {
 
     private void assertSubfields(final FabutReport report, final Optional<String> propertyName, Object expected, Object actual, final List<ISingleProperty> properties, final NodesList nodesList) {
 
+        final ArrayList<ISingleProperty> propertiesCopy = new ArrayList<>(properties);
 
         final List<Method> getMethods = getGetMethods(expected);
 
@@ -660,18 +661,25 @@ public abstract class Fabut extends Assert {
             final String fieldName = ReflectionUtil.getFieldName(expectedMethod);
             if (!isIgnoredField(expected.getClass(), fieldName)) {
                 try {
+
                     final ISingleProperty property = obtainProperty(expectedMethod.invoke(expected), fieldName, properties);
-
                     final Method actualMethod = getGetMethod(expectedMethod.getName(), actual);
-
                     assertProperty(report, fieldName, property, actualMethod.invoke(actual), properties, nodesList);
+
+                    if (propertiesCopy.contains(property)) {
+                        final FabutReport optimisationReport = new FabutReport();
+                        assertProperty(optimisationReport, fieldName, value(new PropertyPath(fieldName), expectedMethod.invoke(expected)), actualMethod.invoke(actual), new ArrayList<>(), new NodesList());
+
+                        if (optimisationReport.isSuccess()) {
+                            report.notNecessaryAssert(fieldName, actual);
+                        }
+                    }
 
                 } catch (final Exception e) {
                     report.uncallableMethod(expectedMethod, actual);
                 }
             }
         }
-
 
     }
 

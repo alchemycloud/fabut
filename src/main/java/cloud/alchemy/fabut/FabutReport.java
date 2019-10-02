@@ -150,6 +150,12 @@ public class FabutReport {
         addComment(comment, CommentType.FAIL);
     }
 
+    public void notNecessaryAssert(final String propertyName, final Object actual) {
+        final String comment = String.format(
+                "Property: %s is same in expected and actual object, no need for assert", propertyName);
+        addComment(comment, CommentType.FAIL);
+    }
+
     public void nullReference() {
         final String comment = "Object that was passed to assertObject was null, it must not be null!";
         addComment(comment, CommentType.FAIL);
