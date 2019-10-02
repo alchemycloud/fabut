@@ -99,15 +99,15 @@ public class FabutRepositoryAssertTest extends AbstractFabutTest {
     }
 
     @Override
-    public void fabutBeforeTest() {
-        super.fabutBeforeTest();
+    public void before() {
+        super.before();
         assertAfterTest = true;
     }
 
     @Override
-    public void fabutAfterTest() {
+    public void after() {
         if (assertAfterTest) {
-            super.fabutAfterTest();
+            super.after();
         }
     }
 
@@ -271,7 +271,7 @@ public class FabutRepositoryAssertTest extends AbstractFabutTest {
 
         // method
         assertAfterTest = false;
-        super.fabutAfterTest();
+        super.after();
     }
 
     @Test(expected = AssertionFailedError.class)
@@ -291,7 +291,7 @@ public class FabutRepositoryAssertTest extends AbstractFabutTest {
 
         // method
         assertAfterTest = false;
-        super.fabutAfterTest();
+        super.after();
     }
 
     @Test

@@ -16,6 +16,13 @@ public class ReflectionUtil {
         super();
     }
 
+    static Class getRealClass(final Class<?> classs) {
+        if (classs.getName().contains("Proxy")){
+            return classs.getSuperclass();
+        }
+        return classs;
+    }
+
     static boolean isGetMethod(final Class<?> classs, final Method method) {
         try {
             if (method.getName().startsWith(IS_METHOD_PREFIX)) {
@@ -109,10 +116,8 @@ public class ReflectionUtil {
     }
 
     static boolean isOneOfType(final Class classs, List<Class> classes) {
-        return classes.stream().anyMatch(classs::isAssignableFrom);
+        return classes.stream().anyMatch(classs::isAssignableFrom) || classes.stream().anyMatch(a -> a.isAssignableFrom(classs));
     }
-
-
 
 
 }

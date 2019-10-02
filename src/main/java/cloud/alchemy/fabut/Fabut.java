@@ -22,15 +22,15 @@ public abstract class Fabut extends Assert {
 
     private static final String DOT = ".";
 
-    final List<Class> entityTypes = new ArrayList<>();
-    final List<Class> complexTypes = new ArrayList<>();
-    final List<Class> ignoredTypes = new ArrayList<>();
-    final Map<Class, List<String>> ignoredFields = new HashMap<>();
+    protected final List<Class> entityTypes = new ArrayList<>();
+    protected final List<Class> complexTypes = new ArrayList<>();
+    protected final List<Class> ignoredTypes = new ArrayList<>();
+    protected final Map<Class, List<String>> ignoredFields = new HashMap<>();
 
     private final Map<Class<?>, Map<Object, CopyAssert>> dbSnapshot = new HashMap<>();
     final List<SnapshotPair> parameterSnapshot = new ArrayList<>();
 
-    private void customAssertEquals(Object expected, Object actual) {
+    protected void customAssertEquals(Object expected, Object actual) {
         Assert.assertEquals(expected, actual);
     }
 
@@ -43,7 +43,7 @@ public abstract class Fabut extends Assert {
     }
 
     @Before
-    public void fabutBeforeTest() {
+    public void before() {
         parameterSnapshot.clear();
 
         dbSnapshot.clear();
@@ -53,7 +53,7 @@ public abstract class Fabut extends Assert {
     }
 
     @After
-    public void fabutAfterTest() {
+    public void after() {
         final FabutReport report = new FabutReport("After test assert");
 
         final FabutReport paremeterReport = report.getSubReport("Parameter snapshot test report");
@@ -509,9 +509,10 @@ public abstract class Fabut extends Assert {
     Object assertEntityWithSnapshot(final FabutReport report, final Object entity, final List<ISingleProperty> properties) {
 
         final Object id = getIdValue(entity);
-        final Class<?> entityClass = entity.getClass();
+        final Class<?> entityClass = getRealClass(entity.getClass());
 
         final Map<Object, CopyAssert> map = dbSnapshot.get(entityClass);
+
         final CopyAssert copyAssert = map.get(id);
         if (copyAssert != null) {
             final Object expected = copyAssert.getEntity();
@@ -859,8 +860,7 @@ public abstract class Fabut extends Assert {
     }
 
     private void markAsserted(final Object id, final Object copy, final Class<?> actualType) {
-        final Map<Object, CopyAssert> map = dbSnapshot.get(actualType);
-
+        final Map<Object, CopyAssert> map = dbSnapshot.get(getRealClass(actualType));
         CopyAssert copyAssert = map.get(id);
         if (copyAssert == null) {
             copyAssert = new CopyAssert(copy);
