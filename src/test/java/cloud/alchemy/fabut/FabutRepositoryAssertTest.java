@@ -550,14 +550,14 @@ public class FabutRepositoryAssertTest extends Fabut {
         final List<Object> list1 = new ArrayList<>();
         list1.add(new EntityTierOneType(TEST, 1));
         setEntityTierOneTypes(list1);
-        final EntityTierOneType entity = new EntityTierOneType(TEST + TEST, 1);
-        final List<ISingleProperty> properties = new LinkedList<>();
-        properties.add(value(EntityTierOneType.PROPERTY, TEST + TEST));
 
         // method
         takeSnapshot();
 
+        final EntityTierOneType entity = new EntityTierOneType(TEST + TEST, 1);
         final FabutReport fabutReport = new FabutReport();
+        final List<ISingleProperty> properties = new LinkedList<>();
+        properties.add(value(EntityTierOneType.PROPERTY, TEST + TEST));
         assertEntityWithSnapshot(fabutReport, entity, properties);
 
         // assert
