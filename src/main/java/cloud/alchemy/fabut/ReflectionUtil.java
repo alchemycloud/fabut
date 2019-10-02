@@ -28,6 +28,11 @@ public class ReflectionUtil {
         }
     }
 
+
+    static Method getGetMethod(final String methodName, final Object object) throws Exception {
+        return object.getClass().getMethod(methodName);
+    }
+
     static String getFieldName(final Method method) {
         String fieldName;
         if (method.getName().startsWith(IS_METHOD_PREFIX)) {
@@ -47,6 +52,21 @@ public class ReflectionUtil {
         } catch (final Exception e) {
             return findField(fieldClass.getSuperclass(), fieldName);
         }
+    }
+
+    public static Field getDeclaredFieldFromClassOrSupperClass(Class<?> clazz, String declaredField) {
+        Class<?> tmpClass = clazz;
+        Field field;
+        do {
+            try {
+                field = tmpClass.getDeclaredField(declaredField);
+                return field;
+            } catch (NoSuchFieldException e) {
+                tmpClass = tmpClass.getSuperclass();
+            }
+        } while (tmpClass != null);
+
+        return null;
     }
 
 
@@ -91,6 +111,8 @@ public class ReflectionUtil {
     static boolean isOneOfType(final Class classs, List<Class> classes) {
         return classes.stream().anyMatch(classs::isAssignableFrom);
     }
+
+
 
 
 }
