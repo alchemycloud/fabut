@@ -25,7 +25,7 @@ public abstract class Fabut extends Assert {
     final List<Class> entityTypes = new ArrayList<>();
     final List<Class> complexTypes = new ArrayList<>();
     final List<Class> ignoredTypes = new ArrayList<>();
-    private final Map<Class, List<String>> ignoredFields = new HashMap<>();
+    final Map<Class, List<String>> ignoredFields = new HashMap<>();
 
     private final Map<Class<?>, Map<Object, CopyAssert>> dbSnapshot = new HashMap<>();
     final List<SnapshotPair> parameterSnapshot = new ArrayList<>();

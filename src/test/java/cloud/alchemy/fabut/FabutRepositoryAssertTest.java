@@ -356,7 +356,7 @@ public class FabutRepositoryAssertTest extends Fabut {
         assertTrue(report.isSuccess());
     }
 
-    @SuppressWarnings({"rawtypes", "unchecked"})
+
     @Test
     public void testCheckNotExistingInAfterDbStateTrue() {
         // setup
@@ -420,7 +420,7 @@ public class FabutRepositoryAssertTest extends Fabut {
         assertFalse(report.isSuccess());
     }
 
-    @SuppressWarnings({"rawtypes", "unchecked"})
+
     @Test
     public void testCheckAddedToAfterDbStateFalse() {
         // setup
@@ -444,7 +444,7 @@ public class FabutRepositoryAssertTest extends Fabut {
         assertFalse(report.isSuccess());
     }
 
-    @SuppressWarnings({"rawtypes", "unchecked"})
+
     @Test
     public void testCheckAddedToAfterDbStateTrue() {
         // setup
@@ -468,8 +468,6 @@ public class FabutRepositoryAssertTest extends Fabut {
         assertTrue(report.isSuccess());
     }
 
-
-    @SuppressWarnings({"rawtypes", "unchecked"})
     @Test
     public void testAssertDbSnapshotWithAfterStateTrue() {
         // setup
@@ -506,7 +504,6 @@ public class FabutRepositoryAssertTest extends Fabut {
         assertTrue(report.isSuccess());
     }
 
-    @SuppressWarnings({"rawtypes", "unchecked"})
     @Test
     public void testAssertDbSnapshotWithAfterStateFalse() {
         // setup
@@ -555,14 +552,19 @@ public class FabutRepositoryAssertTest extends Fabut {
         takeSnapshot();
 
         final EntityTierOneType entity = new EntityTierOneType(TEST + TEST, 1);
-        final FabutReport fabutReport = new FabutReport();
         final List<ISingleProperty> properties = new LinkedList<>();
+
+        final List<Object> list2 = new ArrayList<>();
+        list2.add(entity);
+        setEntityTierOneTypes(list2);
+
         properties.add(value(EntityTierOneType.PROPERTY, TEST + TEST));
+
+        final FabutReport fabutReport = new FabutReport();
         assertEntityWithSnapshot(fabutReport, entity, properties);
 
         // assert
         assertTrue(fabutReport.getMessage(), fabutReport.isSuccess());
-
     }
 
     @Test
