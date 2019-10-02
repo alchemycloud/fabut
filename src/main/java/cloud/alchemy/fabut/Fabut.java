@@ -339,12 +339,12 @@ public abstract class Fabut extends Assert {
 
         if (isComplexType(propertyForCopying.getClass())) {
             // its complex object, we need its copy
-            return createCopyObject(propertyForCopying.getClass(), nodes);
+            return createCopyObject(propertyForCopying, nodes);
         }
 
         if (isEntityType(propertyForCopying.getClass())) {
             // its complex object, we need its copy
-            return createCopyObject(propertyForCopying.getClass(), nodes);
+            return createCopyObject(propertyForCopying, nodes);
         }
 
         if (isListType(propertyForCopying.getClass())) {
