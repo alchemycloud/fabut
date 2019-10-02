@@ -13,7 +13,7 @@ public class FabutReport {
     private static final String DASH = "-";
     private static final String NEW_LINE = "\n";
     private boolean success = true;
-    private List<FabutReport> subReports = new ArrayList<>();
+    private final List<FabutReport> subReports = new ArrayList<>();
     private final List<String> messages = new ArrayList<>();
 
     public FabutReport() {

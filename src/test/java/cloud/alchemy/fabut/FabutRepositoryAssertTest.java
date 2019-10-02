@@ -16,8 +16,8 @@ public class FabutRepositoryAssertTest extends Fabut {
     // mock lists
     private List<Object> entityTierOneTypes = new ArrayList<>();
     private List<Object> entityTierTwoTypes = new ArrayList<>();
-    private List<Object> entityWithListTypes = new ArrayList<>();
-    private List<Object> noDefaultConstructorEntities = new ArrayList<>();
+    private final List<Object> entityWithListTypes = new ArrayList<>();
+    private final List<Object> noDefaultConstructorEntities = new ArrayList<>();
     private boolean assertAfterTest = true;
 
     public FabutRepositoryAssertTest() {

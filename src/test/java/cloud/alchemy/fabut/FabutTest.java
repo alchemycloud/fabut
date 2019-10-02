@@ -16,10 +16,10 @@ public class FabutTest extends Fabut {
     private static final String TEST = "test";
 
     // mock lists
-    private List<Object> entityTierOneTypes = new ArrayList<>();
-    private List<Object> entityTierTwoTypes = new ArrayList<>();
-    private List<Object> entityWithListTypes = new ArrayList<>();
-    private List<Object> noDefaultConstructorEntities = new ArrayList<>();
+    private final List<Object> entityTierOneTypes = new ArrayList<>();
+    private final List<Object> entityTierTwoTypes = new ArrayList<>();
+    private final List<Object> entityWithListTypes = new ArrayList<>();
+    private final List<Object> noDefaultConstructorEntities = new ArrayList<>();
 
     private boolean assertAfterTest;
 
