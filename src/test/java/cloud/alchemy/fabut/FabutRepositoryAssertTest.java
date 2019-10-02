@@ -8,7 +8,7 @@ import org.junit.Test;
 
 import java.util.*;
 
-public class FabutRepositoryAssertTest extends Fabut {
+public class FabutRepositoryAssertTest extends AbstractFabutTest {
 
     private static final String TEST = "test";
     private static final String PROPERTY = "property";
@@ -168,7 +168,10 @@ public class FabutRepositoryAssertTest extends Fabut {
         assertDbSnapshot(report);
 
         // assert
-        assertFalse(report.isSuccess());
+        assertFabutReportFailure(report,
+                "■>property: expected: property, but was: propertyproperty\n" +
+                        "■>property: expected: test, but was: testtest");
+
     }
 
     @Test
@@ -189,14 +192,12 @@ public class FabutRepositoryAssertTest extends Fabut {
         // method
         final FabutReport assertEntityAsDeleted = new FabutReport();
         assertEntityAsDeleted(assertEntityAsDeleted, actual);
+        assertFabutReportSuccess(assertEntityAsDeleted);
+
+
         final FabutReport report = new FabutReport();
         assertDbSnapshot(report);
-
-
-        // assert
-        assertTrue(assertEntityAsDeleted.isSuccess());
-        assertTrue(report.isSuccess());
-
+        assertFabutReportSuccess(report);
     }
 
     @Test
@@ -222,8 +223,8 @@ public class FabutRepositoryAssertTest extends Fabut {
 
 
         // assert
-        assertTrue(ignoreEntityReport.isSuccess());
-        assertTrue(report.isSuccess());
+        assertFabutReportSuccess(ignoreEntityReport);
+        assertFabutReportSuccess(report);
     }
 
     @Test
@@ -249,8 +250,8 @@ public class FabutRepositoryAssertTest extends Fabut {
 
 
         // assert
-        assertTrue(assertReport.isSuccess());
-        assertTrue(report.isSuccess());
+        assertFabutReportSuccess(assertReport);
+        assertFabutReportSuccess(report);
     }
 
     @Test(expected = AssertionError.class)
@@ -307,7 +308,7 @@ public class FabutRepositoryAssertTest extends Fabut {
         // method
         final FabutReport entityAssertReport = new FabutReport();
         afterAssertObject(entityAssertReport, actual);
-        assertTrue(entityAssertReport.isSuccess());
+        assertFabutReportSuccess(entityAssertReport);
     }
 
     @Test(expected = NullPointerException.class)
@@ -318,7 +319,7 @@ public class FabutRepositoryAssertTest extends Fabut {
         markAsAsserted(report, new UnknownEntityType(4));
 
         // assert
-        assertTrue(report.isSuccess());
+        assertFabutReportSuccess(report);
     }
 
     @Test
@@ -335,7 +336,7 @@ public class FabutRepositoryAssertTest extends Fabut {
         markAsAsserted(report, new EntityTierTwoType(TEST, 1, new EntityTierOneType(PROPERTY, 10)));
 
         // assert
-        assertTrue(report.isSuccess());
+        assertFabutReportSuccess(report);
     }
 
     @Test
@@ -353,7 +354,7 @@ public class FabutRepositoryAssertTest extends Fabut {
         markAsAsserted(report, new EntityTierTwoType(TEST, 1, new EntityTierOneType(PROPERTY, 10)));
 
         // assert
-        assertTrue(report.isSuccess());
+        assertFabutReportSuccess(report);
     }
 
 
@@ -386,7 +387,7 @@ public class FabutRepositoryAssertTest extends Fabut {
         checkNotExistingInAfterDbState(beforeIds, afterIds, beforeEntities, report);
 
         // assert
-        assertTrue(report.isSuccess());
+        assertFabutReportSuccess(report);
     }
 
     @Test
@@ -417,7 +418,7 @@ public class FabutRepositoryAssertTest extends Fabut {
         checkNotExistingInAfterDbState(beforeIds, afterIds, beforeEntities, report);
 
         // assert
-        assertFalse(report.isSuccess());
+        assertFabutReportFailure(report, "■>Entity null null doesn't exist in DB any more but is not asserted in test.");
     }
 
 
@@ -441,7 +442,7 @@ public class FabutRepositoryAssertTest extends Fabut {
         checkNewToAfterDbState(beforeIds, afterIds, afterEntities, report);
 
         // assert
-        assertFalse(report.isSuccess());
+        assertFabutReportFailure(report, "■>Entity null null is created in system after last snapshot but hasn't been asserted in test.");
     }
 
 
@@ -465,7 +466,7 @@ public class FabutRepositoryAssertTest extends Fabut {
         checkNewToAfterDbState(beforeIds, afterIds, afterEntities, report);
 
         // assert
-        assertTrue(report.isSuccess());
+        assertFabutReportSuccess(report);
     }
 
     @Test
@@ -501,7 +502,7 @@ public class FabutRepositoryAssertTest extends Fabut {
         assertDbSnapshotWithAfterState(beforeIds, afterIds, beforeEntities, afterEntities, report);
 
         // assert
-        assertTrue(report.isSuccess());
+        assertFabutReportSuccess(report);
     }
 
     @Test
@@ -537,7 +538,7 @@ public class FabutRepositoryAssertTest extends Fabut {
         assertDbSnapshotWithAfterState(beforeIds, afterIds, beforeEntities, afterEntities, report);
 
         // assert
-        assertFalse(report.isSuccess());
+        assertFabutReportFailure(report, "■>property: expected: test, but was: testtest");
     }
 
 
@@ -564,7 +565,7 @@ public class FabutRepositoryAssertTest extends Fabut {
         assertEntityWithSnapshot(fabutReport, entity, properties);
 
         // assert
-        assertTrue(fabutReport.getMessage(), fabutReport.isSuccess());
+        assertFabutReportSuccess(fabutReport);
     }
 
     @Test
@@ -582,6 +583,6 @@ public class FabutRepositoryAssertTest extends Fabut {
         assertEntityWithSnapshot(report, entity, properties);
 
         // assert
-        assertFalse(report.isSuccess());
+        assertFabutReportFailure(report, "■>Entity 1 testtest doesn't exist in DB any more but is not asserted in test.");
     }
 }

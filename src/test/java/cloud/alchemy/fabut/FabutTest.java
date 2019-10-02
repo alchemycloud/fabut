@@ -11,7 +11,7 @@ import org.junit.Test;
 
 import java.util.*;
 
-public class FabutTest extends Fabut {
+public class FabutTest extends AbstractFabutTest {
 
     private static final String TEST = "test";
 

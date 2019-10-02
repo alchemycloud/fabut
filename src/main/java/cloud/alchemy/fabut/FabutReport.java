@@ -40,13 +40,17 @@ public class FabutReport {
     }
 
     public String getMessage(Integer depth) {
-        final String spacer = StringUtils.repeat(DASH, depth * 2);
+        final String spacer = NEW_LINE + StringUtils.repeat(DASH, depth * 2);
 
-        final String message = messages.stream().map(a -> spacer + a).collect(Collectors.joining(spacer));
+        final String message = String.join(spacer, messages);
 
         final String subMessages = subReports.stream().filter(a -> !a.isSuccess()).map(a -> NEW_LINE + a.getMessage(depth + 1)).collect(Collectors.joining());
 
-        return message + subMessages;
+        if (subMessages.isEmpty()) {
+            return message;
+        } else {
+            return message + NEW_LINE + subMessages;
+        }
     }
 
     /**
@@ -66,8 +70,7 @@ public class FabutReport {
     }
 
     public void listDifferentSizeComment(final String propertyName, final int expectedSize, final int actualSize) {
-        final String comment = String.format("Expected size for list: %s is: %d, but was: %d", propertyName,
-                expectedSize, actualSize);
+        final String comment = String.format("Expected size for list: %s is: %d, but was: %d", propertyName, expectedSize, actualSize);
         addComment(comment, CommentType.FAIL);
     }
 
@@ -75,7 +78,6 @@ public class FabutReport {
         final String comment = String.format("There was no property for field:  %s of class:  %s, with value: %s",
                 fieldName, field.getClass(), field);
         addComment(comment, CommentType.FAIL);
-
     }
 
     public void notNullProperty(final String fieldName) {
@@ -99,7 +101,6 @@ public class FabutReport {
         addComment(comment, CommentType.FAIL);
 
     }
-
 
     public void reportIgnoreProperty(final String fieldName) {
         final String comment = String.format("%s: is ignored field", fieldName);

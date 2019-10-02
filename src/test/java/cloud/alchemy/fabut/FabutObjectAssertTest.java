@@ -15,7 +15,7 @@ import java.util.*;
 import static java.util.Optional.empty;
 import static java.util.Optional.of;
 
-public class FabutObjectAssertTest extends Fabut {
+public class FabutObjectAssertTest extends AbstractFabutTest {
     private static final String EMPTY_STRING = "";
     private static final String TEST = "test";
 
@@ -56,7 +56,7 @@ public class FabutObjectAssertTest extends Fabut {
         assertObjectWithProperties(report, ignoredType, properties);
 
         // assert
-        assertTrue(report.getMessage(), report.isSuccess());
+        assertFabutReportSuccess(report);
     }
 
     @Test
@@ -72,7 +72,7 @@ public class FabutObjectAssertTest extends Fabut {
         assertObjectWithProperties(report, noGetMethodsType, properties);
 
         // assert
-        assertFalse(report.getMessage(), report.isSuccess());
+        assertFabutReportFailure(report, "■>Excess property: property");
     }
 
     @Test
@@ -86,7 +86,7 @@ public class FabutObjectAssertTest extends Fabut {
         assertObjectWithProperties(report, tierOneType, properties);
 
         // assert
-        assertFalse(report.getMessage(), report.isSuccess());
+        assertFabutReportFailure(report, "■>There was no property for field:  property of class:  class java.lang.String, with value: test");
     }
 
     @Test
@@ -102,7 +102,7 @@ public class FabutObjectAssertTest extends Fabut {
                 properties);
 
         // assert
-        assertFalse(report.getMessage(), report.isSuccess());
+        assertFabutReportFailure(report, "■>property: expected not null property, but field was null");
     }
 
     @Test
@@ -118,8 +118,7 @@ public class FabutObjectAssertTest extends Fabut {
                 tierOneType, properties);
 
         // assert
-        assertTrue(report.getMessage(), report.isSuccess());
-
+        assertFabutReportSuccess(report);
     }
 
     @Test
@@ -134,7 +133,7 @@ public class FabutObjectAssertTest extends Fabut {
         assertObjectWithProperties(report, tierOneType, properties);
 
         // assert
-        assertFalse(report.getMessage(), report.isSuccess());
+        assertFabutReportFailure(report, "■>property: expected null property, but field was not null");
     }
 
     @Test
@@ -150,7 +149,7 @@ public class FabutObjectAssertTest extends Fabut {
                 tierOneType, properties);
 
         // assert
-        assertTrue(report.getMessage(), report.isSuccess());
+        assertFabutReportSuccess(report);
     }
 
     @Test
@@ -165,7 +164,7 @@ public class FabutObjectAssertTest extends Fabut {
         assertObjectWithProperties(report, tierOneType, properties);
 
         // assert
-        assertTrue(report.getMessage(), report.isSuccess());
+        assertFabutReportSuccess(report);
     }
 
     @Test
@@ -180,7 +179,7 @@ public class FabutObjectAssertTest extends Fabut {
         assertObjectWithProperties(report, tierOneType, properties);
 
         // assert
-        assertTrue(report.getMessage(), report.isSuccess());
+        assertFabutReportSuccess(report);
     }
 
     @Test
@@ -195,7 +194,7 @@ public class FabutObjectAssertTest extends Fabut {
         assertObjectWithProperties(report, tierOneType, properties);
 
         // assert
-        assertFalse(report.getMessage(), report.isSuccess());
+        assertFabutReportFailure(report, "■>property: expected: test, but was: null");
     }
 
     @Test
@@ -211,7 +210,7 @@ public class FabutObjectAssertTest extends Fabut {
                 properties);
 
         // assert
-        assertFalse(report.getMessage(), report.isSuccess());
+        assertFabutReportFailure(report, "■>property: expected: null, but was: test");
     }
 
     @Test
@@ -226,7 +225,7 @@ public class FabutObjectAssertTest extends Fabut {
         assertObjectWithProperties(report, tierOneType, properties);
 
         // assert
-        assertTrue(report.getMessage(), report.isSuccess());
+        assertFabutReportSuccess(report);
     }
 
     @Test
@@ -241,7 +240,7 @@ public class FabutObjectAssertTest extends Fabut {
         assertObjectWithProperties(report, tierOneType, properties);
 
         // assert
-        assertFalse(report.getMessage(), report.isSuccess());
+        assertFabutReportFailure(report, "■>property: expected: testtest, but was: test");
     }
 
     @Test
@@ -259,7 +258,7 @@ public class FabutObjectAssertTest extends Fabut {
         assertObjectWithProperties(report, tierTwoTypeWithIgnoreProperty, properties);
 
         // assert
-        assertTrue(report.getMessage(), report.isSuccess());
+        assertFabutReportSuccess(report);
     }
 
     /**
@@ -283,7 +282,7 @@ public class FabutObjectAssertTest extends Fabut {
                 tierTwoTypeWithListProperty, properties);
 
         // assert
-        assertFalse(report.getMessage(), report.isSuccess());
+        assertFabutReportFailure(report, "■>Expected size for list: property is: 1, but was: 0");
     }
 
     /**
@@ -310,7 +309,7 @@ public class FabutObjectAssertTest extends Fabut {
                 tierTwoTypeWithListProperty, properties);
 
         // assert
-        assertTrue(report.getMessage(), report.isSuccess());
+        assertFabutReportSuccess(report);
     }
 
     /**
@@ -333,11 +332,12 @@ public class FabutObjectAssertTest extends Fabut {
 
         // method
         final FabutReport report = new FabutReport();
-        assertObjectWithProperties(report,
-                tierTwoTypeWithListProperty, properties);
+        assertObjectWithProperties(report, tierTwoTypeWithListProperty, properties);
 
         // assert
-        assertFalse(report.getMessage(), report.isSuccess());
+        assertFabutReportFailure(report,
+                "#>Asserting object at index [0] of list property.\n" +
+                        "■>: expected: testtest, but was: test");
     }
 
     /**
@@ -369,7 +369,7 @@ public class FabutObjectAssertTest extends Fabut {
         assertObjects(report, expected, actual, new LinkedList<>());
 
         // assert
-        assertFalse(report.getMessage(), report.isSuccess());
+        assertFabutReportFailure(report, "■>property: expected: testtest, but was: test");
     }
 
     /**
@@ -393,7 +393,7 @@ public class FabutObjectAssertTest extends Fabut {
         assertObjects(report, expected, actual, new LinkedList<>());
 
         // assert
-        assertTrue(report.getMessage(), report.isSuccess());
+        assertFabutReportSuccess(report);
     }
 
     /**
@@ -414,11 +414,16 @@ public class FabutObjectAssertTest extends Fabut {
 
         // method
         final FabutReport report = new FabutReport();
-        assertObjects(report, expected, actual,
-                new LinkedList<>());
+        assertObjects(report, expected, actual, new LinkedList<>());
 
         // assert
-        assertFalse(report.getMessage(), report.isSuccess());
+        assertFabutReportFailure(report,
+                "#>Asserting object at index [0] of list .\n" +
+                        "■>property: expected: testtest, but was: test\n" +
+                        "#>Asserting object at index [1] of list .\n" +
+                        "■>property: expected: testtesttest, but was: testtest\n" +
+                        "#>Asserting object at index [2] of list .\n" +
+                        "■>property: expected: testtesttesttest, but was: testtesttest");
     }
 
     @Test
@@ -435,7 +440,7 @@ public class FabutObjectAssertTest extends Fabut {
         assertObjects(report, expected, actual, properties);
 
         // assert
-        assertTrue(report.getMessage(), report.isSuccess());
+        assertFabutReportSuccess(report);
     }
 
 
@@ -449,7 +454,6 @@ public class FabutObjectAssertTest extends Fabut {
         assertObjects(report, tierOneType, tierOneType,
                 new LinkedList<>());
     }
-
 
     @Test
     public void testAssertObjectsTierSixTypeDepthSix() {
@@ -465,9 +469,8 @@ public class FabutObjectAssertTest extends Fabut {
                 new LinkedList<>());
 
         // assert
-        assertFalse(report.getMessage(), report.isSuccess());
+        assertFabutReportFailure(report, "■>property: expected: testtest, but was: test");
     }
-
 
     @Test
     public void testAssertObjectsVarargsExpected() {
@@ -481,7 +484,7 @@ public class FabutObjectAssertTest extends Fabut {
         assertObjects(report, expected, actual, new LinkedList<>());
 
         // assert
-        assertFalse(report.getMessage(), report.isSuccess());
+        assertFabutReportFailure(report, "■>: expected: [test], but was: test");
     }
 
     /**
@@ -501,7 +504,7 @@ public class FabutObjectAssertTest extends Fabut {
                 actual, properties);
 
         // assert
-        assertTrue(report.getMessage(), report.isSuccess());
+        assertFabutReportSuccess(report);
     }
 
 
@@ -517,7 +520,7 @@ public class FabutObjectAssertTest extends Fabut {
         assertPair(report, empty(), expected, actual, new ArrayList<>(), nodesList);
 
         // assert
-        assertTrue(report.getMessage(), report.isSuccess());
+        assertFabutReportSuccess(report);
     }
 
 
@@ -534,7 +537,7 @@ public class FabutObjectAssertTest extends Fabut {
         assertPair(report, empty(), expected, actual, new ArrayList<>(), nodesList);
 
         // assert
-        assertTrue(report.getMessage(), report.isSuccess());
+        assertFabutReportSuccess(report);
     }
 
     @Test
@@ -553,7 +556,7 @@ public class FabutObjectAssertTest extends Fabut {
         assertPair(report, empty(), expected, actual, new ArrayList<>(), nodesList);
 
         // assert
-        assertTrue(report.getMessage(), report.isSuccess());
+        assertFabutReportSuccess(report);
     }
 
     @Test
@@ -563,7 +566,7 @@ public class FabutObjectAssertTest extends Fabut {
         assertPair(report, empty(), null, null, new ArrayList<>(), new NodesList());
 
         // assert
-        assertTrue(report.getMessage(), report.isSuccess());
+        assertFabutReportSuccess(report);
     }
 
 
@@ -578,7 +581,7 @@ public class FabutObjectAssertTest extends Fabut {
         assertPair(report, empty(), expected, actual, new ArrayList<>(), new NodesList());
 
         // assert
-        assertTrue(report.getMessage(), report.isSuccess());
+        assertFabutReportSuccess(report);
     }
 
     @Test
@@ -592,7 +595,7 @@ public class FabutObjectAssertTest extends Fabut {
         assertPair(report, empty(), expected, actual, new ArrayList<>(), new NodesList());
 
         // assert
-        assertTrue(report.getMessage(), report.isSuccess());
+        assertFabutReportSuccess(report);
     }
 
     @Test
@@ -604,7 +607,7 @@ public class FabutObjectAssertTest extends Fabut {
         assertPair(report, empty(), TEST, TEST, new ArrayList<>(), new NodesList());
 
         // assert
-        assertTrue(report.getMessage(), report.isSuccess());
+        assertFabutReportSuccess(report);
     }
 
     @Test
@@ -617,7 +620,7 @@ public class FabutObjectAssertTest extends Fabut {
         assertPair(report, empty(), expected, TEST, new ArrayList<>(), new NodesList());
 
         // assert
-        assertFalse(report.getMessage(), report.isSuccess());
+        assertFabutReportFailure(report, "■>: expected: testtest, but was: test");
     }
 
     @Test
@@ -635,7 +638,7 @@ public class FabutObjectAssertTest extends Fabut {
         assertPair(report, empty(), expected, actual, new LinkedList<>(), new NodesList());
 
         // assert
-        assertTrue(report.getMessage(), report.isSuccess());
+        assertFabutReportSuccess(report);
     }
 
     @Test
@@ -645,7 +648,7 @@ public class FabutObjectAssertTest extends Fabut {
         assertProperty(report, EMPTY_STRING, notNull(TierOneType.PROPERTY), new TierOneType(TEST), new ArrayList<>(), null);
 
         // assert
-        assertTrue(report.getMessage(), report.isSuccess());
+        assertFabutReportSuccess(report);
     }
 
     @Test
@@ -656,7 +659,7 @@ public class FabutObjectAssertTest extends Fabut {
                 notNull(TierOneType.PROPERTY), null, new ArrayList<>(), null);
 
         // assert
-        assertFalse(report.getMessage(), report.isSuccess());
+        assertFabutReportFailure(report, "■>property: expected not null property, but field was null");
     }
 
     @Test
@@ -666,7 +669,7 @@ public class FabutObjectAssertTest extends Fabut {
         assertProperty(report, EMPTY_STRING, isNull(TierOneType.PROPERTY), null, new ArrayList<>(), null);
 
         // assert
-        assertTrue(report.getMessage(), report.isSuccess());
+        assertFabutReportSuccess(report);
     }
 
     @Test
@@ -676,7 +679,7 @@ public class FabutObjectAssertTest extends Fabut {
         assertProperty(report, EMPTY_STRING, isNull(TierOneType.PROPERTY), new TierOneType(TEST), new ArrayList<>(), null);
 
         // assert
-        assertFalse(report.getMessage(), report.isSuccess());
+        assertFabutReportFailure(report, "■>property: expected null property, but field was not null");
     }
 
     @Test
@@ -686,7 +689,7 @@ public class FabutObjectAssertTest extends Fabut {
         assertProperty(report, EMPTY_STRING, ignored(TierOneType.PROPERTY), new TierOneType(TEST), new ArrayList<>(), null);
 
         // assert
-        assertTrue(report.getMessage(), report.isSuccess());
+        assertFabutReportSuccess(report);
     }
 
     @Test
@@ -703,7 +706,7 @@ public class FabutObjectAssertTest extends Fabut {
         assertList(report, empty(), expected, actual, new ArrayList<>(), new NodesList());
 
         // assert
-        assertFalse(report.getMessage(), report.isSuccess());
+        assertFabutReportFailure(report, "■>Expected size for list:  is: 1, but was: 2");
     }
 
     @Test
@@ -721,7 +724,7 @@ public class FabutObjectAssertTest extends Fabut {
         assertList(report, empty(), expected, actual, new ArrayList<>(), new NodesList());
 
         // assert
-        assertTrue(report.getMessage(), report.isSuccess());
+        assertFabutReportSuccess(report);
     }
 
     @Test
@@ -739,7 +742,10 @@ public class FabutObjectAssertTest extends Fabut {
         assertList(report, empty(), expected, actual, new ArrayList<>(), new NodesList());
 
         // assert
-        assertFalse(report.getMessage(), report.isSuccess());
+        assertFabutReportFailure(report,
+                "#>Asserting object at index [0] of list .\n" +
+                        "#>Asserting object at index [1] of list .\n" +
+                        "■>: expected: test, but was: testtest");
     }
 
     @Test
@@ -767,7 +773,7 @@ public class FabutObjectAssertTest extends Fabut {
                 new TierOneType(TEST + TEST), properties);
 
         // assert
-        assertFalse(report.getMessage(), report.isSuccess());
+        assertFabutReportFailure(report, "■>property: expected: test, but was: testtest");
     }
 
     @Test
@@ -781,7 +787,7 @@ public class FabutObjectAssertTest extends Fabut {
                 new TierOneType(null), properties);
 
         // assert
-        assertFalse(report.getMessage(), report.isSuccess());
+        assertFabutReportFailure(report, "■>There is no method: getProperty in actual object class: class cloud.alchemy.fabut.model.TierOneType (expected object class was: TierOneType).");
     }
 
     @Test
@@ -795,7 +801,9 @@ public class FabutObjectAssertTest extends Fabut {
         assertObjectWithProperties(report, new TierOneType(TEST), properties);
 
         // assertTrue
-        assertFalse(report.getMessage(), report.isSuccess());
+        assertFabutReportFailure(report,
+                "■>There was no property for field:  property of class:  class java.lang.String, with value: test\n" +
+                        "■>Excess property: test");
     }
 
     @Test
@@ -1024,7 +1032,7 @@ public class FabutObjectAssertTest extends Fabut {
 
         final FabutReport report = new FabutReport();
         assertParameterSnapshot(report);
-        assertTrue(report.getMessage(), report.isSuccess());
+        assertFabutReportSuccess(report);
     }
 
     @Test
@@ -1086,7 +1094,7 @@ public class FabutObjectAssertTest extends Fabut {
         final FabutReport report = new FabutReport();
         // assert
         assertInnerProperty(report, actual, properties, "property");
-        assertTrue(report.getMessage(), report.isSuccess());
+        assertFabutReportSuccess(report);
     }
 
     @Test
@@ -1101,7 +1109,7 @@ public class FabutObjectAssertTest extends Fabut {
         final FabutReport report = new FabutReport();
         assertInnerObject(report, actual, expected, properties, "property");
 
-        assertTrue(report.getMessage(), report.isSuccess());
+        assertFabutReportSuccess(report);
     }
 
     @Test
@@ -1120,7 +1128,7 @@ public class FabutObjectAssertTest extends Fabut {
         assertMap(report, empty(), expected, actual, new ArrayList<>(), new NodesList());
 
         // assert
-        assertTrue(report.getMessage(), report.isSuccess());
+        assertFabutReportSuccess(report);
     }
 
     @Test
@@ -1139,7 +1147,10 @@ public class FabutObjectAssertTest extends Fabut {
         assertMap(report, empty(), expected, actual, new ArrayList<>(), new NodesList());
 
         // assert
-        assertFalse(report.getMessage(), report.isSuccess());
+        assertFabutReportFailure(report,
+                "#>Map key: first\n" +
+                        "■>property: expected: test, but was: testtest\n" +
+                        "#>Map key: second");
     }
 
     @Test
@@ -1158,7 +1169,8 @@ public class FabutObjectAssertTest extends Fabut {
         assertMap(report, empty(), expected, actual, new ArrayList<>(), new NodesList());
 
         // assert
-        assertFalse(report.getMessage(), report.isSuccess());
+        assertFabutReportFailure(report, "#>Map key: first\n" +
+                "■>No match for actual key: second");
     }
 
     @Test
@@ -1176,7 +1188,7 @@ public class FabutObjectAssertTest extends Fabut {
         assertExcessExpected(empty(), report, expected, expectedKeys, actualKeys);
 
         // assert
-        assertTrue(report.getMessage(), report.isSuccess());
+        assertFabutReportSuccess(report);
     }
 
     @Test
@@ -1192,7 +1204,7 @@ public class FabutObjectAssertTest extends Fabut {
         assertExcessExpected(empty(), report, expected, expectedKeys, actualKeys);
 
         // assert
-        assertFalse(report.getMessage(), report.isSuccess());
+        assertFabutReportFailure(report, "■>No match for expected key: first");
     }
 
     @Test
@@ -1210,7 +1222,7 @@ public class FabutObjectAssertTest extends Fabut {
         assertExcessActual(empty(), report, actual, expectedKeys, actualKeys);
 
         // assert
-        assertTrue(report.getMessage(), report.isSuccess());
+        assertFabutReportSuccess(report);
     }
 
     @Test
@@ -1226,6 +1238,6 @@ public class FabutObjectAssertTest extends Fabut {
         assertExcessActual(empty(), report, actual, expectedKeys, actualKeys);
 
         // assert
-        assertFalse(report.getMessage(), report.isSuccess());
+        assertFabutReportFailure(report, "■>No match for actual key: first");
     }
 }
