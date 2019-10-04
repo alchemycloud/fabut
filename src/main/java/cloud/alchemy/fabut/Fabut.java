@@ -79,7 +79,7 @@ public abstract class Fabut extends Assert {
 
     public void assertObject(final String message, final Object object, final IProperty... properties) {
 
-        final FabutReport report = new FabutReport(message);
+        final FabutReport report = new FabutReport(message + ": " + object);
         if (isEntityType(object.getClass()) && doesExistInSnapshot(object)) {
             report.entityInSnapshot(object);
             throw new AssertionFailedError(report.getMessage());
@@ -98,7 +98,7 @@ public abstract class Fabut extends Assert {
 
     public <T> T assertEntityWithSnapshot(final T entity, final IProperty... expectedChanges) {
         checkIfEntity(entity);
-        final FabutReport report = new FabutReport("Assert with snapshot");
+        final FabutReport report = new FabutReport("Assert with snapshot: " + entity );
 
         if (expectedChanges.length == 0) {
             report.assertWithSnapshotMustHaveAtLeastOnChange(entity);
@@ -117,7 +117,7 @@ public abstract class Fabut extends Assert {
     public void assertEntityAsDeleted(final Object entity) {
         checkIfEntity(entity);
 
-        final FabutReport report = new FabutReport("Assert entity as deleted");
+        final FabutReport report = new FabutReport("Assert entity as deleted: " + entity);
         assertEntityAsDeleted(report, entity);
         if (!report.isSuccess()) {
             throw new AssertionFailedError(report.getMessage());

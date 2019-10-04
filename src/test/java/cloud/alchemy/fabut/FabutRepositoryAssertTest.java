@@ -169,8 +169,9 @@ public class FabutRepositoryAssertTest extends AbstractFabutTest {
 
         // assert
         assertFabutReportFailure(report,
-                "■>property: expected: property, but was: propertyproperty\n" +
-                        "■>property: expected: test, but was: testtest");
+                "■>property: expected: test, but was: testtest\n" +
+                        "■>property: expected: test, but was: testtest\n" +
+                        "■>property: expected: property, but was: propertyproperty");
 
     }
 
