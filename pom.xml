@@ -4,7 +4,7 @@
 	<groupId>cloud.alchemy</groupId>
 	<artifactId>fabut</artifactId>
 	<name>Alchemy Fabut</name>
-	<version>4.0.2-RELEASE</version>
+	<version>4.0.3-RELEASE</version>
 	<description>Testing tool that helps developers to write better tests.</description>
 	<ciManagement>
 		<system>GIT</system>

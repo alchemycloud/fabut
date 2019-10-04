@@ -930,7 +930,7 @@ public abstract class Fabut extends Assert {
 
         for (final Object id : beforeIdsCopy) {
             if (!beforeEntities.get(id).isAsserted()) {
-                assertObjects(report, beforeEntities.get(id).getEntity(), afterEntities.get(id),
+                assertObjects(report.getSubReport("Asserting object: " + beforeEntities.get(id).getEntity()), beforeEntities.get(id).getEntity(), afterEntities.get(id),
                         new LinkedList<>());
             }
         }

@@ -22,7 +22,9 @@ public class FabutReport {
 
     public FabutReport(final String message) {
         this();
-        messages.add(message.length() > 0 ? "\n" + message : message);
+        if (!message.isEmpty()) {
+            messages.add(message);
+        }
     }
 
     public boolean isSuccess() {
@@ -44,7 +46,7 @@ public class FabutReport {
 
         final String message = String.join(spacer, messages);
 
-        final String subMessages = subReports.stream().filter(a -> !a.isSuccess()).map(a -> NEW_LINE + a.getMessage(depth + 1)).collect(Collectors.joining());
+        final String subMessages = subReports.stream().filter(a -> !a.isSuccess()).map(a -> a.getMessage(depth + 1)).filter(a -> !a.isEmpty()).collect(Collectors.joining(NEW_LINE));
 
         if (subMessages.isEmpty()) {
             return message;

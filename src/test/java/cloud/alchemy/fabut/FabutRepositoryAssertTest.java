@@ -169,9 +169,12 @@ public class FabutRepositoryAssertTest extends AbstractFabutTest {
 
         // assert
         assertFabutReportFailure(report,
-                "■>property: expected: test, but was: testtest\n" +
-                        "■>property: expected: test, but was: testtest\n" +
-                        "■>property: expected: property, but was: propertyproperty");
+                "\n" +
+                        "Asserting object: property\n" +
+                        "--■>property: expected: test, but was: testtest\n" +
+                        "--■>property: expected: property, but was: propertyproperty\n" +
+                        "Asserting object: 1 test\n" +
+                        "--■>property: expected: test, but was: testtest");
 
     }
 
@@ -539,9 +542,10 @@ public class FabutRepositoryAssertTest extends AbstractFabutTest {
         assertDbSnapshotWithAfterState(beforeIds, afterIds, beforeEntities, afterEntities, report);
 
         // assert
-        assertFabutReportFailure(report, "■>property: expected: test, but was: testtest");
+        assertFabutReportFailure(report, "\n" +
+                "Asserting object: 3 test\n" +
+                "--■>property: expected: test, but was: testtest");
     }
-
 
     @Test
     public void testAssertEntityWithSnapshotTrue() {
