@@ -15,6 +15,7 @@ class FabutReport {
     private boolean success = true;
     private final List<FabutReport> subReports = new ArrayList<>();
     private final List<String> messages = new ArrayList<>();
+    private final List<String> codes = new ArrayList<>();
 
     FabutReport() {
 
@@ -44,7 +45,10 @@ class FabutReport {
     private String getMessage(Integer depth) {
         final String spacer = NEW_LINE + StringUtils.repeat(DASH, depth * 2);
 
-        final String message = String.join(spacer, messages);
+        String message = String.join(spacer, messages);
+        if (!codes.isEmpty()) {
+            message = message + "\nCODE:\n" + String.join(spacer, codes);
+        }
 
         final String subMessages = subReports.stream().filter(a -> !a.isSuccess()).map(a -> a.getMessage(depth + 1)).filter(a -> !a.isEmpty()).collect(Collectors.joining(NEW_LINE));
 
@@ -101,7 +105,6 @@ class FabutReport {
     void emptyProperty(final String fieldName) {
         final String comment = String.format("%s: expected empty property, but field was not empty", fieldName);
         addComment(comment, CommentType.FAIL);
-
     }
 
     void reportIgnoreProperty(final String fieldName) {
@@ -110,11 +113,8 @@ class FabutReport {
     }
 
     void checkByReference(final String fieldName, final Object object) {
-
-        final String comment = String.format("Property:  %s of class:  %s has wrong reference.", fieldName, object
-                .getClass().getSimpleName());
+        final String comment = String.format("Property:  %s of class:  %s has wrong reference.", fieldName, object.getClass().getSimpleName());
         addComment(comment, CommentType.FAIL);
-
     }
 
     void ignoredType(final Class<?> clazz) {
@@ -128,8 +128,7 @@ class FabutReport {
     }
 
     void noEntityInSnapshot(final Object entity) {
-        final String comment = String.format("Entity %s doesn't exist in DB any more but is not asserted in test.",
-                entity);
+        final String comment = String.format("Entity %s doesn't exist in DB any more but is not asserted in test.", entity);
         addComment(comment, CommentType.FAIL);
     }
 
@@ -140,21 +139,17 @@ class FabutReport {
     }
 
     void entityNotAssertedInAfterState(final Object entity) {
-        final String comment = String.format(
-                "Entity %s is created in system after last snapshot but hasn't been asserted in test.", entity);
+        final String comment = String.format("Entity %s is created in system after last snapshot but hasn't been asserted in test.", entity);
         addComment(comment, CommentType.FAIL);
     }
 
     void uncallableMethod(final Method method, final Object actual) {
-        final String comment = String.format(
-                "There is no method: %s in actual object class: %s (expected object class was: %s).", method.getName(),
-                actual.getClass(), method.getDeclaringClass().getSimpleName());
+        final String comment = String.format("There is no method: %s in actual object class: %s (expected object class was: %s).", method.getName(), actual.getClass(), method.getDeclaringClass().getSimpleName());
         addComment(comment, CommentType.FAIL);
     }
 
     void notNecessaryAssert(final String propertyName, final Object actual) {
-        final String comment = String.format(
-                "Property: %s is same in expected and actual object, no need for assert", propertyName);
+        final String comment = String.format("Property: %s is same in expected and actual object, no need for assert", propertyName);
         addComment(comment, CommentType.FAIL);
     }
 
@@ -169,7 +164,6 @@ class FabutReport {
         addComment(commentComment, CommentType.FAIL);
         final String butWasComment = String.format("%s: but was: %s", propertyName, actual);
         addComment(butWasComment, CommentType.FAIL);
-
     }
 
     void idNull(final Class<?> clazz) {
@@ -211,5 +205,9 @@ class FabutReport {
     <T> void assertWithSnapshotMustHaveAtLeastOnChange(T entity) {
         final String comment = String.format("Assert entity with snapshot must be called with at least one property: %s", entity);
         addComment(comment, CommentType.FAIL);
+    }
+
+    void addCode(String code) {
+        codes.add(code);
     }
 }

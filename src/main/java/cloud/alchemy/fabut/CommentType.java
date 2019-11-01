@@ -18,7 +18,7 @@ public enum CommentType {
     /**
      * Success type.
      */
-    SUCCESS("∞"),
+    SUCCESS(">"),
 
     /**
      * List type.

@@ -98,7 +98,7 @@ public abstract class Fabut extends Assert {
 
     public <T> T assertEntityWithSnapshot(final T entity, final IProperty... expectedChanges) {
         checkIfEntity(entity);
-        final FabutReport report = new FabutReport("Assert with snapshot: " + entity );
+        final FabutReport report = new FabutReport("Assert with snapshot: " + entity);
 
         if (expectedChanges.length == 0) {
             report.assertWithSnapshotMustHaveAtLeastOnChange(entity);
@@ -479,7 +479,7 @@ public abstract class Fabut extends Assert {
     }
 
     // ASSERT
-    void assertEntityPair(final FabutReport report, final Optional<String> propertyName, Object expected, Object actual, final List<ISingleProperty> properties, final NodesList nodesList) {
+    private void assertEntityPair(final FabutReport report, final Optional<String> propertyName, Object expected, Object actual, final List<ISingleProperty> properties, final NodesList nodesList) {
 
         if (propertyName.isPresent()) {
             assertEntityById(report, propertyName.get(), expected, actual);
@@ -651,24 +651,54 @@ public abstract class Fabut extends Assert {
         }
     }
 
+    private String splitCamelCase(String s, String separator) {
+        return s.replaceAll("(?<=[A-Z])(?=[A-Z][a-z])|(?<=[^A-Z])(?=[A-Z])|(?<=[A-Za-z])(?=[^A-Za-z])", separator);
+    }
+
+    private String upperUnderscored(String s) {
+        return splitCamelCase(s, "_").toUpperCase();
+    }
+
+
     private void assertSubfields(final FabutReport report, final Optional<String> propertyName, Object expected, Object actual, final List<ISingleProperty> properties, final NodesList nodesList) {
 
         final ArrayList<ISingleProperty> propertiesCopy = new ArrayList<>(properties);
 
         final List<Method> getMethods = getGetMethods(expected);
 
+        if (!propertyName.isPresent()) {
+            report.addCode("assertObject(object");
+        }
+
+        final String className = getRealClass(actual.getClass()).getSimpleName();
+
+        final String chainPrefix = propertyName.map(a -> className + "." + upperUnderscored(a) + ".chain(").orElse("");
+        final String chainPostfix = propertyName.map(a -> ")").orElse("");
+
         for (final Method expectedMethod : getMethods) {
             final String fieldName = ReflectionUtil.getFieldName(expectedMethod);
             if (!isIgnoredField(expected.getClass(), fieldName)) {
                 try {
 
-                    final ISingleProperty property = obtainProperty(expectedMethod.invoke(expected), fieldName, properties);
+                    final Object invoke = expectedMethod.invoke(expected);
+
+                    final String actualValue;
+                    if (invoke == null) {
+                        actualValue = "null";
+                    } else if (invoke.getClass().isAssignableFrom(String.class)) {
+                        actualValue = "\"" + invoke.toString() + "\"";
+                    } else {
+                        actualValue = invoke.toString();
+                    }
+                    report.addCode(",value(" + chainPrefix + className + "." + upperUnderscored(fieldName) + chainPostfix + ", " + actualValue + ")");
+
+                    final ISingleProperty property = obtainProperty(invoke, fieldName, properties);
                     final Method actualMethod = getGetMethod(expectedMethod.getName(), actual);
                     assertProperty(report, fieldName, property, actualMethod.invoke(actual), properties, nodesList);
 
                     if (propertiesCopy.contains(property)) {
                         final FabutReport optimisationReport = new FabutReport();
-                        assertProperty(optimisationReport, fieldName, value(new PropertyPath(fieldName), expectedMethod.invoke(expected)), actualMethod.invoke(actual), new ArrayList<>(), new NodesList());
+                        assertProperty(optimisationReport, fieldName, value(new PropertyPath(fieldName), invoke), actualMethod.invoke(actual), new ArrayList<>(), new NodesList());
 
                         if (optimisationReport.isSuccess()) {
                             report.notNecessaryAssert(fieldName, actual);
@@ -679,6 +709,10 @@ public abstract class Fabut extends Assert {
                     report.uncallableMethod(expectedMethod, actual);
                 }
             }
+        }
+
+        if (!propertyName.isPresent()) {
+            report.addCode(");");
         }
 
     }

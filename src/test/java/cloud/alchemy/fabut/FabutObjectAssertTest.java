@@ -240,7 +240,9 @@ public class FabutObjectAssertTest extends AbstractFabutTest {
         assertObjectWithProperties(report, tierOneType, properties);
 
         // assert
-        assertFabutReportFailure(report, "■>property: expected: testtest, but was: test");
+        assertFabutReportFailure(report,
+                "■>property: expected: testtest\n" +
+                        "■>property: but was: test");
     }
 
     @Test
@@ -368,8 +370,16 @@ public class FabutObjectAssertTest extends AbstractFabutTest {
         final FabutReport report = new FabutReport();
         assertObjects(report, expected, actual, new LinkedList<>());
 
+
         // assert
-        assertFabutReportFailure(report, "■>property: expected: testtest, but was: test");
+        assertFabutReportFailure(report,
+                "■>property: expected: testtest\n" +
+                        "■>property: but was: test\n" +
+                        "CODE:\n" +
+                        "assertObject(object\n" +
+                        ",value(TierTwoType.PROPERTY, testtest)\n" +
+                        ",value(TierOneType.PROPERTY.chain(TierOneType.PROPERTY), testtest)\n" +
+                        ");");
     }
 
     /**
