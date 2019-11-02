@@ -171,10 +171,26 @@ public class FabutRepositoryAssertTest extends AbstractFabutTest {
         assertFabutReportFailure(report,
                 "\n" +
                         "Asserting object: property\n" +
-                        "--■>property: expected: test, but was: testtest\n" +
-                        "--■>property: expected: property, but was: propertyproperty\n" +
+                        "--■>property: expected: test\n" +
+                        "--■>property: but was: testtest\n" +
+                        "--■>property: expected: property\n" +
+                        "--■>property: but was: propertyproperty\n" +
+                        "CODE:\n" +
+                        "assertObject(object\n" +
+                        "--,value(EntityTierTwoType.ID, 4)\n" +
+                        "--,value(EntityTierTwoType.SUB_PROPERTY, 7 test)\n" +
+                        "--,value(EntityTierOneType.SUB_PROPERTY.chain(EntityTierOneType.ID), 7)\n" +
+                        "--,value(EntityTierOneType.SUB_PROPERTY.chain(EntityTierOneType.PROPERTY), \"test\")\n" +
+                        "--,value(EntityTierTwoType.PROPERTY, \"property\")\n" +
+                        "--);\n" +
                         "Asserting object: 1 test\n" +
-                        "--■>property: expected: test, but was: testtest");
+                        "--■>property: expected: test\n" +
+                        "--■>property: but was: testtest\n" +
+                        "CODE:\n" +
+                        "assertObject(object\n" +
+                        "--,value(EntityTierOneType.ID, 1)\n" +
+                        "--,value(EntityTierOneType.PROPERTY, \"test\")\n" +
+                        "--);");
 
     }
 
@@ -542,9 +558,16 @@ public class FabutRepositoryAssertTest extends AbstractFabutTest {
         assertDbSnapshotWithAfterState(beforeIds, afterIds, beforeEntities, afterEntities, report);
 
         // assert
-        assertFabutReportFailure(report, "\n" +
-                "Asserting object: 3 test\n" +
-                "--■>property: expected: test, but was: testtest");
+        assertFabutReportFailure(report,
+                "\n" +
+                        "Asserting object: 3 test\n" +
+                        "--■>property: expected: test\n" +
+                        "--■>property: but was: testtest\n" +
+                        "CODE:\n" +
+                        "assertObject(object\n" +
+                        "--,value(EntityTierOneType.ID, 3)\n" +
+                        "--,value(EntityTierOneType.PROPERTY, \"test\")\n" +
+                        "--);");
     }
 
     @Test
@@ -597,7 +620,13 @@ public class FabutRepositoryAssertTest extends AbstractFabutTest {
         assertEntityWithSnapshot(fabutReport, entity, properties);
 
         // assert
-        assertFabutReportFailure(fabutReport, "■>Property: id is same in expected and actual object, no need for assert");
+        assertFabutReportFailure(fabutReport,
+                "■>Property: id is same in expected and actual object, no need for assert\n" +
+                        "CODE:\n" +
+                        "assertObject(object\n" +
+                        ",value(EntityTierOneType.ID, 1)\n" +
+                        ",value(EntityTierOneType.PROPERTY, \"test\")\n" +
+                        ");");
     }
 
 

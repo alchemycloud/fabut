@@ -194,7 +194,9 @@ public class FabutObjectAssertTest extends AbstractFabutTest {
         assertObjectWithProperties(report, tierOneType, properties);
 
         // assert
-        assertFabutReportFailure(report, "■>property: expected: test, but was: null");
+        assertFabutReportFailure(report,
+                "■>property: expected: test\n" +
+                        "■>property: but was: null");
     }
 
     @Test
@@ -210,7 +212,9 @@ public class FabutObjectAssertTest extends AbstractFabutTest {
                 properties);
 
         // assert
-        assertFabutReportFailure(report, "■>property: expected: null, but was: test");
+        assertFabutReportFailure(report,
+                "■>property: expected: null\n" +
+                        "■>property: but was: test");
     }
 
     @Test
@@ -339,7 +343,8 @@ public class FabutObjectAssertTest extends AbstractFabutTest {
         // assert
         assertFabutReportFailure(report,
                 "#>Asserting object at index [0] of list property.\n" +
-                        "■>: expected: testtest, but was: test");
+                        "■>: expected: testtest\n" +
+                        "■>: but was: test");
     }
 
     /**
@@ -378,7 +383,7 @@ public class FabutObjectAssertTest extends AbstractFabutTest {
                         "CODE:\n" +
                         "assertObject(object\n" +
                         ",value(TierTwoType.PROPERTY, testtest)\n" +
-                        ",value(TierOneType.PROPERTY.chain(TierOneType.PROPERTY), testtest)\n" +
+                        ",value(TierOneType.PROPERTY.chain(TierOneType.PROPERTY), \"testtest\")\n" +
                         ");");
     }
 
@@ -429,11 +434,24 @@ public class FabutObjectAssertTest extends AbstractFabutTest {
         // assert
         assertFabutReportFailure(report,
                 "#>Asserting object at index [0] of list .\n" +
-                        "■>property: expected: testtest, but was: test\n" +
+                        "■>property: expected: testtest\n" +
+                        "■>property: but was: test\n" +
                         "#>Asserting object at index [1] of list .\n" +
-                        "■>property: expected: testtesttest, but was: testtest\n" +
+                        "■>property: expected: testtesttest\n" +
+                        "■>property: but was: testtest\n" +
                         "#>Asserting object at index [2] of list .\n" +
-                        "■>property: expected: testtesttesttest, but was: testtesttest");
+                        "■>property: expected: testtesttesttest\n" +
+                        "■>property: but was: testtesttest\n" +
+                        "CODE:\n" +
+                        "assertObject(object\n" +
+                        ",value(TierOneType.PROPERTY, \"testtest\")\n" +
+                        ");\n" +
+                        "assertObject(object\n" +
+                        ",value(TierOneType.PROPERTY, \"testtesttest\")\n" +
+                        ");\n" +
+                        "assertObject(object\n" +
+                        ",value(TierOneType.PROPERTY, \"testtesttesttest\")\n" +
+                        ");");
     }
 
     @Test
@@ -479,7 +497,18 @@ public class FabutObjectAssertTest extends AbstractFabutTest {
                 new LinkedList<>());
 
         // assert
-        assertFabutReportFailure(report, "■>property: expected: testtest, but was: test");
+        assertFabutReportFailure(report,
+                "■>property: expected: testtest\n" +
+                        "■>property: but was: test\n" +
+                        "CODE:\n" +
+                        "assertObject(object\n" +
+                        ",value(TierFiveType.PROPERTY, cloud.alchemy.fabut.model.TierFiveType@6c629d6e)\n" +
+                        ",value(TierFiveType.PROPERTY.chain(TierFiveType.PROPERTY), cloud.alchemy.fabut.model.TierFourType@3f102e87)\n" +
+                        ",value(TierFiveType.PROPERTY.chain(TierFourType.PROPERTY.chain(TierFourType.PROPERTY)), cloud.alchemy.fabut.model.TierThreeType@5f5a92bb)\n" +
+                        ",value(TierFiveType.PROPERTY.chain(TierFourType.PROPERTY.chain(TierThreeType.PROPERTY.chain(TierThreeType.PROPERTY))), cloud.alchemy.fabut.model.TierTwoType@51016012)\n" +
+                        ",value(TierFiveType.PROPERTY.chain(TierFourType.PROPERTY.chain(TierThreeType.PROPERTY.chain(TierTwoType.PROPERTY.chain(TierTwoType.PROPERTY)))), testtest)\n" +
+                        ",value(TierFiveType.PROPERTY.chain(TierFourType.PROPERTY.chain(TierThreeType.PROPERTY.chain(TierTwoType.PROPERTY.chain(TierOneType.PROPERTY.chain(TierOneType.PROPERTY))))), \"testtest\")\n" +
+                        ");");
     }
 
     @Test
@@ -494,7 +523,9 @@ public class FabutObjectAssertTest extends AbstractFabutTest {
         assertObjects(report, expected, actual, new LinkedList<>());
 
         // assert
-        assertFabutReportFailure(report, "■>: expected: [test], but was: test");
+        assertFabutReportFailure(report,
+                "■>: expected: [test]\n" +
+                        "■>: but was: test");
     }
 
     /**
@@ -527,7 +558,7 @@ public class FabutObjectAssertTest extends AbstractFabutTest {
 
         // method
         final FabutReport report = new FabutReport();
-        assertPair(report, empty(), expected, actual, new ArrayList<>(), nodesList);
+        assertPair(report, Collections.emptyList(), expected, actual, new ArrayList<>(), nodesList);
 
         // assert
         assertFabutReportSuccess(report);
@@ -544,7 +575,7 @@ public class FabutObjectAssertTest extends AbstractFabutTest {
 
         // method
         final FabutReport report = new FabutReport();
-        assertPair(report, empty(), expected, actual, new ArrayList<>(), nodesList);
+        assertPair(report, Collections.emptyList(), expected, actual, new ArrayList<>(), nodesList);
 
         // assert
         assertFabutReportSuccess(report);
@@ -563,7 +594,7 @@ public class FabutObjectAssertTest extends AbstractFabutTest {
 
         // method
         final FabutReport report = new FabutReport();
-        assertPair(report, empty(), expected, actual, new ArrayList<>(), nodesList);
+        assertPair(report, Collections.emptyList(), expected, actual, new ArrayList<>(), nodesList);
 
         // assert
         assertFabutReportSuccess(report);
@@ -573,7 +604,7 @@ public class FabutObjectAssertTest extends AbstractFabutTest {
     public void testAssertChangedPropertyBothNulls() {
         // method
         final FabutReport report = new FabutReport();
-        assertPair(report, empty(), null, null, new ArrayList<>(), new NodesList());
+        assertPair(report, Collections.emptyList(), null, null, new ArrayList<>(), new NodesList());
 
         // assert
         assertFabutReportSuccess(report);
@@ -588,7 +619,7 @@ public class FabutObjectAssertTest extends AbstractFabutTest {
 
         // method
         final FabutReport report = new FabutReport();
-        assertPair(report, empty(), expected, actual, new ArrayList<>(), new NodesList());
+        assertPair(report, Collections.emptyList(), expected, actual, new ArrayList<>(), new NodesList());
 
         // assert
         assertFabutReportSuccess(report);
@@ -602,7 +633,7 @@ public class FabutObjectAssertTest extends AbstractFabutTest {
 
         // method
         final FabutReport report = new FabutReport();
-        assertPair(report, empty(), expected, actual, new ArrayList<>(), new NodesList());
+        assertPair(report, Collections.emptyList(), expected, actual, new ArrayList<>(), new NodesList());
 
         // assert
         assertFabutReportSuccess(report);
@@ -614,7 +645,7 @@ public class FabutObjectAssertTest extends AbstractFabutTest {
 
         // method
         final FabutReport report = new FabutReport();
-        assertPair(report, empty(), TEST, TEST, new ArrayList<>(), new NodesList());
+        assertPair(report, Collections.emptyList(), TEST, TEST, new ArrayList<>(), new NodesList());
 
         // assert
         assertFabutReportSuccess(report);
@@ -627,10 +658,12 @@ public class FabutObjectAssertTest extends AbstractFabutTest {
 
         // method
         final FabutReport report = new FabutReport();
-        assertPair(report, empty(), expected, TEST, new ArrayList<>(), new NodesList());
+        assertPair(report, Collections.emptyList(), expected, TEST, new ArrayList<>(), new NodesList());
 
         // assert
-        assertFabutReportFailure(report, "■>: expected: testtest, but was: test");
+        assertFabutReportFailure(report,
+                "■>: expected: testtest\n" +
+                        "■>: but was: test");
     }
 
     @Test
@@ -645,7 +678,7 @@ public class FabutObjectAssertTest extends AbstractFabutTest {
 
         // method
         final FabutReport report = new FabutReport();
-        assertPair(report, empty(), expected, actual, new LinkedList<>(), new NodesList());
+        assertPair(report, Collections.emptyList(), expected, actual, new LinkedList<>(), new NodesList());
 
         // assert
         assertFabutReportSuccess(report);
@@ -655,7 +688,7 @@ public class FabutObjectAssertTest extends AbstractFabutTest {
     public void testAssertPropertiesNotNullPropertyTrue() {
         // method
         final FabutReport report = new FabutReport();
-        assertProperty(report, EMPTY_STRING, notNull(TierOneType.PROPERTY), new TierOneType(TEST), new ArrayList<>(), null);
+        assertProperty(report, Collections.emptyList(), EMPTY_STRING, notNull(TierOneType.PROPERTY), new TierOneType(TEST), new ArrayList<>(), null);
 
         // assert
         assertFabutReportSuccess(report);
@@ -665,7 +698,7 @@ public class FabutObjectAssertTest extends AbstractFabutTest {
     public void testAssertPropertiesNotNullPropertyFalse() {
         // method
         final FabutReport report = new FabutReport();
-        assertProperty(report, EMPTY_STRING,
+        assertProperty(report, Collections.emptyList(), EMPTY_STRING,
                 notNull(TierOneType.PROPERTY), null, new ArrayList<>(), null);
 
         // assert
@@ -676,7 +709,7 @@ public class FabutObjectAssertTest extends AbstractFabutTest {
     public void testAssertPropertiesNullPropertyTrue() {
         // method
         final FabutReport report = new FabutReport();
-        assertProperty(report, EMPTY_STRING, isNull(TierOneType.PROPERTY), null, new ArrayList<>(), null);
+        assertProperty(report, Collections.emptyList(), EMPTY_STRING, isNull(TierOneType.PROPERTY), null, new ArrayList<>(), null);
 
         // assert
         assertFabutReportSuccess(report);
@@ -686,7 +719,7 @@ public class FabutObjectAssertTest extends AbstractFabutTest {
     public void testAssertPropertiesNullPropertyFalse() {
         // method
         final FabutReport report = new FabutReport();
-        assertProperty(report, EMPTY_STRING, isNull(TierOneType.PROPERTY), new TierOneType(TEST), new ArrayList<>(), null);
+        assertProperty(report, Collections.emptyList(), EMPTY_STRING, isNull(TierOneType.PROPERTY), new TierOneType(TEST), new ArrayList<>(), null);
 
         // assert
         assertFabutReportFailure(report, "■>property: expected null property, but field was not null");
@@ -696,7 +729,7 @@ public class FabutObjectAssertTest extends AbstractFabutTest {
     public void testAssertPropertiesIgnoreProperty() {
         // method
         final FabutReport report = new FabutReport();
-        assertProperty(report, EMPTY_STRING, ignored(TierOneType.PROPERTY), new TierOneType(TEST), new ArrayList<>(), null);
+        assertProperty(report, Collections.emptyList(), EMPTY_STRING, ignored(TierOneType.PROPERTY), new TierOneType(TEST), new ArrayList<>(), null);
 
         // assert
         assertFabutReportSuccess(report);
@@ -713,7 +746,7 @@ public class FabutObjectAssertTest extends AbstractFabutTest {
 
         // method
         final FabutReport report = new FabutReport();
-        assertList(report, empty(), expected, actual, new ArrayList<>(), new NodesList());
+        assertList(report, Collections.emptyList(), expected, actual, new ArrayList<>(), new NodesList());
 
         // assert
         assertFabutReportFailure(report, "■>Expected size for list:  is: 1, but was: 2");
@@ -731,7 +764,7 @@ public class FabutObjectAssertTest extends AbstractFabutTest {
 
         // method
         final FabutReport report = new FabutReport();
-        assertList(report, empty(), expected, actual, new ArrayList<>(), new NodesList());
+        assertList(report, Collections.emptyList(), expected, actual, new ArrayList<>(), new NodesList());
 
         // assert
         assertFabutReportSuccess(report);
@@ -749,13 +782,14 @@ public class FabutObjectAssertTest extends AbstractFabutTest {
 
         // method
         final FabutReport report = new FabutReport();
-        assertList(report, empty(), expected, actual, new ArrayList<>(), new NodesList());
+        assertList(report, Collections.emptyList(), expected, actual, new ArrayList<>(), new NodesList());
 
         // assert
         assertFabutReportFailure(report,
                 "#>Asserting object at index [0] of list .\n" +
                         "#>Asserting object at index [1] of list .\n" +
-                        "■>: expected: test, but was: testtest");
+                        "■>: expected: test\n" +
+                        "■>: but was: testtest");
     }
 
     @Test
@@ -783,7 +817,8 @@ public class FabutObjectAssertTest extends AbstractFabutTest {
                 new TierOneType(TEST + TEST), properties);
 
         // assert
-        assertFabutReportFailure(report, "■>property: expected: test, but was: testtest");
+        assertFabutReportFailure(report, "■>property: expected: test\n" +
+                "■>property: but was: testtest");
     }
 
     @Test
@@ -913,7 +948,7 @@ public class FabutObjectAssertTest extends AbstractFabutTest {
     @Test
     public void testCheckForNullsTrueNull() {
         // method
-        final ReferenceCheckType report = checkByReference(new FabutReport(), null, null, of(TEST));
+        final ReferenceCheckType report = checkByReference(new FabutReport(), null, null, Collections.singletonList(new ObjectMethod(null, TEST)));
 
         // assert
         assertEquals(ReferenceCheckType.EQUAL_REFERENCE, report);
@@ -925,7 +960,7 @@ public class FabutObjectAssertTest extends AbstractFabutTest {
         final TierOneType expected = new TierOneType();
 
         // method
-        final ReferenceCheckType re = checkByReference(new FabutReport(), expected, expected, of(TEST));
+        final ReferenceCheckType re = checkByReference(new FabutReport(), expected, expected, Collections.singletonList(new ObjectMethod(null, TEST)));
 
         // assert
         assertEquals(ReferenceCheckType.EQUAL_REFERENCE, re);
@@ -934,8 +969,8 @@ public class FabutObjectAssertTest extends AbstractFabutTest {
     @Test
     public void testCheckForNullsFalse() {
         // method
-        final ReferenceCheckType report1 = checkByReference(new FabutReport(), new Object(), null, of(TEST));
-        final ReferenceCheckType report2 = checkByReference(new FabutReport(), null, new Object(), of(TEST));
+        final ReferenceCheckType report1 = checkByReference(new FabutReport(), new Object(), null, Collections.singletonList(new ObjectMethod(null, TEST)));
+        final ReferenceCheckType report2 = checkByReference(new FabutReport(), null, new Object(), Collections.singletonList(new ObjectMethod(null, TEST)));
 
         // assert
         assertEquals(ReferenceCheckType.EXCLUSIVE_NULL, report1);
@@ -946,7 +981,7 @@ public class FabutObjectAssertTest extends AbstractFabutTest {
     public void testCheckForNullsNull() {
         // method
 
-        final ReferenceCheckType referenceCheckType = checkByReference(new FabutReport(), new Object(), new Object(), of(TEST));
+        final ReferenceCheckType referenceCheckType = checkByReference(new FabutReport(), new Object(), new Object(), Collections.singletonList(new ObjectMethod(null, TEST)));
 
         // assert
         assertEquals(ReferenceCheckType.NOT_NULL_PAIR, referenceCheckType);
@@ -1135,7 +1170,7 @@ public class FabutObjectAssertTest extends AbstractFabutTest {
 
         // method
         final FabutReport report = new FabutReport();
-        assertMap(report, empty(), expected, actual, new ArrayList<>(), new NodesList());
+        assertMap(report, Collections.emptyList(), expected, actual, new ArrayList<>(), new NodesList());
 
         // assert
         assertFabutReportSuccess(report);
@@ -1154,13 +1189,21 @@ public class FabutObjectAssertTest extends AbstractFabutTest {
 
         // method
         final FabutReport report = new FabutReport();
-        assertMap(report, empty(), expected, actual, new ArrayList<>(), new NodesList());
+        assertMap(report, Collections.emptyList(), expected, actual, new ArrayList<>(), new NodesList());
 
         // assert
         assertFabutReportFailure(report,
                 "#>Map key: first\n" +
-                        "■>property: expected: test, but was: testtest\n" +
-                        "#>Map key: second");
+                        "■>property: expected: test\n" +
+                        "■>property: but was: testtest\n" +
+                        "#>Map key: second\n" +
+                        "CODE:\n" +
+                        "assertObject(object\n" +
+                        ",value(TierOneType.PROPERTY, \"test\")\n" +
+                        ");\n" +
+                        "assertObject(object\n" +
+                        ",value(TierOneType.PROPERTY, \"test\")\n" +
+                        ");");
     }
 
     @Test
@@ -1176,11 +1219,16 @@ public class FabutObjectAssertTest extends AbstractFabutTest {
 
         // method
         final FabutReport report = new FabutReport();
-        assertMap(report, empty(), expected, actual, new ArrayList<>(), new NodesList());
+        assertMap(report, Collections.emptyList(), expected, actual, new ArrayList<>(), new NodesList());
 
         // assert
-        assertFabutReportFailure(report, "#>Map key: first\n" +
-                "■>No match for actual key: second");
+        assertFabutReportFailure(report,
+                "#>Map key: first\n" +
+                        "■>No match for actual key: second\n" +
+                        "CODE:\n" +
+                        "assertObject(object\n" +
+                        ",value(TierOneType.PROPERTY, \"test\")\n" +
+                        ");");
     }
 
     @Test
@@ -1195,7 +1243,7 @@ public class FabutObjectAssertTest extends AbstractFabutTest {
 
         // method
         final FabutReport report = new FabutReport();
-        assertExcessExpected(empty(), report, expected, expectedKeys, actualKeys);
+        assertExcessExpected(Collections.emptyList(), report, expected, expectedKeys, actualKeys);
 
         // assert
         assertFabutReportSuccess(report);
@@ -1211,7 +1259,7 @@ public class FabutObjectAssertTest extends AbstractFabutTest {
         final TreeSet<String> actualKeys = new TreeSet<>();
         final FabutReport report = new FabutReport();
         // method
-        assertExcessExpected(empty(), report, expected, expectedKeys, actualKeys);
+        assertExcessExpected(Collections.emptyList(), report, expected, expectedKeys, actualKeys);
 
         // assert
         assertFabutReportFailure(report, "■>No match for expected key: first");
@@ -1229,7 +1277,7 @@ public class FabutObjectAssertTest extends AbstractFabutTest {
 
         // method
         final FabutReport report = new FabutReport();
-        assertExcessActual(empty(), report, actual, expectedKeys, actualKeys);
+        assertExcessActual(Collections.emptyList(), report, actual, expectedKeys, actualKeys);
 
         // assert
         assertFabutReportSuccess(report);
@@ -1245,7 +1293,7 @@ public class FabutObjectAssertTest extends AbstractFabutTest {
         actualKeys.add("first");
         final FabutReport report = new FabutReport();
         // method
-        assertExcessActual(empty(), report, actual, expectedKeys, actualKeys);
+        assertExcessActual(Collections.emptyList(), report, actual, expectedKeys, actualKeys);
 
         // assert
         assertFabutReportFailure(report, "■>No match for actual key: first");
