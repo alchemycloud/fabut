@@ -47,7 +47,7 @@ class FabutReport {
 
         String message = String.join(spacer, messages);
         if (!codes.isEmpty()) {
-            message = message + "\nCODE:\n" + String.join(spacer, codes);
+            message = message + "\nCODE:" + String.join("", codes);
         }
 
         final String subMessages = subReports.stream().filter(a -> !a.isSuccess()).map(a -> a.getMessage(depth + 1)).filter(a -> !a.isEmpty()).collect(Collectors.joining(NEW_LINE));

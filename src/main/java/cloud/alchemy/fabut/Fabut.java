@@ -672,7 +672,7 @@ public abstract class Fabut extends Assert {
         final List<Method> getMethods = getGetMethods(expected);
 
         if (parents.isEmpty()) {
-            report.addCode("assertObject(object");
+            report.addCode("\nassertObject(object");
         }
 
         final String className = getRealClass(actual.getClass()).getSimpleName();
@@ -695,16 +695,19 @@ public abstract class Fabut extends Assert {
                 try {
 
                     final Object invoke = expectedMethod.invoke(expected);
+                    final String propertyPath = chainPrefix + className + "." + upperUnderscored(fieldName) + chainPostfix;
 
-                    final String actualValue;
                     if (invoke == null) {
-                        actualValue = "null";
+                        report.addCode(",\nisNull(" + propertyPath + ")");
                     } else if (invoke.getClass().isAssignableFrom(String.class)) {
-                        actualValue = "\"" + invoke.toString() + "\"";
+                        report.addCode(",\nvalue(" + propertyPath + ", " + "\"" + invoke.toString() + "\"" + ")");
+                    } else if (invoke.getClass().isEnum()) {
+                        report.addCode(",\nvalue(" + propertyPath + ", " + invoke.getClass().getSimpleName() + "." + invoke.toString() + ")");
+                    } else if (invoke.getClass().isAssignableFrom(Optional.class) && !((Optional) invoke).isPresent()) {
+                        report.addCode(",\nisEmpty(" + propertyPath + ")");
                     } else {
-                        actualValue = invoke.toString();
+                        report.addCode(",\nvalue(" + propertyPath + ", " + invoke.toString() + ")");
                     }
-                    report.addCode(",value(" + chainPrefix + className + "." + upperUnderscored(fieldName) + chainPostfix + ", " + actualValue + ")");
 
                     final ISingleProperty property = obtainProperty(invoke, fieldName, properties);
                     final Method actualMethod = getGetMethod(expectedMethod.getName(), actual);

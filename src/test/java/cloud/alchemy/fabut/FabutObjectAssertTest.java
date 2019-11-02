@@ -381,10 +381,9 @@ public class FabutObjectAssertTest extends AbstractFabutTest {
                 "■>property: expected: testtest\n" +
                         "■>property: but was: test\n" +
                         "CODE:\n" +
-                        "assertObject(object\n" +
-                        ",value(TierTwoType.PROPERTY, testtest)\n" +
-                        ",value(TierOneType.PROPERTY.chain(TierOneType.PROPERTY), \"testtest\")\n" +
-                        ");");
+                        "assertObject(object,\n" +
+                        "value(TierTwoType.PROPERTY, testtest),\n" +
+                        "value(TierOneType.PROPERTY.chain(TierOneType.PROPERTY), \"testtest\"));");
     }
 
     /**
@@ -443,15 +442,12 @@ public class FabutObjectAssertTest extends AbstractFabutTest {
                         "■>property: expected: testtesttesttest\n" +
                         "■>property: but was: testtesttest\n" +
                         "CODE:\n" +
-                        "assertObject(object\n" +
-                        ",value(TierOneType.PROPERTY, \"testtest\")\n" +
-                        ");\n" +
-                        "assertObject(object\n" +
-                        ",value(TierOneType.PROPERTY, \"testtesttest\")\n" +
-                        ");\n" +
-                        "assertObject(object\n" +
-                        ",value(TierOneType.PROPERTY, \"testtesttesttest\")\n" +
-                        ");");
+                        "assertObject(object,\n" +
+                        "value(TierOneType.PROPERTY, \"testtest\"));\n" +
+                        "assertObject(object,\n" +
+                        "value(TierOneType.PROPERTY, \"testtesttest\"));\n" +
+                        "assertObject(object,\n" +
+                        "value(TierOneType.PROPERTY, \"testtesttesttest\"));");
     }
 
     @Test
@@ -501,14 +497,13 @@ public class FabutObjectAssertTest extends AbstractFabutTest {
                 "■>property: expected: testtest\n" +
                         "■>property: but was: test\n" +
                         "CODE:\n" +
-                        "assertObject(object\n" +
-                        ",value(TierFiveType.PROPERTY, cloud.alchemy.fabut.model.TierFiveType@6c629d6e)\n" +
-                        ",value(TierFiveType.PROPERTY.chain(TierFiveType.PROPERTY), cloud.alchemy.fabut.model.TierFourType@3f102e87)\n" +
-                        ",value(TierFiveType.PROPERTY.chain(TierFourType.PROPERTY.chain(TierFourType.PROPERTY)), cloud.alchemy.fabut.model.TierThreeType@5f5a92bb)\n" +
-                        ",value(TierFiveType.PROPERTY.chain(TierFourType.PROPERTY.chain(TierThreeType.PROPERTY.chain(TierThreeType.PROPERTY))), cloud.alchemy.fabut.model.TierTwoType@51016012)\n" +
-                        ",value(TierFiveType.PROPERTY.chain(TierFourType.PROPERTY.chain(TierThreeType.PROPERTY.chain(TierTwoType.PROPERTY.chain(TierTwoType.PROPERTY)))), testtest)\n" +
-                        ",value(TierFiveType.PROPERTY.chain(TierFourType.PROPERTY.chain(TierThreeType.PROPERTY.chain(TierTwoType.PROPERTY.chain(TierOneType.PROPERTY.chain(TierOneType.PROPERTY))))), \"testtest\")\n" +
-                        ");");
+                        "assertObject(object,\n" +
+                        "value(TierSixType.PROPERTY, cloud.alchemy.fabut.model.TierFiveType@5f5a92bb),\n" +
+                        "value(TierFiveType.PROPERTY.chain(TierFiveType.PROPERTY), cloud.alchemy.fabut.model.TierFourType@51016012),\n" +
+                        "value(TierFiveType.PROPERTY.chain(TierFourType.PROPERTY.chain(TierFourType.PROPERTY)), cloud.alchemy.fabut.model.TierThreeType@2280cdac),\n" +
+                        "value(TierFiveType.PROPERTY.chain(TierFourType.PROPERTY.chain(TierThreeType.PROPERTY.chain(TierThreeType.PROPERTY))), cloud.alchemy.fabut.model.TierTwoType@4fccd51b),\n" +
+                        "value(TierFiveType.PROPERTY.chain(TierFourType.PROPERTY.chain(TierThreeType.PROPERTY.chain(TierTwoType.PROPERTY.chain(TierTwoType.PROPERTY)))), testtest),\n" +
+                        "value(TierFiveType.PROPERTY.chain(TierFourType.PROPERTY.chain(TierThreeType.PROPERTY.chain(TierTwoType.PROPERTY.chain(TierOneType.PROPERTY.chain(TierOneType.PROPERTY))))), \"testtest\"));");
     }
 
     @Test
@@ -1198,12 +1193,10 @@ public class FabutObjectAssertTest extends AbstractFabutTest {
                         "■>property: but was: testtest\n" +
                         "#>Map key: second\n" +
                         "CODE:\n" +
-                        "assertObject(object\n" +
-                        ",value(TierOneType.PROPERTY, \"test\")\n" +
-                        ");\n" +
-                        "assertObject(object\n" +
-                        ",value(TierOneType.PROPERTY, \"test\")\n" +
-                        ");");
+                        "assertObject(object,\n" +
+                        "value(TierOneType.PROPERTY, \"test\"));\n" +
+                        "assertObject(object,\n" +
+                        "value(TierOneType.PROPERTY, \"test\"));");
     }
 
     @Test
@@ -1226,9 +1219,8 @@ public class FabutObjectAssertTest extends AbstractFabutTest {
                 "#>Map key: first\n" +
                         "■>No match for actual key: second\n" +
                         "CODE:\n" +
-                        "assertObject(object\n" +
-                        ",value(TierOneType.PROPERTY, \"test\")\n" +
-                        ");");
+                        "assertObject(object,\n" +
+                        "value(TierOneType.PROPERTY, \"test\"));");
     }
 
     @Test
