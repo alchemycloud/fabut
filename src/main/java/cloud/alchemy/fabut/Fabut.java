@@ -22,10 +22,10 @@ public abstract class Fabut extends Assert {
 
     private static final String DOT = ".";
 
-    protected final List<Class> entityTypes = new ArrayList<>();
-    protected final List<Class> complexTypes = new ArrayList<>();
-    protected final List<Class> ignoredTypes = new ArrayList<>();
-    protected final Map<Class, List<String>> ignoredFields = new HashMap<>();
+    protected final List<Class<?>> entityTypes = new ArrayList<>();
+    protected final List<Class<?>> complexTypes = new ArrayList<>();
+    protected final List<Class<?>> ignoredTypes = new ArrayList<>();
+    protected final Map<Class<?>, List<String>> ignoredFields = new HashMap<>();
 
     private final Map<Class<?>, Map<Object, CopyAssert>> dbSnapshot = new HashMap<>();
     final List<SnapshotPair> parameterSnapshot = new ArrayList<>();
@@ -208,8 +208,7 @@ public abstract class Fabut extends Assert {
         return new MultiProperties(properties);
     }
 
-
-    //TYPE METHODS
+    // TYPE METHODS
     private void checkIfEntity(final Object entity) {
         if (entity == null) {
             throw new IllegalStateException("assertEntityWithSnapshot cannot take null entity!");
@@ -243,9 +242,10 @@ public abstract class Fabut extends Assert {
         final List<Method> getMethodsComplexType = new ArrayList<>();
         final boolean isEntityClass = isEntityType(object.getClass());
 
-        final Method[] allMethods = object.getClass().getMethods();
-        for (final Method method : allMethods) {
-            if (isGetMethod(object.getClass(), method) && !(isEntityClass && isCollectionClass(method.getReturnType()))) {
+        final Collection<Method> allGetMethods = ReflectionUtil.getMethods(object.getClass()).values();
+
+        for (final Method method : allGetMethods) {
+            if (!(isEntityClass && isCollectionClass(method.getReturnType()))) {
 
                 // complex or entity type get methods inside object come last in list,
                 // this is important because otherwise inner object asserts will possibly 'eat up' expected properties of parent object during asserts
@@ -258,7 +258,6 @@ public abstract class Fabut extends Assert {
         }
         getMethods.addAll(getMethodsComplexType);
         return getMethods;
-
     }
 
     List<ISingleProperty> removeParentQualification(final String parentPropertyName, final List<ISingleProperty> properties) {
@@ -296,7 +295,7 @@ public abstract class Fabut extends Assert {
     ReferenceCheckType checkByReference(final FabutReport report, Object expected, Object actual, final List<ObjectMethod> parents) {
 
         if (expected == actual) {
-            //report.asserted(pair, propertyName);
+            // report.asserted(pair, propertyName);
             return ReferenceCheckType.EQUAL_REFERENCE;
         }
 
@@ -365,10 +364,10 @@ public abstract class Fabut extends Assert {
 
         try {
             final Class<?> classObject = object.getClass();
-            final Method[] methods = classObject.getMethods();
-            for (final Method method : methods) {
+            final Collection<Method> allGetMethods = getMethods(classObject).values();
+            for (final Method method : allGetMethods) {
                 if (method.getName().equals(GET_ID)) {
-                    Field field = getDeclaredFieldFromClassOrSupperClass(object.getClass(), "id");
+                    Field field = findField(object.getClass(), "id");
                     if (field == null) {
                         throw new CopyException(object.getClass().getSimpleName());
                     }
@@ -376,10 +375,12 @@ public abstract class Fabut extends Assert {
                     field.set(copy, field.get(object));
                 }
             }
-            for (final Method method : methods) {
-                if (!method.getName().equals(GET_ID) && isGetMethod(object.getClass(), method) && method.getParameterAnnotations().length == 0 && !(isEntityType && isCollectionClass(method.getReturnType()))) {
+            for (final Method method : allGetMethods) {
+                if (!method.getName().equals(GET_ID)
+                        && method.getParameterAnnotations().length == 0
+                        && !(isEntityType && isCollectionClass(method.getReturnType()))) {
                     final String declaredField = getFieldName(method);
-                    Field field = getDeclaredFieldFromClassOrSupperClass(object.getClass(), declaredField);
+                    Field field = findField(object, declaredField);
                     if (field == null) {
                         throw new CopyException(object.getClass().getSimpleName());
                     }
@@ -442,7 +443,6 @@ public abstract class Fabut extends Assert {
 
         // if its not list or some complex type same object will be added.
         return propertyForCopying;
-
     }
 
     private Object copyMap(final Map propertyForCopying, NodesList nodes) throws CopyException {
@@ -481,7 +481,13 @@ public abstract class Fabut extends Assert {
     }
 
     // ASSERT
-    private void assertEntityPair(final FabutReport report, final List<ObjectMethod> parents, Object expected, Object actual, final List<ISingleProperty> properties, final NodesList nodesList) {
+    private void assertEntityPair(
+            final FabutReport report,
+            final List<ObjectMethod> parents,
+            Object expected,
+            Object actual,
+            final List<ISingleProperty> properties,
+            final NodesList nodesList) {
 
         if (!parents.isEmpty()) {
             final List<String> propertyNames = parents.stream().map(ObjectMethod::getProperty).collect(Collectors.toList());
@@ -490,7 +496,6 @@ public abstract class Fabut extends Assert {
         } else {
             assertSubfields(report, Collections.emptyList(), expected, actual, properties, nodesList);
         }
-
     }
 
     void assertEntityAsDeleted(final FabutReport report, final Object entity) {
@@ -503,7 +508,6 @@ public abstract class Fabut extends Assert {
         if (!isDeletedInRepository) {
             report.notDeletedInRepository(entity);
         }
-
     }
 
     void ignoreEntity(final FabutReport report, final Object entity) {
@@ -527,7 +531,6 @@ public abstract class Fabut extends Assert {
             report.noEntityInSnapshot(entity);
             return null;
         }
-
     }
 
     void afterAssertObject(final FabutReport report, final Object object) {
@@ -607,7 +610,13 @@ public abstract class Fabut extends Assert {
         afterAssertObject(report, actual);
     }
 
-    void assertPair(final FabutReport report, final List<ObjectMethod> parents, Object expected, Object actual, final List<ISingleProperty> properties, final NodesList nodesList) {
+    void assertPair(
+            final FabutReport report,
+            final List<ObjectMethod> parents,
+            Object expected,
+            Object actual,
+            final List<ISingleProperty> properties,
+            final NodesList nodesList) {
 
         final ReferenceCheckType referenceCheck = checkByReference(report, expected, actual, parents);
 
@@ -627,7 +636,6 @@ public abstract class Fabut extends Assert {
             case CONTAINS_PAIR:
                 return;
             case NEW_PAIR:
-
                 nodesList.addPair(expected, actual);
 
                 if (isIgnoredType(expected.getClass())) {
@@ -664,8 +672,13 @@ public abstract class Fabut extends Assert {
         return splitCamelCase(s, "_").toUpperCase();
     }
 
-
-    private void assertSubfields(final FabutReport report, final List<ObjectMethod> parents, Object expected, Object actual, final List<ISingleProperty> properties, final NodesList nodesList) {
+    private void assertSubfields(
+            final FabutReport report,
+            final List<ObjectMethod> parents,
+            Object expected,
+            Object actual,
+            final List<ISingleProperty> properties,
+            final NodesList nodesList) {
 
         final ArrayList<ISingleProperty> propertiesCopy = new ArrayList<>(properties);
 
@@ -710,12 +723,19 @@ public abstract class Fabut extends Assert {
                     }
 
                     final ISingleProperty property = obtainProperty(invoke, fieldName, properties);
-                    final Method actualMethod = getGetMethod(expectedMethod.getName(), actual);
+                    final Method actualMethod = findMethod(actual, expectedMethod.getName());
                     assertProperty(report, parents, fieldName, property, actualMethod.invoke(actual), properties, nodesList);
 
                     if (propertiesCopy.contains(property)) {
                         final FabutReport optimisationReport = new FabutReport();
-                        assertProperty(optimisationReport, parents, fieldName, value(new PropertyPath(fieldName), invoke), actualMethod.invoke(actual), new ArrayList<>(), new NodesList());
+                        assertProperty(
+                                optimisationReport,
+                                parents,
+                                fieldName,
+                                value(new PropertyPath(fieldName), invoke),
+                                actualMethod.invoke(actual),
+                                new ArrayList<>(),
+                                new NodesList());
 
                         if (optimisationReport.isSuccess()) {
                             report.notNecessaryAssert(fieldName, actual);
@@ -731,7 +751,6 @@ public abstract class Fabut extends Assert {
         if (parents.isEmpty()) {
             report.addCode(");");
         }
-
     }
 
     private void assertPrimitives(final FabutReport report, final List<ObjectMethod> parents, Object expected, Object actual) {
@@ -754,7 +773,14 @@ public abstract class Fabut extends Assert {
         return propertyName;
     }
 
-    void assertProperty(final FabutReport report, List<ObjectMethod> parents, final String fieldName, final ISingleProperty expected, final Object actual, final List<ISingleProperty> properties, final NodesList nodesList) {
+    void assertProperty(
+            final FabutReport report,
+            List<ObjectMethod> parents,
+            final String fieldName,
+            final ISingleProperty expected,
+            final Object actual,
+            final List<ISingleProperty> properties,
+            final NodesList nodesList) {
 
         removeParentQualification(fieldName, properties);
 
@@ -770,7 +796,7 @@ public abstract class Fabut extends Assert {
             if (!(actual instanceof Optional && ((Optional) actual).isPresent())) {
                 report.notEmptyProperty(expected.getPath());
             }
-        } else if (expected instanceof EmptyProperty) {// expected empty value
+        } else if (expected instanceof EmptyProperty) { // expected empty value
             if (!(actual instanceof Optional && !((Optional) actual).isPresent())) {
                 report.emptyProperty(expected.getPath());
             }
@@ -785,10 +811,15 @@ public abstract class Fabut extends Assert {
         } else {
             throw new IllegalStateException();
         }
-
     }
 
-    void assertList(final FabutReport report, final List<ObjectMethod> parents, final List expected, final List actual, final List<ISingleProperty> properties, final NodesList nodesList) {
+    void assertList(
+            final FabutReport report,
+            final List<ObjectMethod> parents,
+            final List expected,
+            final List actual,
+            final List<ISingleProperty> properties,
+            final NodesList nodesList) {
 
         final String propertyName = getLastPropertyName(parents);
 
@@ -805,7 +836,13 @@ public abstract class Fabut extends Assert {
         }
     }
 
-    void assertMap(final FabutReport report, final List<ObjectMethod> parents, final Map expected, final Map actual, final List<ISingleProperty> properties, final NodesList nodesList) {
+    void assertMap(
+            final FabutReport report,
+            final List<ObjectMethod> parents,
+            final Map expected,
+            final Map actual,
+            final List<ISingleProperty> properties,
+            final NodesList nodesList) {
 
         final TreeSet expectedKeys = new TreeSet(expected.keySet());
         final TreeSet actualKeys = new TreeSet(actual.keySet());
@@ -821,12 +858,17 @@ public abstract class Fabut extends Assert {
         assertExcessActual(parents, report, actual, expectedKeysCopy, actualKeys);
     }
 
-    private void assertOptional(final FabutReport report, List<ObjectMethod> parents, Optional expected, Optional actual, final List<ISingleProperty> properties, final NodesList nodesList) {
+    private void assertOptional(
+            final FabutReport report,
+            List<ObjectMethod> parents,
+            Optional expected,
+            Optional actual,
+            final List<ISingleProperty> properties,
+            final NodesList nodesList) {
 
         if (!expected.isPresent() && !actual.isPresent()) {
             return;
         }
-
 
         if (expected.isPresent() ^ actual.isPresent()) {
 
@@ -843,7 +885,8 @@ public abstract class Fabut extends Assert {
         assertPair(report, parents, expectedValue, actualValue, properties, nodesList);
     }
 
-    void assertExcessExpected(final List<ObjectMethod> parents, final FabutReport report, final Map expected, final TreeSet expectedKeys, final TreeSet actualKeys) {
+    void assertExcessExpected(
+            final List<ObjectMethod> parents, final FabutReport report, final Map expected, final TreeSet expectedKeys, final TreeSet actualKeys) {
 
         final TreeSet expectedKeysCopy = new TreeSet(expectedKeys);
         expectedKeysCopy.removeAll(actualKeys);
@@ -854,7 +897,8 @@ public abstract class Fabut extends Assert {
         }
     }
 
-    void assertExcessActual(final List<ObjectMethod> parents, final FabutReport report, final Map actual, final TreeSet expectedKeys, final TreeSet actualKeys) {
+    void assertExcessActual(
+            final List<ObjectMethod> parents, final FabutReport report, final Map actual, final TreeSet expectedKeys, final TreeSet actualKeys) {
 
         final TreeSet actualKeysCopy = new TreeSet(actualKeys);
         actualKeysCopy.removeAll(expectedKeys);
@@ -863,7 +907,6 @@ public abstract class Fabut extends Assert {
                 report.excessActualMap(key);
             }
         }
-
     }
 
     // SNAPSHOT
@@ -890,7 +933,6 @@ public abstract class Fabut extends Assert {
                 }
             }
         }
-
     }
 
     private Map getAfterEntities(final Class<?> clazz) {
@@ -921,10 +963,8 @@ public abstract class Fabut extends Assert {
     void assertParameterSnapshot(final FabutReport report) {
 
         for (final SnapshotPair snapshotPair : parameterSnapshot) {
-            assertObjects(report.getSubReport("Snapshot pair assert"), snapshotPair.getExpected(), snapshotPair.getActual(),
-                    new LinkedList<>());
+            assertObjects(report.getSubReport("Snapshot pair assert"), snapshotPair.getExpected(), snapshotPair.getActual(), new LinkedList<>());
         }
-
     }
 
     void markAsAsserted(final FabutReport report, final Object entity) {
@@ -960,12 +1000,11 @@ public abstract class Fabut extends Assert {
             checkNotExistingInAfterDbState(beforeIds, afterIds, snapshotEntry.getValue(), report);
             checkNewToAfterDbState(beforeIds, afterIds, afterEntities, report);
             assertDbSnapshotWithAfterState(beforeIds, afterIds, snapshotEntry.getValue(), afterEntities, report);
-
         }
-
     }
 
-    void checkNotExistingInAfterDbState(final TreeSet beforeIds, final TreeSet afterIds, final Map<Object, CopyAssert> beforeEntities, final FabutReport report) {
+    void checkNotExistingInAfterDbState(
+            final TreeSet beforeIds, final TreeSet afterIds, final Map<Object, CopyAssert> beforeEntities, final FabutReport report) {
 
         final TreeSet beforeIdsCopy = new TreeSet(beforeIds);
 
@@ -991,10 +1030,14 @@ public abstract class Fabut extends Assert {
 
             report.entityNotAssertedInAfterState(entity);
         }
-
     }
 
-    void assertDbSnapshotWithAfterState(final TreeSet beforeIds, final TreeSet afterIds, final Map<Object, CopyAssert> beforeEntities, final Map<Object, Object> afterEntities, final FabutReport report) {
+    void assertDbSnapshotWithAfterState(
+            final TreeSet beforeIds,
+            final TreeSet afterIds,
+            final Map<Object, CopyAssert> beforeEntities,
+            final Map<Object, Object> afterEntities,
+            final FabutReport report) {
 
         final TreeSet beforeIdsCopy = new TreeSet(beforeIds);
         // does intersection between db snapshot and after db state
@@ -1002,14 +1045,14 @@ public abstract class Fabut extends Assert {
 
         for (final Object id : beforeIdsCopy) {
             if (!beforeEntities.get(id).isAsserted()) {
-                assertObjects(report.getSubReport("Asserting object: " + beforeEntities.get(id).getEntity()), beforeEntities.get(id).getEntity(), afterEntities.get(id),
+                assertObjects(
+                        report.getSubReport("Asserting object: " + beforeEntities.get(id).getEntity()),
+                        beforeEntities.get(id).getEntity(),
+                        afterEntities.get(id),
                         new LinkedList<>());
             }
         }
-
     }
-
-
 }
 
 class ObjectMethod {
