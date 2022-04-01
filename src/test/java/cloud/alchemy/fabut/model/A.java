@@ -2,7 +2,7 @@ package cloud.alchemy.fabut.model;
 
 /**
  * The Class A.
- * 
+ *
  * @author Dusko Vesin
  * @author Nikola Olah
  * @author Bojan Babic
@@ -16,17 +16,13 @@ public class A extends Type {
     /** The property. */
     private String property;
 
-    /**
-     * Instantiates a new a.
-     */
-    public A() {
-    }
+    /** Instantiates a new a. */
+    public A() {}
 
     /**
      * Instantiates a new a.
-     * 
-     * @param b
-     *            the b
+     *
+     * @param b the b
      */
     public A(final B b) {
         this.b = b;
@@ -35,7 +31,7 @@ public class A extends Type {
 
     /**
      * Gets the b.
-     * 
+     *
      * @return the b
      */
     public B getB() {
@@ -44,9 +40,8 @@ public class A extends Type {
 
     /**
      * Sets the b.
-     * 
-     * @param b
-     *            the new b
+     *
+     * @param b the new b
      */
     public void setB(final B b) {
         this.b = b;
@@ -54,16 +49,14 @@ public class A extends Type {
 
     /**
      * Gets the property.
-     * 
+     *
      * @return the property
      */
     public String getProperty() {
         return property;
     }
 
-    /**
-     * Sets the property.
-     */
+    /** Sets the property. */
     public void setProperty(final String property) {
         this.property = property;
     }

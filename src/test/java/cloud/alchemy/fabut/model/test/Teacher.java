@@ -6,9 +6,7 @@ public class Teacher {
     private Student student;
     private Address address;
 
-    public Teacher() {
-
-    }
+    public Teacher() {}
 
     public String getName() {
         return name;
@@ -33,5 +31,4 @@ public class Teacher {
     public void setAddress(final Address address) {
         this.address = address;
     }
-
 }

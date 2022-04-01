@@ -2,13 +2,12 @@ package cloud.alchemy.fabut.property;
 
 /**
  * {@link AbstractSingleProperty} extension with focus on new value of the property..
- * 
+ *
  * @author Dusko Vesin
  * @author Nikola Olah
  * @author Bojan Babic
  * @author Nikola Trkulja
- * @param <T>
- *            property type
+ * @param <T> property type
  */
 public class Property<T> extends AbstractSingleProperty {
 
@@ -16,11 +15,9 @@ public class Property<T> extends AbstractSingleProperty {
 
     /**
      * Change property default constructor.
-     * 
-     * @param path
-     *            property path
-     * @param value
-     *            expected property value
+     *
+     * @param path property path
+     * @param value expected property value
      */
     public Property(final String path, final T value) {
         super(path);
@@ -29,7 +26,7 @@ public class Property<T> extends AbstractSingleProperty {
 
     /**
      * Get expected value.
-     * 
+     *
      * @return expected value.
      */
     public T getValue() {
@@ -40,5 +37,4 @@ public class Property<T> extends AbstractSingleProperty {
     public ISingleProperty getCopy() {
         return new Property<>(getPath(), value);
     }
-
 }

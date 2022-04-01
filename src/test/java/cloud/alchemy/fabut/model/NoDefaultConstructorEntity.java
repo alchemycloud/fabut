@@ -16,5 +16,4 @@ public class NoDefaultConstructorEntity extends NoDefaultConstructorType {
     public void setId(final Integer id) {
         this.id = id;
     }
-
 }

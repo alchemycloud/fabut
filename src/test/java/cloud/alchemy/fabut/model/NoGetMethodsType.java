@@ -4,7 +4,7 @@ import cloud.alchemy.fabut.property.PropertyPath;
 
 /**
  * No conventional get methods type.
- * 
+ *
  * @author Dusko Vesin
  * @author Nikola Olah
  * @author Bojan Babic
@@ -23,9 +23,8 @@ public class NoGetMethodsType extends Type {
 
     /**
      * Instantiates a new no get methods type.
-     * 
-     * @param property
-     *            the property
+     *
+     * @param property the property
      */
     public NoGetMethodsType(final String property) {
         this.property = property;
@@ -39,7 +38,7 @@ public class NoGetMethodsType extends Type {
 
     /**
      * Property.
-     * 
+     *
      * @return the string
      */
     public String property() {
@@ -48,7 +47,7 @@ public class NoGetMethodsType extends Type {
 
     /**
      * Fake get method.
-     * 
+     *
      * @return {@link String}
      */
     public String getString() {
@@ -57,7 +56,7 @@ public class NoGetMethodsType extends Type {
 
     /**
      * Checks if is not boolean property.
-     * 
+     *
      * @return the string
      */
     public String isNotBooleanProperty() {
@@ -66,11 +65,10 @@ public class NoGetMethodsType extends Type {
 
     /**
      * Checks if is field.
-     * 
+     *
      * @return the string
      */
     public String isField() {
         return "not";
     }
-
 }

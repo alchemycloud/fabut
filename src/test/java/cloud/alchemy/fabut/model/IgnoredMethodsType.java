@@ -2,7 +2,7 @@ package cloud.alchemy.fabut.model;
 
 /**
  * Type who's get methods are ignored.
- * 
+ *
  * @author Dusko Vesin
  * @author Nikola Olah
  * @author Bojan Babic
@@ -18,9 +18,8 @@ public class IgnoredMethodsType extends Type {
 
     /**
      * Instantiates a new ignored methods type.
-     * 
-     * @param ignoreMethodsProperty
-     *            the ignore methods property
+     *
+     * @param ignoreMethodsProperty the ignore methods property
      */
     public IgnoredMethodsType(final String ignoreMethodsProperty) {
         this.ignoreMethodsProperty = ignoreMethodsProperty;
@@ -28,11 +27,10 @@ public class IgnoredMethodsType extends Type {
 
     /**
      * Gets the ignore methods property.
-     * 
+     *
      * @return the ignore methods property
      */
     public String getIgnoreMethodsProperty() {
         return ignoreMethodsProperty;
     }
-
 }

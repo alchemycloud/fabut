@@ -17,9 +17,7 @@ class FabutReport {
     private final List<String> messages = new ArrayList<>();
     private final List<String> codes = new ArrayList<>();
 
-    FabutReport() {
-
-    }
+    FabutReport() {}
 
     FabutReport(final String message) {
         this();
@@ -50,7 +48,12 @@ class FabutReport {
             message = message + "\nCODE:" + String.join("", codes);
         }
 
-        final String subMessages = subReports.stream().filter(a -> !a.isSuccess()).map(a -> a.getMessage(depth + 1)).filter(a -> !a.isEmpty()).collect(Collectors.joining(NEW_LINE));
+        final String subMessages =
+                subReports.stream()
+                        .filter(a -> !a.isSuccess())
+                        .map(a -> a.getMessage(depth + 1))
+                        .filter(a -> !a.isEmpty())
+                        .collect(Collectors.joining(NEW_LINE));
 
         if (subMessages.isEmpty()) {
             return message;
@@ -63,7 +66,7 @@ class FabutReport {
      * Add new comment to specified depth.
      *
      * @param comment to be added
-     * @param type    type of comment
+     * @param type type of comment
      */
     private void addComment(final String comment, final CommentType type) {
 
@@ -81,8 +84,7 @@ class FabutReport {
     }
 
     void noPropertyForField(final String fieldName, final Object field) {
-        final String comment = String.format("There was no property for field:  %s of class:  %s, with value: %s",
-                fieldName, field.getClass(), field);
+        final String comment = String.format("There was no property for field:  %s of class:  %s, with value: %s", fieldName, field.getClass(), field);
         addComment(comment, CommentType.FAIL);
     }
 
@@ -94,7 +96,6 @@ class FabutReport {
     void nullProperty(final String fieldName) {
         final String comment = String.format("%s: expected null property, but field was not null", fieldName);
         addComment(comment, CommentType.FAIL);
-
     }
 
     void notEmptyProperty(final String fieldName) {
@@ -133,8 +134,7 @@ class FabutReport {
     }
 
     void entityInSnapshot(final Object entity) {
-        final String comment = String.format("Entity %s exist in DB, user assertWithSnapshot instead..",
-                entity);
+        final String comment = String.format("Entity %s exist in DB, user assertWithSnapshot instead..", entity);
         addComment(comment, CommentType.FAIL);
     }
 
@@ -144,7 +144,10 @@ class FabutReport {
     }
 
     void uncallableMethod(final Method method, final Object actual) {
-        final String comment = String.format("There is no method: %s in actual object class: %s (expected object class was: %s).", method.getName(), actual.getClass(), method.getDeclaringClass().getSimpleName());
+        final String comment =
+                String.format(
+                        "There is no method: %s in actual object class: %s (expected object class was: %s).",
+                        method.getName(), actual.getClass(), method.getDeclaringClass().getSimpleName());
         addComment(comment, CommentType.FAIL);
     }
 
@@ -157,7 +160,6 @@ class FabutReport {
         final String comment = "Object that was passed to assertObject was null, it must not be null!";
         addComment(comment, CommentType.FAIL);
     }
-
 
     void assertFail(final String propertyName, final Object expected, final Object actual) {
         final String commentComment = String.format("%s: expected: %s", propertyName, expected);
@@ -185,7 +187,6 @@ class FabutReport {
         final String comment = String.format("No match for expected key: %s", key);
         addComment(comment, CommentType.FAIL);
     }
-
 
     void excessActualMap(final Object key) {
         final String comment = String.format("No match for actual key: %s", key);

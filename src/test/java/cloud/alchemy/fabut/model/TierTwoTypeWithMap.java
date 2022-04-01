@@ -8,9 +8,7 @@ public class TierTwoTypeWithMap {
 
     private Map<Integer, TierOneType> map;
 
-    public TierTwoTypeWithMap() {
-
-    }
+    public TierTwoTypeWithMap() {}
 
     public String getProperty() {
         return property;
@@ -27,5 +25,4 @@ public class TierTwoTypeWithMap {
     public void setMap(final Map<Integer, TierOneType> map) {
         this.map = map;
     }
-
 }

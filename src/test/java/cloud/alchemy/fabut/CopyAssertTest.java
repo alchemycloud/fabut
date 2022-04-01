@@ -7,18 +7,15 @@ import org.junit.Test;
 
 /**
  * Test class for {@link CopyAssert}.
- * 
+ *
  * @author Dusko Vesin
  * @author Nikola Olah
  * @author Bojan Babic
  * @author Nikola Trkulja
- * 
  */
 public class CopyAssertTest extends Assert {
 
-    /**
-     * Test for {@link CopyAssert#CopyAssert(Object)}.
-     */
+    /** Test for {@link CopyAssert#CopyAssert(Object)}. */
     @Test
     public void testCopyAssert() {
         // method
@@ -30,9 +27,7 @@ public class CopyAssertTest extends Assert {
         assertEquals(entity, copyAssert.getEntity());
     }
 
-    /**
-     * Test for {@link CopyAssert#getEntity()}.
-     */
+    /** Test for {@link CopyAssert#getEntity()}. */
     @Test
     public void testGetEntity() {
         // setup
@@ -46,9 +41,6 @@ public class CopyAssertTest extends Assert {
         assertEquals(expected, actual);
     }
 
-    /**
-     * Test for {@link CopyAssert#setEntity()}.
-     */
     @Test
     public void testSetEntity() {
         // setup
@@ -63,9 +55,7 @@ public class CopyAssertTest extends Assert {
         assertEquals(expected, copyAssert.getEntity());
     }
 
-    /**
-     * Test for {@link CopyAssert#isAsserted()}.
-     */
+    /** Test for {@link CopyAssert#isAsserted()}. */
     @Test
     public void testIsAsserted() {
         // setup
@@ -79,9 +69,6 @@ public class CopyAssertTest extends Assert {
         assertFalse(isAsserted);
     }
 
-    /**
-     * Test for {@link CopyAssert#setAsserted()}.
-     */
     @Test
     public void testSetAsserted() {
         // setup
@@ -94,5 +81,4 @@ public class CopyAssertTest extends Assert {
         // assert
         assertTrue(copyAssert.isAsserted());
     }
-
 }

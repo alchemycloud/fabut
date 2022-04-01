@@ -2,7 +2,7 @@ package cloud.alchemy.fabut.model;
 
 /**
  * List element class.
- * 
+ *
  * @author Dusko Vesin
  * @author Nikola Olah
  * @author Bojan Babic
@@ -15,7 +15,7 @@ public class ListElement {
 
     /**
      * Gets the list element.
-     * 
+     *
      * @return the list element
      */
     public ListElement getListElement() {
@@ -24,12 +24,10 @@ public class ListElement {
 
     /**
      * Sets the list element.
-     * 
-     * @param listElement
-     *            the new list element
+     *
+     * @param listElement the new list element
      */
     public void setListElement(final ListElement listElement) {
         this.listElement = listElement;
     }
-
 }

@@ -2,7 +2,7 @@ package cloud.alchemy.fabut.property;
 
 /**
  * Abstract property definition that contains path to some property that is used.
- * 
+ *
  * @author Dusko Vesin
  * @author Nikola Olah
  * @author Bojan Babic
@@ -15,8 +15,7 @@ public abstract class AbstractSingleProperty implements ISingleProperty {
     /**
      * Default constructor.
      *
-     * @param path
-     *            property path
+     * @param path property path
      */
     public AbstractSingleProperty(final String path) {
         this.path = path;
@@ -30,8 +29,7 @@ public abstract class AbstractSingleProperty implements ISingleProperty {
     /**
      * Set property path.
      *
-     * @param path
-     *            new path.
+     * @param path new path.
      */
     @Override
     public void setPath(final String path) {
@@ -43,5 +41,4 @@ public abstract class AbstractSingleProperty implements ISingleProperty {
         final ISingleProperty property = (ISingleProperty) obj;
         return path.equalsIgnoreCase(property.getPath());
     }
-
 }

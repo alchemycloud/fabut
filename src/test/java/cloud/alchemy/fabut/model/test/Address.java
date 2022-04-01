@@ -6,9 +6,7 @@ public class Address {
     private String street;
     private String streetNumber;
 
-    public Address() {
-
-    }
+    public Address() {}
 
     public String getCity() {
         return city;
@@ -33,5 +31,4 @@ public class Address {
     public void setStreetNumber(final String streetNumber) {
         this.streetNumber = streetNumber;
     }
-
 }

@@ -20,5 +20,4 @@ public class Faculty {
     public void setTeacher(final Teacher teacher) {
         this.teacher = teacher;
     }
-
 }

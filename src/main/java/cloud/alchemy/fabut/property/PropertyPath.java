@@ -1,6 +1,5 @@
 package cloud.alchemy.fabut.property;
 
-
 public class PropertyPath<T> {
 
     private static final String DOT = ".";

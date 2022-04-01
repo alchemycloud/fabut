@@ -4,9 +4,7 @@ import cloud.alchemy.fabut.property.PropertyPath;
 
 import java.util.List;
 
-/**
- * Created by olahnikola on 8.6.17..
- */
+/** Created by olahnikola on 8.6.17.. */
 public class EntityWithList {
 
     public static final PropertyPath<Integer> ID = new PropertyPath<>("id");
@@ -16,10 +14,7 @@ public class EntityWithList {
 
     private List<EntityTierOneType> list;
 
-    public EntityWithList() {
-
-    }
-
+    public EntityWithList() {}
 
     public Integer getId() {
         return id;
@@ -36,7 +31,6 @@ public class EntityWithList {
     public void setList(List<EntityTierOneType> list) {
         this.list = list;
     }
-
 
     @Override
     public String toString() {

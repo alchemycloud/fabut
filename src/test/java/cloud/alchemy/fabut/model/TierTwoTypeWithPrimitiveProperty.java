@@ -12,20 +12,16 @@ import cloud.alchemy.fabut.property.PropertyPath;
  */
 public class TierTwoTypeWithPrimitiveProperty extends TierTwoType {
 
-    /**
-     * The Constant PROPERTY2.
-     */
+    /** The Constant PROPERTY2. */
     public static final PropertyPath<String> PROPERTY2 = new PropertyPath<>("property2");
 
-    /**
-     * The property2.
-     */
+    /** The property2. */
     private final String property2;
 
     /**
      * Instantiates a new tier two type with primitive property.
      *
-     * @param property  the property
+     * @param property the property
      * @param property2 the property2
      */
     public TierTwoTypeWithPrimitiveProperty(final TierOneType property, final String property2) {
@@ -41,5 +37,4 @@ public class TierTwoTypeWithPrimitiveProperty extends TierTwoType {
     public String getProperty2() {
         return property2;
     }
-
 }

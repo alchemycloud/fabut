@@ -12,14 +12,10 @@ import cloud.alchemy.fabut.property.PropertyPath;
  */
 public class TierTwoType extends Type {
 
-    /**
-     * The Constant PROPERTY.
-     */
+    /** The Constant PROPERTY. */
     public static final PropertyPath<TierOneType> PROPERTY = new PropertyPath<>("property");
 
-    /**
-     * The property.
-     */
+    /** The property. */
     private final TierOneType property;
 
     /**
@@ -39,5 +35,4 @@ public class TierTwoType extends Type {
     public TierOneType getProperty() {
         return property;
     }
-
 }

@@ -16,9 +16,7 @@ import java.util.List;
 public class NodesList implements IsomorphicGraph {
     private final List<IsomorphicNodePair> isomorphicNodes;
 
-    /**
-     * Default constructor.
-     */
+    /** Default constructor. */
     public NodesList() {
         isomorphicNodes = new LinkedList<>();
     }
@@ -73,5 +71,4 @@ public class NodesList implements IsomorphicGraph {
         }
         return NodeCheckType.NEW_PAIR;
     }
-
 }

@@ -2,7 +2,7 @@ package cloud.alchemy.fabut.model;
 
 /**
  * The Class UnknownEntityType.
- * 
+ *
  * @author Dusko Vesin
  * @author Nikola Olah
  * @author Bojan Babic
@@ -13,18 +13,13 @@ public class UnknownEntityType extends Type {
     /** The id. */
     private int id;
 
-    /**
-     * Instantiates a new unknown entity type.
-     */
-    public UnknownEntityType() {
-
-    }
+    /** Instantiates a new unknown entity type. */
+    public UnknownEntityType() {}
 
     /**
      * Instantiates a new unknown entity type.
-     * 
-     * @param id
-     *            the id
+     *
+     * @param id the id
      */
     public UnknownEntityType(final int id) {
         this.id = id;
@@ -32,7 +27,7 @@ public class UnknownEntityType extends Type {
 
     /**
      * Gets the id.
-     * 
+     *
      * @return the id
      */
     public int getId() {
@@ -41,12 +36,10 @@ public class UnknownEntityType extends Type {
 
     /**
      * Sets the id.
-     * 
-     * @param id
-     *            the new id
+     *
+     * @param id the new id
      */
     public void setId(final int id) {
         this.id = id;
     }
-
 }

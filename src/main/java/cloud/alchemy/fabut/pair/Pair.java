@@ -1,9 +1,6 @@
 package cloud.alchemy.fabut.pair;
 
-/**
- * The Class Pair.
- * 
- */
+/** The Class Pair. */
 public class Pair {
 
     /** The expected. */
@@ -11,11 +8,9 @@ public class Pair {
 
     /**
      * Isomorphic node pair constructor with..
-     * 
-     * @param expected
-     *            object
-     * @param actual
-     *            object
+     *
+     * @param expected object
+     * @param actual object
      */
     public Pair(final Object expected, final Object actual) {
         this.actual = actual;
@@ -24,7 +19,7 @@ public class Pair {
 
     /**
      * Get actual.
-     * 
+     *
      * @return - actual object
      */
     public Object getActual() {
@@ -33,7 +28,7 @@ public class Pair {
 
     /**
      * Get expected.
-     * 
+     *
      * @return - expected object
      */
     public Object getExpected() {

@@ -9,7 +9,9 @@ import cloud.alchemy.fabut.property.*;
 import junit.framework.AssertionFailedError;
 import org.junit.Test;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 public class FabutTest extends AbstractFabutTest {
 
@@ -119,13 +121,11 @@ public class FabutTest extends AbstractFabutTest {
         return noDefaultConstructorEntities;
     }
 
-    /**
-     * Test for ignored when varargs are passed.
-     */
+    /** Test for ignored when varargs are passed. */
     @Test
     public void testIgnoredVarargs() {
         // setup
-        final PropertyPath[] properties = new PropertyPath[]{EntityTierOneType.PROPERTY, EntityTierOneType.ID};
+        final PropertyPath<?>[] properties = new PropertyPath[] {EntityTierOneType.PROPERTY, EntityTierOneType.ID};
 
         // method
         final MultiProperties multi = ignored(properties);
@@ -139,13 +139,11 @@ public class FabutTest extends AbstractFabutTest {
         }
     }
 
-    /**
-     * Test for null when varargs are passed.
-     */
+    /** Test for null when varargs are passed. */
     @Test
     public void testNulllVarargs() {
         // setup
-        final PropertyPath[] properties = new PropertyPath[]{EntityTierOneType.PROPERTY, EntityTierOneType.ID};
+        final PropertyPath<?>[] properties = new PropertyPath<?>[] {EntityTierOneType.PROPERTY, EntityTierOneType.ID};
 
         // method
         final MultiProperties multi = isNull(properties);
@@ -159,13 +157,11 @@ public class FabutTest extends AbstractFabutTest {
         }
     }
 
-    /**
-     * Test for notNull when varargs are passed.
-     */
+    /** Test for notNull when varargs are passed. */
     @Test
     public void testNotNullVarargs() {
         // setup
-        final PropertyPath[] properties = new PropertyPath[]{EntityTierOneType.PROPERTY, EntityTierOneType.ID};
+        final PropertyPath<?>[] properties = new PropertyPath[] {EntityTierOneType.PROPERTY, EntityTierOneType.ID};
 
         // method
         final MultiProperties multi = notNull(properties);
@@ -179,9 +175,7 @@ public class FabutTest extends AbstractFabutTest {
         }
     }
 
-    /**
-     * Test for {@link Fabut#notNull(PropertyPath)}.
-     */
+    /** Test for {@link Fabut#notNull(PropertyPath)}. */
     @Test
     public void testNotNull() {
         // method
@@ -191,9 +185,7 @@ public class FabutTest extends AbstractFabutTest {
         assertEquals(EntityTierOneType.PROPERTY.getPath(), notNullProperty.getPath());
     }
 
-    /**
-     * Test for {@link Fabut#isNull(PropertyPath)}.
-     */
+    /** Test for {@link Fabut#isNull(PropertyPath)}. */
     @Test
     public void testNulll() {
         // method
@@ -203,9 +195,7 @@ public class FabutTest extends AbstractFabutTest {
         assertEquals(EntityTierOneType.PROPERTY.getPath(), nullProperty.getPath());
     }
 
-    /**
-     * Test for {@link Fabut#ignored(PropertyPath)}.
-     */
+    /** Test for {@link Fabut#ignored(PropertyPath)}. */
     @Test
     public void testIgnored() {
         // method
@@ -215,9 +205,7 @@ public class FabutTest extends AbstractFabutTest {
         assertEquals(EntityTierOneType.PROPERTY.getPath(), ignoreProperty.getPath());
     }
 
-    /**
-     * Test for {@link Fabut#value(PropertyPath, Object)}.
-     */
+    /** Test for {@link Fabut#value(PropertyPath, Object)}. */
     @Test
     public void testValue() {
         // method
@@ -262,7 +250,6 @@ public class FabutTest extends AbstractFabutTest {
         takeSnapshot();
     }
 
-
     @Test
     public void testTakeSnapshotSuccess() {
         // setup
@@ -283,7 +270,6 @@ public class FabutTest extends AbstractFabutTest {
 
         // method
         assertObject(object, value(TierOneType.PROPERTY, "test"));
-
     }
 
     @Test
@@ -297,10 +283,7 @@ public class FabutTest extends AbstractFabutTest {
         // method
         takeSnapshot();
         getEntityTierOneTypes().add(entity);
-        assertObject(entity, value(EntityTierOneType.ID, 1),
-                value(EntityTierOneType.PROPERTY, "test"));
-
-
+        assertObject(entity, value(EntityTierOneType.ID, 1), value(EntityTierOneType.PROPERTY, "test"));
     }
 
     @Test
@@ -315,8 +298,6 @@ public class FabutTest extends AbstractFabutTest {
         takeSnapshot();
         getEntityWithListTypes().add(entity);
         assertObject(entity, value(EntityWithList.ID, 1));
-
-
     }
 
     @Test(expected = AssertionFailedError.class)
@@ -330,9 +311,7 @@ public class FabutTest extends AbstractFabutTest {
         // method
         takeSnapshot();
         getEntityTierOneTypes().add(entity);
-        assertObject(entity, value(EntityTierOneType.ID, 1),
-                value(EntityTierOneType.PROPERTY, "fail"));
-
+        assertObject(entity, value(EntityTierOneType.ID, 1), value(EntityTierOneType.PROPERTY, "fail"));
     }
 
     @Test
@@ -348,8 +327,6 @@ public class FabutTest extends AbstractFabutTest {
         // method
         ((EntityTierOneType) getEntityTierOneTypes().get(0)).setProperty("test");
         assertEntityWithSnapshot(entityTierOneType, value(EntityTierOneType.PROPERTY, "test"));
-
-
     }
 
     @Test(expected = AssertionFailedError.class)
@@ -407,8 +384,6 @@ public class FabutTest extends AbstractFabutTest {
         // method
         getEntityTierOneTypes().remove(0);
         assertEntityAsDeleted(entity);
-
-
     }
 
     @Test(expected = AssertionFailedError.class)
@@ -444,8 +419,6 @@ public class FabutTest extends AbstractFabutTest {
 
         // method
         ignoreEntity(entity);
-
-
     }
 
     @Test(expected = AssertionFailedError.class)
@@ -458,8 +431,6 @@ public class FabutTest extends AbstractFabutTest {
 
         // method
         ignoreEntity(entity);
-
-
     }
 
     @Test(expected = AssertionFailedError.class)
@@ -471,7 +442,6 @@ public class FabutTest extends AbstractFabutTest {
 
         // method
         ignoreEntity(object);
-
     }
 
     @Test
@@ -500,7 +470,8 @@ public class FabutTest extends AbstractFabutTest {
         takeSnapshot();
 
         // assert
-        assertObject(student,
+        assertObject(
+                student,
                 value(new PropertyPath<>("name"), "Nikola"),
                 value(new PropertyPath<>("lastName"), "Olah"),
                 value(new PropertyPath<>("address.city"), "Temerin"),
@@ -512,7 +483,5 @@ public class FabutTest extends AbstractFabutTest {
                 value(new PropertyPath<>("faculty.teacher.address.street"), "Ljubicica"),
                 value(new PropertyPath<>("faculty.teacher.student"), student),
                 value(new PropertyPath<>("faculty.teacher.address.streetNumber"), "10"));
-
     }
-
 }

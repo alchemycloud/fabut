@@ -1,8 +1,6 @@
 package cloud.alchemy.fabut;
 
-/**
- * Exception thrown when object copy fails.
- */
+/** Exception thrown when object copy fails. */
 public class CopyException extends Exception {
 
     private static final long serialVersionUID = -3892289189753962585L;

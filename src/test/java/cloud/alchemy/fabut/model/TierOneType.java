@@ -4,7 +4,7 @@ import cloud.alchemy.fabut.property.PropertyPath;
 
 /**
  * Tier one complex type with only one {@link String} property.
- * 
+ *
  * @author Dusko Vesin
  * @author Nikola Olah
  * @author Bojan Babic
@@ -18,18 +18,13 @@ public class TierOneType extends Type {
     /** The property. */
     private String property;
 
-    /**
-     * Instantiates a new tier one type.
-     */
-    public TierOneType() {
-
-    }
+    /** Instantiates a new tier one type. */
+    public TierOneType() {}
 
     /**
      * Instantiates a new tier one type.
-     * 
-     * @param property
-     *            the property
+     *
+     * @param property the property
      */
     public TierOneType(final String property) {
         this.property = property;
@@ -37,7 +32,7 @@ public class TierOneType extends Type {
 
     /**
      * Gets the property.
-     * 
+     *
      * @return the property
      */
     public String getProperty() {
@@ -46,9 +41,8 @@ public class TierOneType extends Type {
 
     /**
      * Sets the property.
-     * 
-     * @param property
-     *            the new property
+     *
+     * @param property the new property
      */
     public void setProperty(final String property) {
         this.property = property;
@@ -62,5 +56,4 @@ public class TierOneType extends Type {
     public String toString() {
         return property;
     }
-
 }

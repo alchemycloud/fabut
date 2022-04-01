@@ -2,7 +2,7 @@ package cloud.alchemy.fabut.enums;
 
 /**
  * Comment types.
- * 
+ *
  * @author Dusko Vesin
  * @author Nikola Olah
  * @author Bojan Babic
@@ -10,28 +10,21 @@ package cloud.alchemy.fabut.enums;
  */
 public enum CommentType {
 
-    /**
-     * Fail type.
-     */
+    /** Fail type. */
     FAIL("■"),
 
-    /**
-     * Success type.
-     */
+    /** Success type. */
     SUCCESS("∞"),
 
-    /**
-     * List type.
-     */
+    /** List type. */
     COLLECTION("#");
 
     private final String mark;
 
     /**
      * Comment type constructor with mark parameter.
-     * 
-     * @param mark
-     *            mark of comment type.
+     *
+     * @param mark mark of comment type.
      */
     CommentType(final String mark) {
         this.mark = mark;
@@ -39,7 +32,7 @@ public enum CommentType {
 
     /**
      * Get comment type mark.
-     * 
+     *
      * @return mark of comment type.
      */
     public String getMark() {

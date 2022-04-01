@@ -14,14 +14,10 @@ import java.util.List;
  */
 public class TierTwoTypeWithListProperty extends Type {
 
-    /**
-     * The Constant PROPERTY.
-     */
+    /** The Constant PROPERTY. */
     public static final PropertyPath<List<String>> PROPERTY = new PropertyPath<>("property");
 
-    /**
-     * The property.
-     */
+    /** The property. */
     private final List<String> property;
 
     /**
@@ -41,5 +37,4 @@ public class TierTwoTypeWithListProperty extends Type {
     public List<String> getProperty() {
         return property;
     }
-
 }

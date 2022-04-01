@@ -1,30 +1,30 @@
-//package cloud.alchemy.fabut.util;
+// package cloud.alchemy.fabut.util;
 //
-//import java.lang.reflect.Field;
-//import java.lang.reflect.Method;
-//import java.util.*;
+// import java.lang.reflect.Field;
+// import java.lang.reflect.Method;
+// import java.util.*;
 //
-//import cloud.alchemy.fabut2.enums.AssertableType;
-//import cloud.alchemy.fabut.exception.CopyException;
-//import cloud.alchemy.fabut2.graph.NodesList;
-//import org.junit.Assert;
-//import junit.framework.AssertionFailedError;
+// import cloud.alchemy.fabut2.enums.AssertableType;
+// import cloud.alchemy.fabut.exception.CopyException;
+// import cloud.alchemy.fabut2.graph.NodesList;
+// import org.junit.Assert;
+// import junit.framework.AssertionFailedError;
 //
-//import org.junit.Before;
-//import org.junit.Test;
+// import org.junit.Before;
+// import org.junit.Test;
 //
-//import cloud.alchemy.fabut.model.A;
-//import cloud.alchemy.fabut.model.B;
-//import cloud.alchemy.fabut.model.BooleanFieldType;
-//import cloud.alchemy.fabut.model.C;
-//import cloud.alchemy.fabut.model.EntityTierOneType;
-//import cloud.alchemy.fabut.model.EntityTierTwoType;
-//import cloud.alchemy.fabut.model.NoGetMethodsType;
-//import cloud.alchemy.fabut.model.TierOneType;
-//import cloud.alchemy.fabut.model.TierTwoType;
-//import cloud.alchemy.fabut.model.UnknownType;
+// import cloud.alchemy.fabut.model.A;
+// import cloud.alchemy.fabut.model.B;
+// import cloud.alchemy.fabut.model.BooleanFieldType;
+// import cloud.alchemy.fabut.model.C;
+// import cloud.alchemy.fabut.model.EntityTierOneType;
+// import cloud.alchemy.fabut.model.EntityTierTwoType;
+// import cloud.alchemy.fabut.model.NoGetMethodsType;
+// import cloud.alchemy.fabut.model.TierOneType;
+// import cloud.alchemy.fabut.model.TierTwoType;
+// import cloud.alchemy.fabut.model.UnknownType;
 //
-///**
+/// **
 // * Tests for {@link ReflectionUtil}.
 // *
 // * @author Dusko Vesin
@@ -33,8 +33,8 @@
 // * @author Nikola Trkulja
 // * @author Andrej Miletic
 // */
-//@SuppressWarnings("unchecked")
-//public class ReflectionUtilTest extends Assert {
+// @SuppressWarnings("unchecked")
+// public class ReflectionUtilTest extends Assert {
 //
 //    private static final String TEST = "test";
 //    private static final String PROPERTY = "property";
@@ -727,4 +727,4 @@
 //        assertEquals(TEST, result.get("first").getProperty());
 //        assertEquals(TEST + TEST, result.get("second").getProperty());
 //    }
-//}
+// }

@@ -6,12 +6,11 @@ import java.util.Optional;
 
 /**
  * Types assertable by FABUT.
- * 
+ *
  * @author Dusko Vesin
  * @author Nikola Olah
  * @author Bojan Babic
  * @author Nikola Trkulja
- * 
  */
 public enum AssertableType {
 
@@ -21,10 +20,7 @@ public enum AssertableType {
     /** Type that should be ignored during Fabut assert. */
     IGNORED_TYPE,
 
-    /**
-     * Type used for storing in external repositories, main difference to {@link AssertableType#COMPLEX_TYPE} is that
-     * this type requires id field.
-     */
+    /** Type used for storing in external repositories, main difference to {@link AssertableType#COMPLEX_TYPE} is that this type requires id field. */
     ENTITY_TYPE,
 
     /** Type asserted using custom user assert. */
@@ -36,7 +32,6 @@ public enum AssertableType {
     /** Type that implements {@link Map} */
     MAP_TYPE,
 
-    /** Type that implemens {@link Optional}**/
+    /** Type that implemens {@link Optional}* */
     OPTIONAL_TYPE
-
 }

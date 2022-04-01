@@ -2,7 +2,7 @@ package cloud.alchemy.fabut.model;
 
 /**
  * Tier four complex type.
- * 
+ *
  * @author Dusko Vesin
  * @author Nikola Olah
  * @author Bojan Babic
@@ -18,9 +18,8 @@ public class TierFourType extends Type {
 
     /**
      * Instantiates a new tier four type.
-     * 
-     * @param property
-     *            the property
+     *
+     * @param property the property
      */
     public TierFourType(final TierThreeType property) {
         this.property = property;
@@ -28,11 +27,10 @@ public class TierFourType extends Type {
 
     /**
      * Gets the property.
-     * 
+     *
      * @return the property
      */
     public TierThreeType getProperty() {
         return property;
     }
-
 }

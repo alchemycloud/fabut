@@ -4,7 +4,7 @@ import cloud.alchemy.fabut.property.PropertyPath;
 
 /**
  * Type with one ignored type property.
- * 
+ *
  * @author Dusko Vesin
  * @author Nikola Olah
  * @author Bojan Babic
@@ -20,9 +20,8 @@ public class TierTwoTypeWithIgnoreProperty extends Type {
 
     /**
      * Instantiates a new tier two type with ignore property.
-     * 
-     * @param ignoredType
-     *            the ignored type
+     *
+     * @param ignoredType the ignored type
      */
     public TierTwoTypeWithIgnoreProperty(final IgnoredType ignoredType) {
         this.ignoredType = ignoredType;
@@ -30,11 +29,10 @@ public class TierTwoTypeWithIgnoreProperty extends Type {
 
     /**
      * Gets the ignored type.
-     * 
+     *
      * @return the ignored type
      */
     public IgnoredType getIgnoredType() {
         return ignoredType;
     }
-
 }

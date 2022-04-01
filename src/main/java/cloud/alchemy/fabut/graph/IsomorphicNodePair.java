@@ -1,7 +1,7 @@
 package cloud.alchemy.fabut.graph;
 
-import cloud.alchemy.fabut.pair.Pair;
 import cloud.alchemy.fabut.ReflectionUtil;
+import cloud.alchemy.fabut.pair.Pair;
 
 /**
  * Class representing object pair from {@link IsomorphicGraph}.
@@ -16,7 +16,7 @@ public class IsomorphicNodePair extends Pair {
      * Default Isomorphic node pair constructor.
      *
      * @param expected object
-     * @param actual   object
+     * @param actual object
      */
     public IsomorphicNodePair(final Object expected, final Object actual) {
         super(expected, actual);
@@ -37,13 +37,12 @@ public class IsomorphicNodePair extends Pair {
 
             } else {
 
-                return (node.getActual() == getActual() && node.getExpected() == getExpected()) ||
-                        (node.getActual() == getExpected() && node.getExpected() == getActual());
+                return (node.getActual() == getActual() && node.getExpected() == getExpected())
+                        || (node.getActual() == getExpected() && node.getExpected() == getActual());
             }
 
         } catch (final Exception e) {
             return false;
         }
     }
-
 }

@@ -4,7 +4,7 @@ import java.util.List;
 
 /**
  * The Class DoubleLink.
- * 
+ *
  * @author Dusko Vesin
  * @author Nikola Olah
  * @author Bojan Babic
@@ -23,13 +23,10 @@ public class DoubleLink extends Type {
 
     /**
      * Instantiates a new double link.
-     * 
-     * @param as
-     *            the as
-     * @param start
-     *            the start
-     * @param property
-     *            the property
+     *
+     * @param as the as
+     * @param start the start
+     * @param property the property
      */
     public DoubleLink(final List<A> as, final Start start, final String property) {
         this.as = as;
@@ -37,16 +34,12 @@ public class DoubleLink extends Type {
         this.property = property;
     }
 
-    /**
-     * Instantiates a new double link.
-     */
-    public DoubleLink() {
-
-    }
+    /** Instantiates a new double link. */
+    public DoubleLink() {}
 
     /**
      * Gets the as.
-     * 
+     *
      * @return the as
      */
     public List<A> getAs() {
@@ -55,7 +48,7 @@ public class DoubleLink extends Type {
 
     /**
      * Gets the start.
-     * 
+     *
      * @return the start
      */
     public Start getStart() {
@@ -64,9 +57,8 @@ public class DoubleLink extends Type {
 
     /**
      * Sets the as.
-     * 
-     * @param as
-     *            the new as
+     *
+     * @param as the new as
      */
     public void setAs(final List<A> as) {
         this.as = as;
@@ -74,9 +66,8 @@ public class DoubleLink extends Type {
 
     /**
      * Sets the start.
-     * 
-     * @param start
-     *            the new start
+     *
+     * @param start the new start
      */
     public void setStart(final Start start) {
         this.start = start;
@@ -84,11 +75,10 @@ public class DoubleLink extends Type {
 
     /**
      * Gets the property.
-     * 
+     *
      * @return the property
      */
     public String getProperty() {
         return property;
     }
-
 }

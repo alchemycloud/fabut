@@ -7,9 +7,7 @@ public class Student {
     private String lastName;
     private Faculty faculty;
 
-    public Student() {
-
-    }
+    public Student() {}
 
     public Address getAddress() {
         return address;
@@ -42,5 +40,4 @@ public class Student {
     public void setFaculty(final Faculty faculty) {
         this.faculty = faculty;
     }
-
 }

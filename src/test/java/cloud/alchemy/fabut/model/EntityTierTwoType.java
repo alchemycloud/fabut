@@ -2,7 +2,7 @@ package cloud.alchemy.fabut.model;
 
 /**
  * Enity type with one {@link EntityTierOneType} sub property and one {@link String} property.
- * 
+ *
  * @author Dusko Vesin
  * @author Nikola Olah
  * @author Bojan Babic
@@ -21,13 +21,10 @@ public class EntityTierTwoType extends TierOneType {
 
     /**
      * Instantiates a new entity tier two type.
-     * 
-     * @param property
-     *            the property
-     * @param id
-     *            the id
-     * @param subProperty
-     *            the sub property
+     *
+     * @param property the property
+     * @param id the id
+     * @param subProperty the sub property
      */
     public EntityTierTwoType(final String property, final Integer id, final EntityTierOneType subProperty) {
         super(property);
@@ -35,16 +32,12 @@ public class EntityTierTwoType extends TierOneType {
         this.subProperty = subProperty;
     }
 
-    /**
-     * Instantiates a new entity tier two type.
-     */
-    public EntityTierTwoType() {
-
-    }
+    /** Instantiates a new entity tier two type. */
+    public EntityTierTwoType() {}
 
     /**
      * Gets the id.
-     * 
+     *
      * @return the id
      */
     public Integer getId() {
@@ -53,7 +46,7 @@ public class EntityTierTwoType extends TierOneType {
 
     /**
      * Gets the sub property.
-     * 
+     *
      * @return the sub property
      */
     public EntityTierOneType getSubProperty() {
@@ -62,9 +55,8 @@ public class EntityTierTwoType extends TierOneType {
 
     /**
      * Sets the id.
-     * 
-     * @param id
-     *            the new id
+     *
+     * @param id the new id
      */
     public void setId(final int id) {
         this.id = id;
@@ -72,12 +64,10 @@ public class EntityTierTwoType extends TierOneType {
 
     /**
      * Sets the sub property.
-     * 
-     * @param subProperty
-     *            the new sub property
+     *
+     * @param subProperty the new sub property
      */
     public void setSubProperty(final EntityTierOneType subProperty) {
         this.subProperty = subProperty;
     }
-
 }

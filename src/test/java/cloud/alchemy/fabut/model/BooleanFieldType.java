@@ -2,7 +2,7 @@ package cloud.alchemy.fabut.model;
 
 /**
  * The Class BooleanFieldType.
- * 
+ *
  * @author Dusko Vesin
  * @author Nikola Olah
  * @author Bojan Babic
@@ -18,9 +18,8 @@ public class BooleanFieldType extends Type {
 
     /**
      * Instantiates a new boolean field type.
-     * 
-     * @param property
-     *            the property
+     *
+     * @param property the property
      */
     public BooleanFieldType(final boolean property) {
         this.property = property;
@@ -28,11 +27,10 @@ public class BooleanFieldType extends Type {
 
     /**
      * Checks if is property.
-     * 
+     *
      * @return true, if is property
      */
     public boolean isProperty() {
         return property;
     }
-
 }

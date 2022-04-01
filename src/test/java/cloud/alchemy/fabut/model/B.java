@@ -2,7 +2,7 @@ package cloud.alchemy.fabut.model;
 
 /**
  * The Class B.
- * 
+ *
  * @author Dusko Vesin
  * @author Nikola Olah
  * @author Bojan Babic
@@ -13,17 +13,13 @@ public class B {
     /** The c. */
     private C c;
 
-    /**
-     * Instantiates a new b.
-     */
-    public B() {
-    }
+    /** Instantiates a new b. */
+    public B() {}
 
     /**
      * Instantiates a new b.
-     * 
-     * @param c
-     *            the c
+     *
+     * @param c the c
      */
     public B(final C c) {
         this.c = c;
@@ -31,7 +27,7 @@ public class B {
 
     /**
      * Gets the c.
-     * 
+     *
      * @return the c
      */
     public C getC() {
@@ -40,12 +36,10 @@ public class B {
 
     /**
      * Sets the c.
-     * 
-     * @param c
-     *            the new c
+     *
+     * @param c the new c
      */
     public void setC(final C c) {
         this.c = c;
     }
-
 }

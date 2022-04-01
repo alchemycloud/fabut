@@ -4,7 +4,7 @@ import java.util.List;
 
 /**
  * The Class Start.
- * 
+ *
  * @author Dusko Vesin
  * @author Nikola Olah
  * @author Bojan Babic
@@ -17,24 +17,19 @@ public class Start extends Type {
 
     /**
      * Instantiates a new start.
-     * 
-     * @param links
-     *            the links
+     *
+     * @param links the links
      */
     public Start(final List<DoubleLink> links) {
         this.links = links;
     }
 
-    /**
-     * Instantiates a new start.
-     */
-    public Start() {
-
-    }
+    /** Instantiates a new start. */
+    public Start() {}
 
     /**
      * Gets the links.
-     * 
+     *
      * @return the links
      */
     public List<DoubleLink> getLinks() {
@@ -43,12 +38,10 @@ public class Start extends Type {
 
     /**
      * Sets the links.
-     * 
-     * @param links
-     *            the new links
+     *
+     * @param links the new links
      */
     public void setLinks(final List<DoubleLink> links) {
         this.links = links;
     }
-
 }

@@ -1,21 +1,21 @@
-//package cloud.alchemy.fabut;
+// package cloud.alchemy.fabut;
 //
-//import cloud.alchemy.fabut.model.EntityTierOneType;
-//import cloud.alchemy.fabut.model.NoDefaultConstructorEntity;
-//import cloud.alchemy.fabut.model.TierOneType;
-//import cloud.alchemy.fabut.model.test.Address;
-//import cloud.alchemy.fabut.model.test.Faculty;
-//import cloud.alchemy.fabut.model.test.Student;
-//import cloud.alchemy.fabut.model.test.Teacher;
-//import cloud.alchemy.fabut.property.IProperty;
-//import cloud.alchemy.fabut.property.PropertyPath;
-//import junit.framework.AssertionFailedError;
-//import org.junit.After;
-//import org.junit.Before;
-//import org.junit.Test;
+// import cloud.alchemy.fabut.model.EntityTierOneType;
+// import cloud.alchemy.fabut.model.NoDefaultConstructorEntity;
+// import cloud.alchemy.fabut.model.TierOneType;
+// import cloud.alchemy.fabut.model.test.Address;
+// import cloud.alchemy.fabut.model.test.Faculty;
+// import cloud.alchemy.fabut.model.test.Student;
+// import cloud.alchemy.fabut.model.test.Teacher;
+// import cloud.alchemy.fabut.property.IProperty;
+// import cloud.alchemy.fabut.property.PropertyPath;
+// import junit.framework.AssertionFailedError;
+// import org.junit.After;
+// import org.junit.Before;
+// import org.junit.Test;
 //
 //
-//public class ReportTest extends AbstractFabutRepositoryAssertTest {
+// public class ReportTest extends AbstractFabutRepositoryAssertTest {
 //    private static final String TEST = "test";
 //
 //    @Before
@@ -444,4 +444,4 @@
 //        Fabut.afterTest();
 //    }
 //
-//}
+// }

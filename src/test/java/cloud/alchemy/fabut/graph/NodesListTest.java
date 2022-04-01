@@ -1,14 +1,13 @@
 package cloud.alchemy.fabut.graph;
 
 import cloud.alchemy.fabut.enums.NodeCheckType;
-import cloud.alchemy.fabut.graph.NodesList;
 import cloud.alchemy.fabut.model.TierOneType;
 import org.junit.Assert;
 import org.junit.Test;
 
 /**
  * Tests for {@link NodesList}.
- * 
+ *
  * @author Dusko Vesin
  * @author Nikola Olah
  * @author Bojan Babic
@@ -18,9 +17,7 @@ public class NodesListTest extends Assert {
 
     private static final String TEST = "test";
 
-    /**
-     * Test for containsPair of {@link NodesList} when list doesn't contain specified pair.
-     */
+    /** Test for containsPair of {@link NodesList} when list doesn't contain specified pair. */
     @Test
     public void testContainsPairFalse() {
         // setup
@@ -34,9 +31,7 @@ public class NodesListTest extends Assert {
         assertFalse(assertValue);
     }
 
-    /**
-     * Test for containsPair of {@link NodesList} when list contains specified pair.
-     */
+    /** Test for containsPair of {@link NodesList} when list contains specified pair. */
     @Test
     public void testContainsPairTrue() {
         // setup
@@ -52,9 +47,7 @@ public class NodesListTest extends Assert {
         assertTrue(assertValue);
     }
 
-    /**
-     * Test for addPair of {@link NodesList} when list doesn't contain specified pair.
-     */
+    /** Test for addPair of {@link NodesList} when list doesn't contain specified pair. */
     @Test
     public void testAddPair() {
         // setup
@@ -70,9 +63,7 @@ public class NodesListTest extends Assert {
         assertTrue(assertValue);
     }
 
-    /**
-     * Test for getExpected of {@link NodesList} for specified actual pair.
-     */
+    /** Test for getExpected of {@link NodesList} for specified actual pair. */
     @Test
     public void testGetExpectedNotNull() {
         // setup
@@ -89,9 +80,7 @@ public class NodesListTest extends Assert {
         assertEquals(expected, assertObject);
     }
 
-    /**
-     * Test for getExpected of {@link NodesList} when specified actual paid doesn't have its expected match.
-     */
+    /** Test for getExpected of {@link NodesList} when specified actual paid doesn't have its expected match. */
     @Test
     public void testGetExpectedNull() {
         // setup
@@ -104,9 +93,7 @@ public class NodesListTest extends Assert {
         assertNull(assertObject);
     }
 
-    /**
-     * Test for containActual of {@link NodesList} when specified actual object is in the list.
-     */
+    /** Test for containActual of {@link NodesList} when specified actual object is in the list. */
     @Test
     public void testContainsActualTrue() {
         // setup
@@ -121,9 +108,7 @@ public class NodesListTest extends Assert {
         assertTrue(contains);
     }
 
-    /**
-     * Test for containsActual of {@link NodesList} when specified actual object isn't in the list.
-     */
+    /** Test for containsActual of {@link NodesList} when specified actual object isn't in the list. */
     @Test
     public void testContainsActualFalse() {
         // setup
@@ -136,9 +121,7 @@ public class NodesListTest extends Assert {
         assertFalse(contains);
     }
 
-    /**
-     * Test for containsExpected of {@link NodesList} when specified expected object is in the list.
-     */
+    /** Test for containsExpected of {@link NodesList} when specified expected object is in the list. */
     @Test
     public void testContainsExpectedTrue() {
         // setup
@@ -153,9 +136,7 @@ public class NodesListTest extends Assert {
         assertTrue(contains);
     }
 
-    /**
-     * Test for containsExpected of {@link NodesList} when specified expected object isn't in the list.
-     */
+    /** Test for containsExpected of {@link NodesList} when specified expected object isn't in the list. */
     @Test
     public void testContainsExpectedFalse() {
         // setup
@@ -168,9 +149,6 @@ public class NodesListTest extends Assert {
         assertFalse(contains);
     }
 
-    /**
-     * Test for checkIfContains of {@link FabutObjectAssert} when object pair is contained in list.
-     */
     @Test
     public void testCheckIfContainsTrue() {
         // setup
@@ -186,10 +164,6 @@ public class NodesListTest extends Assert {
         assertEquals(NodeCheckType.CONTAINS_PAIR, assertValue);
     }
 
-    /**
-     * Test for checkIfContains of {@link FabutObjectAssert} when one of object nodes from object pair is contained
-     * in list.
-     */
     @Test
     public void testCheckIfContainsFalse() {
         // setup
@@ -207,9 +181,6 @@ public class NodesListTest extends Assert {
         assertEquals(NodeCheckType.SINGLE_NODE, assertValue2);
     }
 
-    /**
-     * Test for checkIfContains of {@link FabutObjectAssert} when object pair is not contained in list.
-     */
     @Test
     public void testCheckIfContainsNull() {
         // setup
@@ -221,5 +192,4 @@ public class NodesListTest extends Assert {
         // assert
         assertEquals(NodeCheckType.NEW_PAIR, assertValue);
     }
-
 }

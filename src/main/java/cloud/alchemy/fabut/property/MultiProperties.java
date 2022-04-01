@@ -4,7 +4,7 @@ import java.util.List;
 
 /**
  * Class that contains a collection of single properties.
- * 
+ *
  * @author Dusko Vesin
  * @author Nikola Olah
  * @author Bojan Babic
@@ -22,5 +22,4 @@ public class MultiProperties implements IMultiProperties {
     public List<ISingleProperty> getProperties() {
         return propertiesDefinitions;
     }
-
 }
