@@ -4,7 +4,7 @@
 	<groupId>cloud.alchemy</groupId>
 	<artifactId>fabut</artifactId>
 	<name>Alchemy Fabut</name>
-	<version>4.0.5-RELEASE</version>
+	<version>4.0.6-RELEASE</version>
 	<description>Testing tool that helps developers to write better tests.</description>
 	<ciManagement>
 		<system>GIT</system>
@@ -36,14 +36,14 @@
 		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-lang3</artifactId>
-			<version>3.9</version>
+			<version>3.12.0</version>
 		</dependency>
 
 		<!-- Junit -->
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
-			<version>4.12</version>
+			<version>4.13.2</version>
 		</dependency>
 
 	</dependencies>
@@ -51,7 +51,7 @@
 	<repositories>
 		<repository>
 			<id>maven-central</id>
-			<url>http://repo1.maven.org/maven2/</url>
+			<url>https://repo1.maven.org/maven2/</url>
 		</repository>
 	</repositories>
 
