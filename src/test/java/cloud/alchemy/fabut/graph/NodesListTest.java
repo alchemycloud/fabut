@@ -2,8 +2,8 @@ package cloud.alchemy.fabut.graph;
 
 import cloud.alchemy.fabut.enums.NodeCheckType;
 import cloud.alchemy.fabut.model.TierOneType;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 /**
  * Tests for {@link NodesList}.
@@ -13,7 +13,7 @@ import org.junit.Test;
  * @author Bojan Babic
  * @author Nikola Trkulja
  */
-public class NodesListTest extends Assert {
+public class NodesListTest extends Assertions {
 
     private static final String TEST = "test";
 

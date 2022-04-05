@@ -3,8 +3,9 @@ package cloud.alchemy.fabut;
 import cloud.alchemy.fabut.model.*;
 import cloud.alchemy.fabut.property.CopyAssert;
 import cloud.alchemy.fabut.property.ISingleProperty;
-import junit.framework.AssertionFailedError;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.*;
 
@@ -98,12 +99,14 @@ public class FabutRepositoryAssertTest extends AbstractFabutTest {
         return null;
     }
 
+    @BeforeEach
     @Override
     public void before() {
         super.before();
         assertAfterTest = true;
     }
 
+    @AfterEach
     @Override
     public void after() {
         if (assertAfterTest) {
@@ -269,44 +272,51 @@ public class FabutRepositoryAssertTest extends AbstractFabutTest {
         assertFabutReportSuccess(report);
     }
 
-    @Test(expected = AssertionError.class)
+    @Test
     public void testAfterAssertEntityIsProperty() {
-        // setup
-        final List<Object> list1 = new ArrayList<>();
-        list1.add(new EntityTierOneType(TEST, 1));
-        list1.add(new EntityTierOneType(TEST, 2));
-        setEntityTierOneTypes(list1);
+        assertThrows(
+                AssertionError.class,
+                () -> {
+                    // setup
+                    final List<Object> list1 = new ArrayList<>();
+                    list1.add(new EntityTierOneType(TEST, 1));
+                    list1.add(new EntityTierOneType(TEST, 2));
+                    setEntityTierOneTypes(list1);
 
-        final EntityTierOneType actual = new EntityTierOneType(TEST, 1);
-        takeSnapshot(new FabutReport());
+                    final EntityTierOneType actual = new EntityTierOneType(TEST, 1);
+                    takeSnapshot(new FabutReport());
 
-        final List<Object> list2 = new ArrayList<>();
-        list2.add(new EntityTierOneType(TEST, 2));
-        setEntityTierOneTypes(list2);
+                    final List<Object> list2 = new ArrayList<>();
+                    list2.add(new EntityTierOneType(TEST, 2));
+                    setEntityTierOneTypes(list2);
 
-        // method
-        assertAfterTest = false;
-        super.after();
+                    // method
+                    assertAfterTest = false;
+                    super.after();
+                });
     }
 
-    @Test(expected = AssertionFailedError.class)
+    @Test
     public void testAfterAssertEntityNotEntity() {
-        // setup
-        final List<Object> list1 = new ArrayList<>();
-        list1.add(new EntityTierOneType(TEST, 1));
-        list1.add(new EntityTierOneType(TEST, 2));
-        setEntityTierOneTypes(list1);
+        assertThrows(
+                AssertionError.class,
+                () -> {
+                    final List<Object> list1 = new ArrayList<>();
+                    list1.add(new EntityTierOneType(TEST, 1));
+                    list1.add(new EntityTierOneType(TEST, 2));
+                    setEntityTierOneTypes(list1);
 
-        final TierOneType actual = new TierOneType();
-        takeSnapshot(new FabutReport());
+                    final TierOneType actual = new TierOneType();
+                    takeSnapshot(new FabutReport());
 
-        final List<Object> list2 = new ArrayList<>();
-        list2.add(new EntityTierOneType(TEST, 2));
-        setEntityTierOneTypes(list2);
+                    final List<Object> list2 = new ArrayList<>();
+                    list2.add(new EntityTierOneType(TEST, 2));
+                    setEntityTierOneTypes(list2);
 
-        // method
-        assertAfterTest = false;
-        super.after();
+                    // method
+                    assertAfterTest = false;
+                    super.after();
+                });
     }
 
     @Test
@@ -326,15 +336,19 @@ public class FabutRepositoryAssertTest extends AbstractFabutTest {
         assertFabutReportSuccess(entityAssertReport);
     }
 
-    @Test(expected = NullPointerException.class)
+    @Test
     public void testMarkAssertedNotTyrpeSupportedFalse() {
-        // method
-        takeSnapshot();
-        final FabutReport report = new FabutReport();
-        markAsAsserted(report, new UnknownEntityType(4));
+        assertThrows(
+                NullPointerException.class,
+                () -> {
+                    // method
+                    takeSnapshot();
+                    final FabutReport report = new FabutReport();
+                    markAsAsserted(report, new UnknownEntityType(4));
 
-        // assert
-        assertFabutReportSuccess(report);
+                    // assert
+                    assertFabutReportSuccess(report);
+                });
     }
 
     @Test

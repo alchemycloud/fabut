@@ -4,11 +4,11 @@ import cloud.alchemy.fabut.enums.ReferenceCheckType;
 import cloud.alchemy.fabut.graph.NodesList;
 import cloud.alchemy.fabut.pair.SnapshotPair;
 import cloud.alchemy.fabut.property.*;
-import junit.framework.AssertionFailedError;
 import org.apache.commons.lang3.StringUtils;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.opentest4j.AssertionFailedError;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
 import static cloud.alchemy.fabut.ReflectionUtil.*;
 import static java.util.Optional.of;
 
-public abstract class Fabut extends Assert {
+public abstract class Fabut extends Assertions {
 
     private static final String DOT = ".";
 
@@ -31,7 +31,7 @@ public abstract class Fabut extends Assert {
     final List<SnapshotPair> parameterSnapshot = new ArrayList<>();
 
     protected void customAssertEquals(Object expected, Object actual) {
-        Assert.assertEquals(expected, actual);
+        assertEquals(expected, actual);
     }
 
     protected List<?> findAll(final Class<?> entityClass) {
@@ -42,7 +42,7 @@ public abstract class Fabut extends Assert {
         throw new IllegalStateException("Override findById method");
     }
 
-    @Before
+    @BeforeEach
     public void before() {
         parameterSnapshot.clear();
 
@@ -52,7 +52,7 @@ public abstract class Fabut extends Assert {
         }
     }
 
-    @After
+    @AfterEach
     public void after() {
         final FabutReport report = new FabutReport("After test assert");
 

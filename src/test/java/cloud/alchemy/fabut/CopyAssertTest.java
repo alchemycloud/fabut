@@ -2,8 +2,8 @@ package cloud.alchemy.fabut;
 
 import cloud.alchemy.fabut.model.EntityTierOneType;
 import cloud.alchemy.fabut.property.CopyAssert;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 /**
  * Test class for {@link CopyAssert}.
@@ -13,7 +13,7 @@ import org.junit.Test;
  * @author Bojan Babic
  * @author Nikola Trkulja
  */
-public class CopyAssertTest extends Assert {
+public class CopyAssertTest extends Assertions {
 
     /** Test for {@link CopyAssert#CopyAssert(Object)}. */
     @Test

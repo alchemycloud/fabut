@@ -6,8 +6,10 @@ import cloud.alchemy.fabut.model.test.Faculty;
 import cloud.alchemy.fabut.model.test.Student;
 import cloud.alchemy.fabut.model.test.Teacher;
 import cloud.alchemy.fabut.property.*;
-import junit.framework.AssertionFailedError;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.opentest4j.AssertionFailedError;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -53,12 +55,14 @@ public class FabutTest extends AbstractFabutTest {
         ignoredTypes.add(IgnoredType.class);
     }
 
+    @BeforeEach
     @Override
     public void before() {
         super.before();
         assertAfterTest = true;
     }
 
+    @AfterEach
     @Override
     public void after() {
         if (assertAfterTest) {
@@ -226,28 +230,35 @@ public class FabutTest extends AbstractFabutTest {
 
     }
 
-    @Test(expected = AssertionFailedError.class)
+    @Test
     public void testAfterTestFail() {
-        // setup
+        assertThrows(
+                AssertionFailedError.class,
+                () -> {
+                    // setup
+                    takeSnapshot();
+                    final EntityTierOneType entityTierOneType = new EntityTierOneType("test", 1);
+                    getEntityTierOneTypes().add(entityTierOneType);
 
-        takeSnapshot();
-        final EntityTierOneType entityTierOneType = new EntityTierOneType("test", 1);
-        getEntityTierOneTypes().add(entityTierOneType);
-
-        // method
-        assertAfterTest = false;
-        super.after();
+                    // method
+                    assertAfterTest = false;
+                    super.after();
+                });
     }
 
-    @Test(expected = AssertionFailedError.class)
+    @Test
     public void testTakeSnapshotFail() {
-        // setup
+        assertThrows(
+                AssertionError.class,
+                () -> {
+                    // setup
 
-        getNoDefaultConstructorEntities().add(new NoDefaultConstructorEntity("test", 1));
+                    getNoDefaultConstructorEntities().add(new NoDefaultConstructorEntity("test", 1));
 
-        // method
-        assertAfterTest = false;
-        takeSnapshot();
+                    // method
+                    assertAfterTest = false;
+                    takeSnapshot();
+                });
     }
 
     @Test
@@ -262,14 +273,18 @@ public class FabutTest extends AbstractFabutTest {
 
     }
 
-    @Test(expected = AssertionFailedError.class)
+    @Test
     public void testAssertObjectWithComplexType() {
-        // setup
+        assertThrows(
+                AssertionError.class,
+                () -> {
+                    // setup
 
-        final TierOneType object = new TierOneType("test");
+                    final TierOneType object = new TierOneType("test");
 
-        // method
-        assertObject(object, value(TierOneType.PROPERTY, "test"));
+                    // method
+                    assertObject(object, value(TierOneType.PROPERTY, "test"));
+                });
     }
 
     @Test
@@ -300,18 +315,22 @@ public class FabutTest extends AbstractFabutTest {
         assertObject(entity, value(EntityWithList.ID, 1));
     }
 
-    @Test(expected = AssertionFailedError.class)
+    @Test
     public void testAssertObjectWithEntityTypeFail() {
-        // setup
+        assertThrows(
+                AssertionFailedError.class,
+                () -> {
+                    // setup
 
-        final EntityTierOneType entity = new EntityTierOneType();
-        entity.setProperty("test");
-        entity.setId(1);
+                    final EntityTierOneType entity = new EntityTierOneType();
+                    entity.setProperty("test");
+                    entity.setId(1);
 
-        // method
-        takeSnapshot();
-        getEntityTierOneTypes().add(entity);
-        assertObject(entity, value(EntityTierOneType.ID, 1), value(EntityTierOneType.PROPERTY, "fail"));
+                    // method
+                    takeSnapshot();
+                    getEntityTierOneTypes().add(entity);
+                    assertObject(entity, value(EntityTierOneType.ID, 1), value(EntityTierOneType.PROPERTY, "fail"));
+                });
     }
 
     @Test
@@ -329,48 +348,60 @@ public class FabutTest extends AbstractFabutTest {
         assertEntityWithSnapshot(entityTierOneType, value(EntityTierOneType.PROPERTY, "test"));
     }
 
-    @Test(expected = AssertionFailedError.class)
+    @Test
     public void testAssertEntityWithSnapshotFail() {
-        // setup
+        assertThrows(
+                AssertionError.class,
+                () -> {
+                    // setup
 
-        final EntityTierOneType entityTierOneType = new EntityTierOneType();
-        entityTierOneType.setId(10);
-        entityTierOneType.setProperty("property");
-        getEntityTierOneTypes().add(entityTierOneType);
-        takeSnapshot();
+                    final EntityTierOneType entityTierOneType = new EntityTierOneType();
+                    entityTierOneType.setId(10);
+                    entityTierOneType.setProperty("property");
+                    getEntityTierOneTypes().add(entityTierOneType);
+                    takeSnapshot();
 
-        // method
-        ((EntityTierOneType) getEntityTierOneTypes().get(0)).setProperty("test");
-        assertEntityWithSnapshot(entityTierOneType, value(EntityTierOneType.PROPERTY, "testtest"));
+                    // method
+                    ((EntityTierOneType) getEntityTierOneTypes().get(0)).setProperty("test");
+                    assertEntityWithSnapshot(entityTierOneType, value(EntityTierOneType.PROPERTY, "testtest"));
 
-        assertAfterTest = false;
-        super.after();
+                    assertAfterTest = false;
+                    super.after();
+                });
     }
 
-    @Test(expected = AssertionFailedError.class)
+    @Test
     public void testAssertEntityWithSnapshotNotEntity() {
-        // setup
+        assertThrows(
+                AssertionError.class,
+                () -> {
+                    // setup
 
-        takeSnapshot();
+                    takeSnapshot();
 
-        // method
-        assertEntityWithSnapshot(new TierOneType());
+                    // method
+                    assertEntityWithSnapshot(new TierOneType());
+                });
     }
 
-    @Test(expected = IllegalStateException.class)
+    @Test
     public void testAssertEntityWithSnapshotNullEntity() {
-        // setup
+        assertThrows(
+                IllegalStateException.class,
+                () -> {
+                    // setup
 
-        final EntityTierOneType entityTierOneType = new EntityTierOneType();
-        entityTierOneType.setId(10);
-        entityTierOneType.setProperty("property");
-        getEntityTierOneTypes().add(entityTierOneType);
-        takeSnapshot();
+                    final EntityTierOneType entityTierOneType = new EntityTierOneType();
+                    entityTierOneType.setId(10);
+                    entityTierOneType.setProperty("property");
+                    getEntityTierOneTypes().add(entityTierOneType);
+                    takeSnapshot();
 
-        // method
-        assertAfterTest = false;
-        ((EntityTierOneType) getEntityTierOneTypes().get(0)).setProperty("test");
-        assertEntityWithSnapshot(null, value(EntityTierOneType.PROPERTY, "test"));
+                    // method
+                    assertAfterTest = false;
+                    ((EntityTierOneType) getEntityTierOneTypes().get(0)).setProperty("test");
+                    assertEntityWithSnapshot(null, value(EntityTierOneType.PROPERTY, "test"));
+                });
     }
 
     @Test
@@ -386,27 +417,35 @@ public class FabutTest extends AbstractFabutTest {
         assertEntityAsDeleted(entity);
     }
 
-    @Test(expected = AssertionFailedError.class)
+    @Test
     public void assertEntityAsDeletedFail() {
-        // setup
+        assertThrows(
+                AssertionFailedError.class,
+                () -> {
+                    // setup
 
-        final EntityTierOneType entity = new EntityTierOneType(TEST, 1);
-        getEntityTierOneTypes().add(entity);
-        takeSnapshot();
+                    final EntityTierOneType entity = new EntityTierOneType(TEST, 1);
+                    getEntityTierOneTypes().add(entity);
+                    takeSnapshot();
 
-        // method
-        assertEntityAsDeleted(entity);
+                    // method
+                    assertEntityAsDeleted(entity);
+                });
     }
 
-    @Test(expected = AssertionFailedError.class)
+    @Test
     public void assertEntityAsDeletedNotEntity() {
-        // setup
+        assertThrows(
+                AssertionError.class,
+                () -> {
+                    // setup
 
-        final TierOneType object = new TierOneType();
-        takeSnapshot();
+                    final TierOneType object = new TierOneType();
+                    takeSnapshot();
 
-        // method
-        assertEntityAsDeleted(object);
+                    // method
+                    assertEntityAsDeleted(object);
+                });
     }
 
     @Test
@@ -421,27 +460,35 @@ public class FabutTest extends AbstractFabutTest {
         ignoreEntity(entity);
     }
 
-    @Test(expected = AssertionFailedError.class)
+    @Test
     public void testIgnoreEntityFail() {
-        // setup
+        assertThrows(
+                AssertionError.class,
+                () -> {
+                    // setup
 
-        final EntityTierOneType entity = new EntityTierOneType(TEST, null);
-        takeSnapshot();
-        getEntityTierOneTypes().add(entity);
+                    final EntityTierOneType entity = new EntityTierOneType(TEST, null);
+                    takeSnapshot();
+                    getEntityTierOneTypes().add(entity);
 
-        // method
-        ignoreEntity(entity);
+                    // method
+                    ignoreEntity(entity);
+                });
     }
 
-    @Test(expected = AssertionFailedError.class)
+    @Test
     public void testIgnoreEntityNotEntity() {
-        // setup
+        assertThrows(
+                AssertionError.class,
+                () -> {
+                    // setup
 
-        final TierOneType object = new TierOneType();
-        takeSnapshot();
+                    final TierOneType object = new TierOneType();
+                    takeSnapshot();
 
-        // method
-        ignoreEntity(object);
+                    // method
+                    ignoreEntity(object);
+                });
     }
 
     @Test

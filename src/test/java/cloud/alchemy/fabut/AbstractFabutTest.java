@@ -3,11 +3,11 @@ package cloud.alchemy.fabut;
 public class AbstractFabutTest extends Fabut {
 
     protected void assertFabutReportSuccess(FabutReport report) {
-        assertTrue(report.getMessage(), report.isSuccess());
+        assertTrue(report.isSuccess(), report.getMessage());
     }
 
     protected void assertFabutReportFailure(FabutReport report, String message) {
-        assertFalse(report.getMessage(), report.isSuccess());
+        assertFalse(report.isSuccess(), report.getMessage());
         assertEquals(message, report.getMessage());
     }
 }

@@ -4,7 +4,7 @@
 	<groupId>cloud.alchemy</groupId>
 	<artifactId>fabut</artifactId>
 	<name>Alchemy Fabut</name>
-	<version>4.0.7-RELEASE</version>
+	<version>4.1.0-RELEASE</version>
 	<description>Testing tool that helps developers to write better tests.</description>
 	<ciManagement>
 		<system>GIT</system>
@@ -41,9 +41,9 @@
 
 		<!-- Junit -->
 		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-			<version>4.13.2</version>
+			<groupId>org.junit.jupiter</groupId>
+			<artifactId>junit-jupiter</artifactId>
+			<version>5.8.1</version>
 		</dependency>
 
 	</dependencies>

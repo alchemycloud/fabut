@@ -8,7 +8,8 @@ import cloud.alchemy.fabut.model.test.Faculty;
 import cloud.alchemy.fabut.model.test.Student;
 import cloud.alchemy.fabut.model.test.Teacher;
 import cloud.alchemy.fabut.property.*;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.*;
 
@@ -16,8 +17,9 @@ public class FabutObjectAssertTest extends AbstractFabutTest {
     private static final String EMPTY_STRING = "";
     private static final String TEST = "test";
 
-    public FabutObjectAssertTest() {
-        super();
+    @BeforeEach
+    public void setUpTest() {
+        if (!complexTypes.isEmpty()) return;
         complexTypes.add(A.class);
         complexTypes.add(B.class);
         complexTypes.add(C.class);
