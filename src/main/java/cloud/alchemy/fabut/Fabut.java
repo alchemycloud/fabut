@@ -54,12 +54,12 @@ public abstract class Fabut extends Assertions {
 
     @AfterEach
     public void after() {
-        final FabutReport report = new FabutReport("After test assert");
+        final FabutReport report = new FabutReport(() -> "After test assert");
 
-        final FabutReport paremeterReport = report.getSubReport("Parameter snapshot test report");
+        final FabutReport paremeterReport = report.getSubReport(() -> "Parameter snapshot test report");
         assertParameterSnapshot(paremeterReport);
 
-        final FabutReport snapshotReport = report.getSubReport("Repository snapshot assert");
+        final FabutReport snapshotReport = report.getSubReport(() -> "Repository snapshot assert");
         assertDbSnapshot(snapshotReport);
 
         if (!report.isSuccess()) {
@@ -69,7 +69,7 @@ public abstract class Fabut extends Assertions {
 
     // COMMANDS
     public void takeSnapshot(final Object... parameters) {
-        final FabutReport report = new FabutReport("Take snapshot");
+        final FabutReport report = new FabutReport(() -> "Take snapshot");
         takeSnapshott(report, parameters);
 
         if (!report.isSuccess()) {
@@ -79,7 +79,7 @@ public abstract class Fabut extends Assertions {
 
     public void assertObject(final String message, final Object object, final IProperty... properties) {
 
-        final FabutReport report = new FabutReport(message + ": " + object);
+        final FabutReport report = new FabutReport(() -> message + ": " + object);
         if (isEntityType(object.getClass()) && doesExistInSnapshot(object)) {
             report.entityInSnapshot(object);
             throw new AssertionFailedError(report.getMessage());
@@ -98,7 +98,7 @@ public abstract class Fabut extends Assertions {
 
     public <T> T assertEntityWithSnapshot(final T entity, final IProperty... expectedChanges) {
         checkIfEntity(entity);
-        final FabutReport report = new FabutReport("Assert with snapshot: " + entity);
+        final FabutReport report = new FabutReport(() -> "Assert with snapshot: " + entity);
 
         if (expectedChanges.length == 0) {
             report.assertWithSnapshotMustHaveAtLeastOnChange(entity);
@@ -117,7 +117,7 @@ public abstract class Fabut extends Assertions {
     public void assertEntityAsDeleted(final Object entity) {
         checkIfEntity(entity);
 
-        final FabutReport report = new FabutReport("Assert entity as deleted: " + entity);
+        final FabutReport report = new FabutReport(() -> "Assert entity as deleted: " + entity);
         assertEntityAsDeleted(report, entity);
         if (!report.isSuccess()) {
             throw new AssertionFailedError(report.getMessage());
@@ -127,7 +127,7 @@ public abstract class Fabut extends Assertions {
     public void ignoreEntity(final Object entity) {
         checkIfEntity(entity);
 
-        final FabutReport report = new FabutReport("Ignore entity");
+        final FabutReport report = new FabutReport(() -> "Ignore entity");
         ignoreEntity(report, entity);
         if (!report.isSuccess()) {
             throw new AssertionFailedError(report.getMessage());
@@ -963,7 +963,7 @@ public abstract class Fabut extends Assertions {
     void assertParameterSnapshot(final FabutReport report) {
 
         for (final SnapshotPair snapshotPair : parameterSnapshot) {
-            assertObjects(report.getSubReport("Snapshot pair assert"), snapshotPair.getExpected(), snapshotPair.getActual(), new LinkedList<>());
+            assertObjects(report.getSubReport(() -> "Snapshot pair assert"), snapshotPair.getExpected(), snapshotPair.getActual(), new LinkedList<>());
         }
     }
 
@@ -1044,11 +1044,9 @@ public abstract class Fabut extends Assertions {
 
         for (final Object id : beforeIdsCopy) {
             if (!beforeEntities.get(id).isAsserted()) {
-                assertObjects(
-                        report.getSubReport("Asserting object: " + beforeEntities.get(id).getEntity()),
-                        beforeEntities.get(id).getEntity(),
-                        afterEntities.get(id),
-                        new LinkedList<>());
+                Object beforeEntity = beforeEntities.get(id).getEntity();
+                Object afterEntity = afterEntities.get(id);
+                assertObjects(report.getSubReport(() -> "Asserting object: " + beforeEntity), beforeEntity, afterEntity, new LinkedList<>());
             }
         }
     }

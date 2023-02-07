@@ -7,6 +7,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+interface FabutToString {
+    String fabutToString();
+}
+
 class FabutReport {
 
     private static final String ARROW = ">";
@@ -14,26 +18,24 @@ class FabutReport {
     private static final String NEW_LINE = "\n";
     private boolean success = true;
     private final List<FabutReport> subReports = new ArrayList<>();
-    private final List<String> messages = new ArrayList<>();
+    private final List<FabutToString> messages = new ArrayList<>();
     private final List<String> codes = new ArrayList<>();
 
     FabutReport() {}
 
-    FabutReport(final String message) {
+    FabutReport(final FabutToString message) {
         this();
-        if (!message.isEmpty()) {
-            messages.add(message);
-        }
+        messages.add(message);
     }
 
     boolean isSuccess() {
         return success && subReports.stream().allMatch(FabutReport::isSuccess);
     }
 
-    FabutReport getSubReport(final String message) {
-        final FabutReport subReport = new FabutReport(message);
-        subReports.add(subReport);
-        return subReport;
+    FabutReport getSubReport(final FabutToString subReport) {
+        FabutReport newSubReport = new FabutReport(subReport);
+        subReports.add(newSubReport);
+        return newSubReport;
     }
 
     String getMessage() {
@@ -43,7 +45,7 @@ class FabutReport {
     private String getMessage(Integer depth) {
         final String spacer = NEW_LINE + StringUtils.repeat(DASH, depth * 2);
 
-        String message = String.join(spacer, messages);
+        String message = messages.stream().map(FabutToString::fabutToString).filter(a -> !a.isEmpty()).collect(Collectors.joining(spacer));
         if (!codes.isEmpty()) {
             message = message + "\nCODE:" + String.join("", codes);
         }
@@ -69,9 +71,7 @@ class FabutReport {
      * @param type type of comment
      */
     private void addComment(final String comment, final CommentType type) {
-
-        String part = type.getMark() + ARROW + comment;
-        messages.add(part);
+        messages.add(() -> type.getMark() + ARROW + comment);
 
         if (type == CommentType.FAIL) {
             success = false;
