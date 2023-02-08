@@ -355,15 +355,13 @@ public abstract class Fabut extends Assertions {
             return copy;
         }
 
-        copy = createEmptyCopyOf(object);
-        if (copy == null) {
-            throw new CopyException(object.getClass().getSimpleName());
-        }
-        nodes.addPair(copy, object);
-
-        final boolean isEntityType = isEntityType(object.getClass());
-
         try {
+            copy = createEmptyCopyOf(object);
+
+            nodes.addPair(copy, object);
+
+            final boolean isEntityType = isEntityType(object.getClass());
+
             final Class<?> classObject = object.getClass();
             final Collection<Method> allGetMethods = getMethods(classObject).values();
             for (final Method method : allGetMethods) {
@@ -389,18 +387,16 @@ public abstract class Fabut extends Assertions {
                     field.set(copy, copyProperty(field.get(object), nodes));
                 }
             }
-        } catch (Exception e) {
+        } catch (NoSuchMethodException | InvocationTargetException | InstantiationException | IllegalAccessException e) {
             throw new CopyException(object.getClass().getSimpleName());
         }
+
         return copy;
     }
 
-    protected Object createEmptyCopyOf(final Object object) {
-        try {
-            return object.getClass().getConstructor().newInstance();
-        } catch (final Exception e) {
-            return null;
-        }
+    protected Object createEmptyCopyOf(final Object object)
+            throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
+        return object.getClass().getConstructor().newInstance();
     }
 
     protected Object copyProperty(final Object propertyForCopying, final NodesList nodes) throws CopyException {
@@ -575,7 +571,7 @@ public abstract class Fabut extends Assertions {
                     // there is no matching property for field
                     report.noPropertyForField(fieldName, method.invoke(actual));
                 }
-            } catch (final Exception e) {
+            } catch (final IllegalAccessException | InvocationTargetException e) {
                 report.uncallableMethod(method, actual);
             }
         }
