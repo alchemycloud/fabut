@@ -10,10 +10,15 @@ public class ReflectionUtil {
 
     private static final String GET_METHOD_PREFIX = "get";
     private static final String IS_METHOD_PREFIX = "is";
+
+    static final String SET_METHOD_PREFIX = "set";
     static final String GET_ID = "getId";
+
+    static final String SET_ID = "setId";
     static final String ID = "id";
 
-    private static final Map<Class<?>, Map<String, Method>> classMethods = new HashMap<>();
+    private static final Map<Class<?>, Map<String, Method>> classGetMethods = new HashMap<>();
+    private static final Map<Class<?>, Map<String, Method>> classSetMethods = new HashMap<>();
     private static final Map<Class<?>, Map<String, Field>> classFields = new HashMap<>();
 
     ReflectionUtil() {
@@ -27,11 +32,11 @@ public class ReflectionUtil {
         return classs;
     }
 
-    static Method findMethod(final Object object, final String methodName) {
-        return findMethod(object.getClass(), methodName);
+    static Method findGetMethod(final Object object, final String methodName) {
+        return findGetMethod(object.getClass(), methodName);
     }
 
-    static Method findMethod(final Class<?> methodClass, final String methodName) {
+    static Method findGetMethod(final Class<?> methodClass, final String methodName) {
 
         Map<String, Method> methodMap = getMethods(methodClass);
         Method method = methodMap.get(methodName);
@@ -39,28 +44,60 @@ public class ReflectionUtil {
 
         if (methodClass.getSuperclass() == null) return null;
 
-        return findMethod(methodClass.getSuperclass(), methodName);
+        return findGetMethod(methodClass.getSuperclass(), methodName);
     }
 
     static Map<String, Method> getMethods(Class<?> methodClass) {
-        Map<String, Method> methodMap = classMethods.get(methodClass);
+        Map<String, Method> methodMap = classGetMethods.get(methodClass);
         if (methodMap == null) {
             methodMap = new HashMap<>();
             for (Method method : methodClass.getMethods()) {
                 if (isGetMethod(methodClass, method)) methodMap.put(method.getName(), method);
             }
-            classMethods.put(methodClass, methodMap);
+            classGetMethods.put(methodClass, methodMap);
         }
         return methodMap;
     }
 
-    static String getFieldName(final Method method) {
+    static Method findSetMethod(final Object object, final String methodName) {
+        return findSetMethod(object.getClass(), methodName);
+    }
+
+    static Method findSetMethod(final Class<?> methodClass, final String methodName) {
+
+        Map<String, Method> methodMap = setMethods(methodClass);
+        Method method = methodMap.get(methodName);
+        if (method != null) return method;
+
+        if (methodClass.getSuperclass() == null) return null;
+
+        return findSetMethod(methodClass.getSuperclass(), methodName);
+    }
+
+    static Map<String, Method> setMethods(Class<?> methodClass) {
+        Map<String, Method> methodMap = classSetMethods.get(methodClass);
+        if (methodMap == null) {
+            methodMap = new HashMap<>();
+            for (Method method : methodClass.getMethods()) {
+                if (isSetMethod(methodClass, method)) methodMap.put(method.getName(), method);
+            }
+            classSetMethods.put(methodClass, methodMap);
+        }
+        return methodMap;
+    }
+
+    static String getFieldNameOfGet(final Method method) {
         String fieldName;
         if (method.getName().startsWith(IS_METHOD_PREFIX)) {
             fieldName = StringUtils.removeStart(method.getName(), IS_METHOD_PREFIX);
         } else {
             fieldName = StringUtils.removeStart(method.getName(), GET_METHOD_PREFIX);
         }
+        return StringUtils.uncapitalize(fieldName);
+    }
+
+    static String getFieldNameOfSet(final Method method) {
+        String fieldName = StringUtils.removeStart(method.getName(), SET_METHOD_PREFIX);
         return StringUtils.uncapitalize(fieldName);
     }
 
@@ -87,19 +124,27 @@ public class ReflectionUtil {
 
     static boolean isGetMethod(final Class<?> classs, final Method method) {
         try {
-            return findField(classs, getFieldName(method)) != null;
+            return findField(classs, getFieldNameOfGet(method)) != null;
+        } catch (final Exception e) {
+            return false;
+        }
+    }
+
+    static boolean isSetMethod(final Class<?> classs, final Method method) {
+        try {
+            return findField(classs, getFieldNameOfSet(method)) != null;
         } catch (final Exception e) {
             return false;
         }
     }
 
     public static boolean hasIdMethod(final Object entity) {
-        return findMethod(entity, GET_ID) != null;
+        return findGetMethod(entity, GET_ID) != null;
     }
 
     public static Object getIdValue(final Object entity) {
         try {
-            final Method method = findMethod(entity, GET_ID);
+            final Method method = findGetMethod(entity, GET_ID);
             return method.invoke(entity);
         } catch (final Exception e) {
             return null;

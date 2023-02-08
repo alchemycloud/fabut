@@ -357,38 +357,55 @@ public abstract class Fabut extends Assertions {
 
         try {
             copy = createEmptyCopyOf(object);
-
-            nodes.addPair(copy, object);
-
-            final boolean isEntityType = isEntityType(object.getClass());
-
-            final Class<?> classObject = object.getClass();
-            final Collection<Method> allGetMethods = getMethods(classObject).values();
-            for (final Method method : allGetMethods) {
-                if (method.getName().equals(GET_ID)) {
-                    Field field = findField(object.getClass(), "id");
-                    if (field == null) {
-                        throw new CopyException(object.getClass().getSimpleName());
-                    }
-                    field.setAccessible(true);
-                    field.set(copy, field.get(object));
-                }
-            }
-            for (final Method method : allGetMethods) {
-                if (!method.getName().equals(GET_ID)
-                        && method.getParameterAnnotations().length == 0
-                        && !(isEntityType && isCollectionClass(method.getReturnType()))) {
-                    final String declaredField = getFieldName(method);
-                    Field field = findField(object, declaredField);
-                    if (field == null) {
-                        throw new CopyException(object.getClass().getSimpleName());
-                    }
-                    field.setAccessible(true);
-                    field.set(copy, copyProperty(field.get(object), nodes));
-                }
-            }
         } catch (NoSuchMethodException | InvocationTargetException | InstantiationException | IllegalAccessException e) {
             throw new CopyException(object.getClass().getSimpleName());
+        }
+
+        nodes.addPair(copy, object);
+
+        final boolean isEntityType = isEntityType(object.getClass());
+
+        final Class<?> classObject = object.getClass();
+        final Collection<Method> allGetMethods = getMethods(classObject).values();
+
+        for (final Method getMethod : allGetMethods) {
+            if (getMethod.getParameterAnnotations().length == 0 && !(isEntityType && isCollectionClass(getMethod.getReturnType()))) {
+
+                final String getMethodName = getMethod.getName();
+                final String fieldName = getFieldNameOfGet(getMethod);
+
+                final Field objectField = findField(object, fieldName);
+                objectField.setAccessible(true);
+
+                final String setMethodName = SET_METHOD_PREFIX + getMethodName.substring(3);
+                final Method setMethod = findSetMethod(copy, setMethodName);
+
+                final Field copyField = findField(copy, fieldName);
+                copyField.setAccessible(true);
+
+                if (setMethod == null) {
+                    throw new CopyException(object.getClass().getSimpleName());
+                }
+
+                Object value;
+                try {
+                    value = getMethod.invoke(object);
+                } catch (InvocationTargetException | IllegalAccessException e) {
+                    throw new CopyException(object.getClass().getSimpleName());
+                }
+
+                try {
+                    if (getMethodName.equals(GET_ID)) {
+                        setMethod.invoke(copy, value);
+                    } else if (value != null && isOptionalType(value.getClass()) && !isOptionalType(objectField.getType())) {
+                        copyField.set(copy, ((Optional<?>) value).orElse(null));
+                    } else {
+                        copyField.set(copy, value);
+                    }
+                } catch (InvocationTargetException | IllegalAccessException e) {
+                    throw new CopyException(object.getClass().getSimpleName());
+                }
+            }
         }
 
         return copy;
@@ -558,7 +575,7 @@ public abstract class Fabut extends Assertions {
 
         for (final Method method : methods) {
 
-            final String fieldName = ReflectionUtil.getFieldName(method);
+            final String fieldName = ReflectionUtil.getFieldNameOfGet(method);
             final boolean ignoredField = isIgnoredField(actual.getClass(), fieldName);
 
             final ISingleProperty property = getPropertyFromList(fieldName, expectedProperties);
@@ -700,7 +717,7 @@ public abstract class Fabut extends Assertions {
         }
 
         for (final Method expectedMethod : getMethods) {
-            final String fieldName = ReflectionUtil.getFieldName(expectedMethod);
+            final String fieldName = ReflectionUtil.getFieldNameOfGet(expectedMethod);
             if (!isIgnoredField(expected.getClass(), fieldName)) {
                 try {
 
@@ -720,7 +737,7 @@ public abstract class Fabut extends Assertions {
                     }
 
                     final ISingleProperty property = obtainProperty(invoke, fieldName, properties);
-                    final Method actualMethod = findMethod(actual, expectedMethod.getName());
+                    final Method actualMethod = findGetMethod(actual, expectedMethod.getName());
                     assertProperty(report, parents, fieldName, property, actualMethod.invoke(actual), properties, nodesList);
 
                     if (propertiesCopy.contains(property)) {
