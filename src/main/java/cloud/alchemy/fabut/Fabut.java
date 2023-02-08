@@ -11,6 +11,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.opentest4j.AssertionFailedError;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -347,7 +348,7 @@ public abstract class Fabut extends Assertions {
     }
 
     // COPY
-    private Object createCopyObject(final Object object, final NodesList nodes) throws CopyException {
+    protected Object createCopyObject(final Object object, final NodesList nodes) throws CopyException {
 
         Object copy = nodes.getExpected(object);
         if (copy != null) {
@@ -394,7 +395,7 @@ public abstract class Fabut extends Assertions {
         return copy;
     }
 
-    private Object createEmptyCopyOf(final Object object) {
+    protected Object createEmptyCopyOf(final Object object) {
         try {
             return object.getClass().getConstructor().newInstance();
         } catch (final Exception e) {
@@ -402,7 +403,7 @@ public abstract class Fabut extends Assertions {
         }
     }
 
-    private Object copyProperty(final Object propertyForCopying, final NodesList nodes) throws CopyException {
+    protected Object copyProperty(final Object propertyForCopying, final NodesList nodes) throws CopyException {
         if (propertyForCopying == null) {
             // its null we shouldn't do anything
             return null;
@@ -742,7 +743,7 @@ public abstract class Fabut extends Assertions {
                         }
                     }
 
-                } catch (final Exception e) {
+                } catch (final IllegalAccessException | InvocationTargetException e) {
                     report.uncallableMethod(expectedMethod, actual);
                 }
             }
