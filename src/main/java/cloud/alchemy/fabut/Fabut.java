@@ -81,6 +81,11 @@ public abstract class Fabut extends Assertions {
     public void assertObject(final String message, final Object object, final IProperty... properties) {
 
         final FabutReport report = new FabutReport(() -> message + ": " + object);
+
+        if (!isComplexType(object.getClass()) && !isEntityType(object.getClass())) {
+            throw new IllegalStateException("Unsupported object type" + object.getClass() + " " + object);
+        }
+
         if (isEntityType(object.getClass()) && doesExistInSnapshot(object)) {
             report.entityInSnapshot(object);
             throw new AssertionFailedError(report.getMessage());

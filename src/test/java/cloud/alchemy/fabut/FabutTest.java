@@ -51,6 +51,8 @@ public class FabutTest extends AbstractFabutTest {
         complexTypes.add(DoubleLink.class);
         complexTypes.add(Start.class);
         complexTypes.add(TierTwoTypeWithMap.class);
+        complexTypes.add(Student.class);
+        complexTypes.add(EntityWithList.class);
 
         ignoredTypes.add(IgnoredType.class);
     }
