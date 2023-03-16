@@ -591,7 +591,7 @@ public abstract class Fabut extends Assertions {
                     assertInnerProperty(report, method.invoke(actual), expectedProperties, fieldName);
                 } else if (!ignoredField) {
                     // there is no matching property for field
-                    report.noPropertyForField(fieldName, method.invoke(actual));
+                    report.noPropertyForField(actual, fieldName, method.invoke(actual));
                 }
             } catch (final IllegalAccessException | InvocationTargetException e) {
                 report.uncallableMethod(method, actual);

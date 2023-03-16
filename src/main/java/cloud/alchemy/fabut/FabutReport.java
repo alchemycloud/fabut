@@ -83,8 +83,8 @@ class FabutReport {
         addComment(comment, CommentType.FAIL);
     }
 
-    void noPropertyForField(final String fieldName, final Object field) {
-        final String comment = String.format("There was no property for field:  %s of class:  %s, with value: %s", fieldName, field.getClass(), field);
+    void noPropertyForField(final Object fieldOwner, final String fieldName, final Object field) {
+        final String comment = String.format("There was no property for field:  %s of class:  %s, with value: %s", fieldName, fieldOwner.getClass(), field);
         addComment(comment, CommentType.FAIL);
     }
 
