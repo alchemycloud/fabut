@@ -226,19 +226,19 @@ public abstract class Fabut extends Assertions {
     }
 
     private boolean isEntityType(final Class<?> classs) {
-        return isOneOfType(classs, entityTypes);
+        return isOneOfType(getRealClass(classs), entityTypes);
     }
 
     private boolean isComplexType(final Class<?> classs) {
-        return isOneOfType(classs, complexTypes);
+        return isOneOfType(getRealClass(classs), complexTypes);
     }
 
     private boolean isIgnoredType(final Class<?> classs) {
-        return isOneOfType(classs, ignoredTypes);
+        return isOneOfType(getRealClass(classs), ignoredTypes);
     }
 
-    private boolean isIgnoredField(Class<?> clazz, String fieldName) {
-        return ignoredFields.getOrDefault(clazz, Collections.emptyList()).contains(fieldName);
+    private boolean isIgnoredField(Class<?> classs, String fieldName) {
+        return ignoredFields.getOrDefault(getRealClass(classs), Collections.emptyList()).contains(fieldName);
     }
 
     // PROPERTIES
