@@ -75,7 +75,7 @@ public class FabutObjectAssertTest extends AbstractFabutTest {
                 report,
                 "■>property: expected: testtest\n"
                         + "■>property: but was: test\n"
-                        + "■>There was no property for field:  notBooleanProperty of class:  class java.lang.String, with value: test");
+                        + "■>There was no property for field:  notBooleanProperty of class:  class cloud.alchemy.fabut.model.NoGetMethodsType, with value: test");
     }
 
     @Test
@@ -89,7 +89,8 @@ public class FabutObjectAssertTest extends AbstractFabutTest {
         assertObjectWithProperties(report, tierOneType, properties);
 
         // assert
-        assertFabutReportFailure(report, "■>There was no property for field:  property of class:  class java.lang.String, with value: test");
+        assertFabutReportFailure(
+                report, "■>There was no property for field:  property of class:  class cloud.alchemy.fabut.model.TierOneType, with value: test");
     }
 
     @Test
@@ -470,10 +471,10 @@ public class FabutObjectAssertTest extends AbstractFabutTest {
                         + "■>property: but was: test\n"
                         + "CODE:\n"
                         + "assertObject(object,\n"
-                        + "value(TierSixType.PROPERTY, cloud.alchemy.fabut.model.TierFiveType@5f150435),\n"
-                        + "value(TierFiveType.PROPERTY.chain(TierFiveType.PROPERTY), cloud.alchemy.fabut.model.TierFourType@73035e27),\n"
-                        + "value(TierFiveType.PROPERTY.chain(TierFourType.PROPERTY.chain(TierFourType.PROPERTY)), cloud.alchemy.fabut.model.TierThreeType@64c64813),\n"
-                        + "value(TierFiveType.PROPERTY.chain(TierFourType.PROPERTY.chain(TierThreeType.PROPERTY.chain(TierThreeType.PROPERTY))), cloud.alchemy.fabut.model.TierTwoType@3ecf72fd),\n"
+                        + "value(TierSixType.PROPERTY, cloud.alchemy.fabut.model.TierFiveType@4f6ee6e4),\n"
+                        + "value(TierFiveType.PROPERTY.chain(TierFiveType.PROPERTY), cloud.alchemy.fabut.model.TierFourType@4466af20),\n"
+                        + "value(TierFiveType.PROPERTY.chain(TierFourType.PROPERTY.chain(TierFourType.PROPERTY)), cloud.alchemy.fabut.model.TierThreeType@a514af7),\n"
+                        + "value(TierFiveType.PROPERTY.chain(TierFourType.PROPERTY.chain(TierThreeType.PROPERTY.chain(TierThreeType.PROPERTY))), cloud.alchemy.fabut.model.TierTwoType@6b927fb),\n"
                         + "value(TierFiveType.PROPERTY.chain(TierFourType.PROPERTY.chain(TierThreeType.PROPERTY.chain(TierTwoType.PROPERTY.chain(TierTwoType.PROPERTY)))), testtest),\n"
                         + "value(TierFiveType.PROPERTY.chain(TierFourType.PROPERTY.chain(TierThreeType.PROPERTY.chain(TierTwoType.PROPERTY.chain(TierOneType.PROPERTY.chain(TierOneType.PROPERTY))))), \"testtest\"));");
     }
@@ -785,8 +786,7 @@ public class FabutObjectAssertTest extends AbstractFabutTest {
 
         // assert
         assertFabutReportFailure(
-                report,
-                "■>There is no method: getProperty in actual object class: class cloud.alchemy.fabut.model.TierOneType (expected object class was: TierOneType).");
+                report, "■>There was no property for field:  property of class:  class cloud.alchemy.fabut.model.TierOneType, with value: null");
     }
 
     @Test
@@ -801,7 +801,9 @@ public class FabutObjectAssertTest extends AbstractFabutTest {
 
         // assertTrue
         assertFabutReportFailure(
-                report, "■>There was no property for field:  property of class:  class java.lang.String, with value: test\n" + "■>Excess property: test");
+                report,
+                "■>There was no property for field:  property of class:  class cloud.alchemy.fabut.model.TierOneType, with value: test\n"
+                        + "■>Excess property: test");
     }
 
     @Test

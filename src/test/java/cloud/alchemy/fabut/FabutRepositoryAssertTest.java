@@ -174,6 +174,13 @@ public class FabutRepositoryAssertTest extends AbstractFabutTest {
         assertFabutReportFailure(
                 report,
                 "\n"
+                        + "Asserting object: 1 test\n"
+                        + "--■>property: expected: test\n"
+                        + "--■>property: but was: testtest\n"
+                        + "CODE:\n"
+                        + "assertObject(object,\n"
+                        + "value(EntityTierOneType.PROPERTY, \"test\"),\n"
+                        + "value(EntityTierOneType.ID, 1));\n"
                         + "Asserting object: property\n"
                         + "--■>property: expected: test\n"
                         + "--■>property: but was: testtest\n"
@@ -185,14 +192,7 @@ public class FabutRepositoryAssertTest extends AbstractFabutTest {
                         + "value(EntityTierOneType.SUB_PROPERTY.chain(EntityTierOneType.PROPERTY), \"test\"),\n"
                         + "value(EntityTierOneType.SUB_PROPERTY.chain(EntityTierOneType.ID), 7),\n"
                         + "value(EntityTierTwoType.PROPERTY, \"property\"),\n"
-                        + "value(EntityTierTwoType.ID, 4));\n"
-                        + "Asserting object: 1 test\n"
-                        + "--■>property: expected: test\n"
-                        + "--■>property: but was: testtest\n"
-                        + "CODE:\n"
-                        + "assertObject(object,\n"
-                        + "value(EntityTierOneType.PROPERTY, \"test\"),\n"
-                        + "value(EntityTierOneType.ID, 1));");
+                        + "value(EntityTierTwoType.ID, 4));");
     }
 
     @Test

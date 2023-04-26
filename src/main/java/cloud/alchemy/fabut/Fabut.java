@@ -756,7 +756,7 @@ public abstract class Fabut extends Assertions {
                                 new ArrayList<>(),
                                 new NodesList());
 
-                        if (optimisationReport.isSuccess()) {
+                        if (optimisationReport.isSuccess() && !(property instanceof IgnoredProperty)) {
                             report.notNecessaryAssert(fieldName, actual);
                         }
                     }
