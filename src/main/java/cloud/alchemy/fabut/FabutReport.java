@@ -19,7 +19,7 @@ class FabutReport {
     private boolean success = true;
     private final List<FabutReport> subReports = new ArrayList<>();
     private final List<FabutToString> messages = new ArrayList<>();
-    private final List<String> codes = new ArrayList<>();
+    private final List<ReportCode> codes = new ArrayList<>();
 
     FabutReport() {}
 
@@ -47,7 +47,7 @@ class FabutReport {
 
         String message = messages.stream().map(FabutToString::fabutToString).filter(a -> !a.isEmpty()).collect(Collectors.joining(spacer));
         if (!codes.isEmpty()) {
-            message = message + "\nCODE:" + String.join("", codes);
+            message = message + "\nCODE:" + String.join("", codes.stream().map(ReportCode::code).toList());
         }
 
         final String subMessages =
@@ -208,7 +208,11 @@ class FabutReport {
         addComment(comment, CommentType.FAIL);
     }
 
-    void addCode(String code) {
+    void addCode(ReportCode code) {
         codes.add(code);
     }
+}
+
+interface ReportCode {
+    String code();
 }

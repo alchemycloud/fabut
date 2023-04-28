@@ -14,7 +14,6 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static cloud.alchemy.fabut.ReflectionUtil.*;
 import static java.util.Optional.of;
@@ -306,7 +305,7 @@ public abstract class Fabut extends Assertions {
         }
 
         if (expected == null ^ actual == null) {
-            final List<String> propertyNames = parents.stream().map(ObjectMethod::getProperty).collect(Collectors.toList());
+            final List<String> propertyNames = parents.stream().map(ObjectMethod::getProperty).toList();
             final String propertyName = propertyNames.get(propertyNames.size() - 1);
             report.assertFail(propertyName, expected, actual);
             return ReferenceCheckType.EXCLUSIVE_NULL;
@@ -509,7 +508,7 @@ public abstract class Fabut extends Assertions {
             final NodesList nodesList) {
 
         if (!parents.isEmpty()) {
-            final List<String> propertyNames = parents.stream().map(ObjectMethod::getProperty).collect(Collectors.toList());
+            final List<String> propertyNames = parents.stream().map(ObjectMethod::getProperty).toList();
             final String propertyName = propertyNames.get(propertyNames.size() - 1);
             assertEntityById(report, propertyName, expected, actual);
         } else {
@@ -649,14 +648,10 @@ public abstract class Fabut extends Assertions {
         final String propertyName = getLastPropertyName(parents);
         // check if any of the expected/actual object is recurring in nodes list
         switch (nodesList.nodeCheck(expected, actual)) {
-            case SINGLE_NODE:
-                report.checkByReference(propertyName, actual);
-                return;
-            case CONTAINS_PAIR:
-                return;
-            case NEW_PAIR:
+            case SINGLE_NODE -> report.checkByReference(propertyName, actual);
+            case CONTAINS_PAIR -> {}
+            case NEW_PAIR -> {
                 nodesList.addPair(expected, actual);
-
                 if (isIgnoredType(expected.getClass())) {
                     report.ignoredType(expected.getClass());
 
@@ -678,8 +673,7 @@ public abstract class Fabut extends Assertions {
                 } else {
                     assertPrimitives(report, parents, expected, actual);
                 }
-
-                break;
+            }
         }
     }
 
@@ -704,7 +698,7 @@ public abstract class Fabut extends Assertions {
         final List<Method> getMethods = getGetMethods(expected);
 
         if (parents.isEmpty()) {
-            report.addCode("\nassertObject(object");
+            report.addCode(() -> "\nassertObject(object");
         }
 
         final String className = getRealClass(actual.getClass()).getSimpleName();
@@ -727,19 +721,24 @@ public abstract class Fabut extends Assertions {
                 try {
 
                     final Object invoke = expectedMethod.invoke(expected);
-                    final String propertyPath = chainPrefix + className + "." + upperUnderscored(fieldName) + chainPostfix;
 
-                    if (invoke == null) {
-                        report.addCode(",\nisNull(" + propertyPath + ")");
-                    } else if (invoke.getClass().isAssignableFrom(String.class)) {
-                        report.addCode(",\nvalue(" + propertyPath + ", " + "\"" + invoke + "\"" + ")");
-                    } else if (invoke.getClass().isEnum()) {
-                        report.addCode(",\nvalue(" + propertyPath + ", " + invoke.getClass().getSimpleName() + "." + invoke + ")");
-                    } else if (invoke.getClass().isAssignableFrom(Optional.class) && !((Optional<?>) invoke).isPresent()) {
-                        report.addCode(",\nisEmpty(" + propertyPath + ")");
-                    } else {
-                        report.addCode(",\nvalue(" + propertyPath + ", " + invoke + ")");
-                    }
+                    report.addCode(
+                            () -> {
+                                final String propertyPath = chainPrefix + className + "." + upperUnderscored(fieldName) + chainPostfix;
+                                final String code;
+                                if (invoke == null) {
+                                    code = ",\nisNull(" + propertyPath + ")";
+                                } else if (invoke.getClass().isAssignableFrom(String.class)) {
+                                    code = ",\nvalue(" + propertyPath + ", " + "\"" + invoke + "\"" + ")";
+                                } else if (invoke.getClass().isEnum()) {
+                                    code = ",\nvalue(" + propertyPath + ", " + invoke.getClass().getSimpleName() + "." + invoke + ")";
+                                } else if (invoke.getClass().isAssignableFrom(Optional.class) && ((Optional<?>) invoke).isEmpty()) {
+                                    code = ",\nisEmpty(" + propertyPath + ")";
+                                } else {
+                                    code = ",\nvalue(" + propertyPath + ", " + invoke + ")";
+                                }
+                                return code;
+                            });
 
                     final ISingleProperty property = obtainProperty(invoke, fieldName, properties);
                     final Method actualMethod = findGetMethod(actual, expectedMethod.getName());
@@ -768,7 +767,7 @@ public abstract class Fabut extends Assertions {
         }
 
         if (parents.isEmpty()) {
-            report.addCode(");");
+            report.addCode(() -> ");");
         }
     }
 
@@ -782,7 +781,7 @@ public abstract class Fabut extends Assertions {
     }
 
     private String getLastPropertyName(List<ObjectMethod> parents) {
-        final List<String> propertyNames = parents.stream().map(ObjectMethod::getProperty).collect(Collectors.toList());
+        final List<String> propertyNames = parents.stream().map(ObjectMethod::getProperty).toList();
         final String propertyName;
         if (propertyNames.isEmpty()) {
             propertyName = "";
@@ -891,7 +890,7 @@ public abstract class Fabut extends Assertions {
 
         if (expected.isPresent() ^ actual.isPresent()) {
 
-            final List<String> propertyNames = parents.stream().map(ObjectMethod::getProperty).collect(Collectors.toList());
+            final List<String> propertyNames = parents.stream().map(ObjectMethod::getProperty).toList();
             final String propertyName = propertyNames.get(propertyNames.size() - 1);
 
             report.assertFail(propertyName, expected, actual);
