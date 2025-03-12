@@ -174,7 +174,6 @@ public class FabutRepositoryAssertTest extends AbstractFabutTest {
         assertFabutReportFailure(
                 report,
                 """
-
 Asserting object: EntityTierOneType{id=1, property='test'}
 --■>property: expected: test
 --■>property: but was: testtest
@@ -470,7 +469,8 @@ value(EntityTierTwoType.ID, 4));""");
         checkNewToAfterDbState(beforeIds, afterIds, afterEntities, report);
 
         // assert
-        assertFabutReportFailure(report, "■>Entity EntityTierOneType{id=null, property='null'} is created in system after last snapshot but hasn't been asserted in test.");
+        assertFabutReportFailure(
+                report, "■>Entity EntityTierOneType{id=null, property='null'} is created in system after last snapshot but hasn't been asserted in test.");
     }
 
     @Test
@@ -567,8 +567,7 @@ value(EntityTierTwoType.ID, 4));""");
         // assert
         assertFabutReportFailure(
                 report,
-                "\n"
-                        + "Asserting object: EntityTierOneType{id=3, property='test'}\n"
+                "Asserting object: EntityTierOneType{id=3, property='test'}\n"
                         + "--■>property: expected: test\n"
                         + "--■>property: but was: testtest\n"
                         + "CODE:\n"
