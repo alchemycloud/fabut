@@ -35,4 +35,16 @@ public class TierTwoTypeWithIgnoreProperty extends Type {
     public IgnoredType getIgnoredType() {
         return ignoredType;
     }
+    
+    /**
+     * Returns a string representation of this TierTwoTypeWithIgnoreProperty instance.
+     *
+     * @return a string representation of this object
+     */
+    @Override
+    public String toString() {
+        return "TierTwoTypeWithIgnoreProperty{" +
+               "ignoredType=" + (ignoredType != null ? ignoredType : "null") +
+               '}';
+    }
 }

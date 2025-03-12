@@ -35,4 +35,16 @@ public class NoDefaultConstructorType {
     public void setProperty(final String property) {
         this.property = property;
     }
+    
+    /**
+     * Returns a string representation of this NoDefaultConstructorType instance.
+     *
+     * @return a string representation of this object
+     */
+    @Override
+    public String toString() {
+        return "NoDefaultConstructorType{" +
+               "property='" + property + "'" +
+               '}';
+    }
 }

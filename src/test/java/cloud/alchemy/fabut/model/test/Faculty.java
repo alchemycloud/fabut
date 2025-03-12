@@ -20,4 +20,17 @@ public class Faculty {
     public void setTeacher(final Teacher teacher) {
         this.teacher = teacher;
     }
+    
+    /**
+     * Returns a string representation of this Faculty instance.
+     *
+     * @return a string representation of this object
+     */
+    @Override
+    public String toString() {
+        return "Faculty{" +
+               "name='" + (name != null ? name : "null") + "'" +
+               ", teacher=" + (teacher != null ? teacher : "null") +
+               '}';
+    }
 }

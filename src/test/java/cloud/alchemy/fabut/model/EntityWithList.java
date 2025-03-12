@@ -32,8 +32,16 @@ public class EntityWithList {
         this.list = list;
     }
 
+    /**
+     * Returns a string representation of this EntityWithList instance.
+     *
+     * @return a string representation of this object
+     */
     @Override
     public String toString() {
-        return id + " " + list;
+        return "EntityWithList{" +
+               "id=" + id +
+               ", list=" + (list != null ? list : "null") +
+               '}';
     }
 }

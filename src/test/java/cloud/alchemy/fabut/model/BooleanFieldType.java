@@ -33,4 +33,17 @@ public class BooleanFieldType extends Type {
     public boolean isProperty() {
         return property;
     }
+    
+    /**
+     * Returns a string representation of this BooleanFieldType instance.
+     *
+     * @return a string representation of this object
+     */
+    @Override
+    public String toString() {
+        return "BooleanFieldType{" +
+               "property=" + property +
+               ", " + super.toString() +
+               '}';
+    }
 }

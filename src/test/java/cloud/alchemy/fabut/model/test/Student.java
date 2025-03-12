@@ -40,4 +40,19 @@ public class Student {
     public void setFaculty(final Faculty faculty) {
         this.faculty = faculty;
     }
+    
+    /**
+     * Returns a string representation of this Student instance.
+     *
+     * @return a string representation of this object
+     */
+    @Override
+    public String toString() {
+        return "Student{" +
+               "address=" + (address != null ? address : "null") +
+               ", name='" + (name != null ? name : "null") + "'" +
+               ", lastName='" + (lastName != null ? lastName : "null") + "'" +
+               ", faculty=" + (faculty != null ? faculty : "null") +
+               '}';
+    }
 }

@@ -16,4 +16,17 @@ public class NoDefaultConstructorEntity extends NoDefaultConstructorType {
     public void setId(final Integer id) {
         this.id = id;
     }
+    
+    /**
+     * Returns a string representation of this NoDefaultConstructorEntity instance.
+     *
+     * @return a string representation of this object
+     */
+    @Override
+    public String toString() {
+        return "NoDefaultConstructorEntity{" +
+               "id=" + id +
+               ", " + super.toString() +
+               '}';
+    }
 }

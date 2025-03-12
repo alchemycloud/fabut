@@ -71,4 +71,18 @@ public class NoGetMethodsType extends Type {
     public String isField() {
         return "not";
     }
+    
+    /**
+     * Returns a string representation of this NoGetMethodsType instance.
+     *
+     * @return a string representation of this object
+     */
+    @Override
+    public String toString() {
+        return "NoGetMethodsType{" +
+               "property='" + property + "'" +
+               ", notBooleanProperty='" + notBooleanProperty + "'" +
+               ", " + super.toString() +
+               '}';
+    }
 }

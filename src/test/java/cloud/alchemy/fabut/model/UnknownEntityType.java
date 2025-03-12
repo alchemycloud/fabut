@@ -42,4 +42,17 @@ public class UnknownEntityType extends Type {
     public void setId(final int id) {
         this.id = id;
     }
+    
+    /**
+     * Returns a string representation of this UnknownEntityType instance.
+     *
+     * @return a string representation of this object
+     */
+    @Override
+    public String toString() {
+        return "UnknownEntityType{" +
+               "id=" + id +
+               ", " + super.toString() +
+               '}';
+    }
 }

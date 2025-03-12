@@ -25,4 +25,17 @@ public class TierTwoTypeWithMap {
     public void setMap(final Map<Integer, TierOneType> map) {
         this.map = map;
     }
+    
+    /**
+     * Returns a string representation of this TierTwoTypeWithMap instance.
+     *
+     * @return a string representation of this object
+     */
+    @Override
+    public String toString() {
+        return "TierTwoTypeWithMap{" +
+               "property='" + property + "'" +
+               ", map=" + (map != null ? map : "null") +
+               '}';
+    }
 }
