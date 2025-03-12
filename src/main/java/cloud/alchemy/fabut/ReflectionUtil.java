@@ -88,10 +88,14 @@ public class ReflectionUtil {
      */
     static Map<String, Method> getMethods(Class<?> methodClass) {
         return classGetMethods.computeIfAbsent(methodClass, clazz -> {
-            var methodMap = new HashMap<String, Method>();
-            for (Method method : clazz.getMethods()) {
-                if (isGetMethod(clazz, method)) methodMap.put(method.getName(), method);
-            }
+            var methodMap = new ConcurrentHashMap<String, Method>();
+            
+            // For classes with many methods, use parallel processing
+            Arrays.stream(clazz.getMethods())
+                  .parallel()
+                  .filter(method -> isGetMethod(clazz, method))
+                  .forEach(method -> methodMap.put(method.getName(), method));
+                  
             return methodMap;
         });
     }
@@ -132,10 +136,14 @@ public class ReflectionUtil {
      */
     static Map<String, Method> setMethods(Class<?> methodClass) {
         return classSetMethods.computeIfAbsent(methodClass, clazz -> {
-            var methodMap = new HashMap<String, Method>();
-            for (Method method : clazz.getMethods()) {
-                if (isSetMethod(clazz, method)) methodMap.put(method.getName(), method);
-            }
+            var methodMap = new ConcurrentHashMap<String, Method>();
+            
+            // Use parallel processing for classes with many methods
+            Arrays.stream(clazz.getMethods())
+                  .parallel()
+                  .filter(method -> isSetMethod(clazz, method))
+                  .forEach(method -> methodMap.put(method.getName(), method));
+                  
             return methodMap;
         });
     }
@@ -187,10 +195,13 @@ public class ReflectionUtil {
      */
     static Field findField(final Class<?> fieldClass, final String fieldName) {
         Map<String, Field> fieldMap = classFields.computeIfAbsent(fieldClass, clazz -> {
-            var map = new HashMap<String, Field>();
-            for (Field field : clazz.getDeclaredFields()) {
-                map.put(field.getName(), field);
-            }
+            var map = new ConcurrentHashMap<String, Field>();
+            
+            // Use parallel processing for classes with many fields
+            Arrays.stream(clazz.getDeclaredFields())
+                  .parallel()
+                  .forEach(field -> map.put(field.getName(), field));
+                  
             return map;
         });
         

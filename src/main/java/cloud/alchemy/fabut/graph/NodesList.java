@@ -2,11 +2,12 @@ package cloud.alchemy.fabut.graph;
 
 import cloud.alchemy.fabut.enums.NodeCheckType;
 
-import java.util.LinkedList;
-import java.util.List;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.Queue;
 
 /**
- * Implementing class for {@link IsomorphicGraph} using {@link LinkedList} as container.
+ * Implementing class for {@link IsomorphicGraph} using concurrent collections for thread-safety
+ * and parallel processing for improved performance.
  *
  * @author Dusko Vesin
  * @author Nikola Olah
@@ -14,52 +15,77 @@ import java.util.List;
  * @author Nikola Trkulja
  */
 public class NodesList implements IsomorphicGraph {
-    private final List<IsomorphicNodePair> isomorphicNodes;
+    private final Queue<IsomorphicNodePair> isomorphicNodes;
+    private static final int PARALLEL_THRESHOLD = 100;
 
     /** Default constructor. */
     public NodesList() {
-        isomorphicNodes = new LinkedList<>();
+        isomorphicNodes = new ConcurrentLinkedQueue<>();
     }
 
     @Override
-    public boolean containsPair(final Object expected, final Object actual) {
-        return isomorphicNodes.contains(new IsomorphicNodePair(expected, actual));
+    public boolean containsPair(final Object actual, final Object expected) {
+        return isomorphicNodes.contains(new IsomorphicNodePair(actual, expected));
     }
 
     @Override
-    public void addPair(final Object expected, final Object actual) {
-        isomorphicNodes.add(new IsomorphicNodePair(expected, actual));
+    public void addPair(final Object actual, final Object expected) {
+        isomorphicNodes.add(new IsomorphicNodePair(actual, expected));
     }
 
     @SuppressWarnings("unchecked")
     @Override
     public Object getExpected(final Object actual) {
-        for (final IsomorphicNodePair isomorphicNode : isomorphicNodes) {
-            if (isomorphicNode.getActual() == actual) {
-                return isomorphicNode.getExpected();
+        // For large collections, use parallel stream for better performance
+        if (isomorphicNodes.size() > PARALLEL_THRESHOLD) {
+            return isomorphicNodes.parallelStream()
+                    .filter(node -> node.getActual() == actual)
+                    .findFirst()
+                    .map(IsomorphicNodePair::getExpected)
+                    .orElse(null);
+        } else {
+            // Sequential approach for smaller collections to avoid overhead
+            for (final IsomorphicNodePair isomorphicNode : isomorphicNodes) {
+                if (isomorphicNode.getActual() == actual) {
+                    return isomorphicNode.getExpected();
+                }
             }
+            return null;
         }
-        return null;
     }
 
     @Override
     public boolean containsActual(final Object actual) {
-        for (final IsomorphicNodePair isomorphicNode : isomorphicNodes) {
-            if (isomorphicNode.getActual() == actual) {
-                return true;
+        // For large collections, use parallel stream for better performance
+        if (isomorphicNodes.size() > PARALLEL_THRESHOLD) {
+            return isomorphicNodes.parallelStream()
+                    .anyMatch(node -> node.getActual() == actual);
+        } else {
+            // Sequential approach for smaller collections to avoid overhead
+            for (final IsomorphicNodePair isomorphicNode : isomorphicNodes) {
+                if (isomorphicNode.getActual() == actual) {
+                    return true;
+                }
             }
+            return false;
         }
-        return false;
     }
 
     @Override
     public boolean containsExpected(final Object expected) {
-        for (final IsomorphicNodePair isomorphicNode : isomorphicNodes) {
-            if (isomorphicNode.getExpected() == expected) {
-                return true;
+        // For large collections, use parallel stream for better performance
+        if (isomorphicNodes.size() > PARALLEL_THRESHOLD) {
+            return isomorphicNodes.parallelStream()
+                    .anyMatch(node -> node.getExpected() == expected);
+        } else {
+            // Sequential approach for smaller collections to avoid overhead
+            for (final IsomorphicNodePair isomorphicNode : isomorphicNodes) {
+                if (isomorphicNode.getExpected() == expected) {
+                    return true;
+                }
             }
+            return false;
         }
-        return false;
     }
 
     @Override

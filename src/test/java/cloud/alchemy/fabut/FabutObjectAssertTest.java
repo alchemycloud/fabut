@@ -704,7 +704,7 @@ value(TierFiveType.PROPERTY.chain(TierFourType.PROPERTY.chain(TierThreeType.PROP
 
         // method
         final FabutReport report = new FabutReport();
-        assertList(report, Collections.emptyList(), expected, actual, new ArrayList<>(), new NodesList());
+        assertList(report, Collections.emptyList(), expected, actual, new ArrayList<>());
 
         // assert
         assertFabutReportFailure(report, "■>Expected size for list:  is: 1, but was: 2");
@@ -722,7 +722,7 @@ value(TierFiveType.PROPERTY.chain(TierFourType.PROPERTY.chain(TierThreeType.PROP
 
         // method
         final FabutReport report = new FabutReport();
-        assertList(report, Collections.emptyList(), expected, actual, new ArrayList<>(), new NodesList());
+        assertList(report, Collections.emptyList(), expected, actual, new ArrayList<>());
 
         // assert
         assertFabutReportSuccess(report);
@@ -740,7 +740,7 @@ value(TierFiveType.PROPERTY.chain(TierFourType.PROPERTY.chain(TierThreeType.PROP
 
         // method
         final FabutReport report = new FabutReport();
-        assertList(report, Collections.emptyList(), expected, actual, new ArrayList<>(), new NodesList());
+        assertList(report, Collections.emptyList(), expected, actual, new ArrayList<>());
 
         // assert
         assertFabutReportFailure(
