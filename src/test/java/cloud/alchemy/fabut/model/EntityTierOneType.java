@@ -60,9 +60,38 @@ public class EntityTierOneType extends TierOneType {
      */
     @Override
     public String toString() {
-        return "EntityTierOneType{" +
-               "id=" + id +
-               ", property='" + getProperty() + "'" +
-               '}';
+        // Check for circular references
+        if (isCircularReference(this)) {
+            return getClass().getSimpleName() + "{...circular reference...}";
+        }
+        
+        // Check cache for existing representation
+        String cached = getCachedToString(this);
+        if (cached != null) {
+            return cached;
+        }
+        
+        try {
+            startRendering(this);
+            String result = getClass().getSimpleName() + "{" +
+                   "id=" + id +
+                   ", property=" + formatString(getProperty()) +
+                   '}';
+            cacheToString(this, result);
+            return result;
+        } finally {
+            finishRendering(this);
+        }
+    }
+    
+    /**
+     * Returns a string representation optimized for test assertions.
+     * This format is more concise and focuses on the values being tested.
+     *
+     * @return a string representation optimized for test assertions
+     */
+    @Override
+    public String toTestString() {
+        return "EntityTierOneType[id=" + id + ", property=" + getProperty() + "]";
     }
 }

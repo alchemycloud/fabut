@@ -45,8 +45,33 @@ public class TierTwoTypeWithListProperty extends Type {
      */
     @Override
     public String toString() {
-        return "TierTwoTypeWithListProperty{" +
-               "property=" + (property != null ? property : "null") +
-               '}';
+        // Check for circular references
+        if (isCircularReference(this)) {
+            return getClass().getSimpleName() + "{...circular reference...}";
+        }
+        
+        // Check cache for existing representation
+        String cached = getCachedToString(this);
+        if (cached != null) {
+            return cached;
+        }
+        
+        try {
+            startRendering(this);
+            String propertyStr = property != null ? property.toString() : "null";
+            
+            // Format large collections
+            if (property != null && property.size() > MAX_COLLECTION_SIZE) {
+                propertyStr = formatCollection(propertyStr, property.size());
+            }
+            
+            String result = getClass().getSimpleName() + "{" +
+                   "property=" + propertyStr +
+                   '}';
+            cacheToString(this, result);
+            return result;
+        } finally {
+            finishRendering(this);
+        }
     }
 }

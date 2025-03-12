@@ -55,8 +55,26 @@ public class TierOneType extends Type {
      */
     @Override
     public String toString() {
-        return "TierOneType{" +
-               "property='" + property + "'" +
-               '}';
+        // Check for circular references
+        if (isCircularReference(this)) {
+            return getClass().getSimpleName() + "{...circular reference...}";
+        }
+        
+        // Check cache for existing representation
+        String cached = getCachedToString(this);
+        if (cached != null) {
+            return cached;
+        }
+        
+        try {
+            startRendering(this);
+            String result = getClass().getSimpleName() + "{" +
+                   "property=" + formatString(property) +
+                   '}';
+            cacheToString(this, result);
+            return result;
+        } finally {
+            finishRendering(this);
+        }
     }
 }
