@@ -8,4 +8,15 @@ package cloud.alchemy.fabut.model;
  * @author Bojan Babic
  * @author Nikola Trkulja
  */
-public class UnknownType extends Type {}
+public class UnknownType extends Type {
+    
+    /**
+     * Returns a string representation of this UnknownType instance.
+     *
+     * @return a string representation of this object
+     */
+    @Override
+    public String toString() {
+        return "UnknownType{" + super.toString() + "}";
+    }
+}

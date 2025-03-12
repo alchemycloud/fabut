@@ -48,12 +48,15 @@ public class TierOneType extends Type {
         this.property = property;
     }
 
-    /*
-     * (non-Javadoc)
-     * @see java.lang.Object#toString()
+    /**
+     * Returns a string representation of this TierOneType instance.
+     *
+     * @return a string representation of this object
      */
     @Override
     public String toString() {
-        return property;
+        return "TierOneType{" +
+               "property='" + property + "'" +
+               '}';
     }
 }

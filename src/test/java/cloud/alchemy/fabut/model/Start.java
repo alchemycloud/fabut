@@ -44,4 +44,17 @@ public class Start extends Type {
     public void setLinks(final List<DoubleLink> links) {
         this.links = links;
     }
+    
+    /**
+     * Returns a string representation of this Start instance.
+     *
+     * @return a string representation of this object
+     */
+    @Override
+    public String toString() {
+        return "Start{" +
+               "links=" + (links != null ? links : "null") +
+               ", " + super.toString() +
+               '}';
+    }
 }

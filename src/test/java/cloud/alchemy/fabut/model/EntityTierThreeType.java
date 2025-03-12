@@ -23,4 +23,14 @@ public class EntityTierThreeType extends EntityTierTwoType {
     public EntityTierThreeType(final String property, final int id, final EntityTierOneType subProperty) {
         super(property, id, subProperty);
     }
+    
+    /**
+     * Returns a string representation of this EntityTierThreeType instance.
+     * 
+     * @return a string representation of this object
+     */
+    @Override
+    public String toString() {
+        return "EntityTierThreeType{" + super.toString() + "}";
+    }
 }

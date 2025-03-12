@@ -30,4 +30,16 @@ public class ListElement {
     public void setListElement(final ListElement listElement) {
         this.listElement = listElement;
     }
+    
+    /**
+     * Returns a string representation of this ListElement instance.
+     *
+     * @return a string representation of this object
+     */
+    @Override
+    public String toString() {
+        return "ListElement{" +
+               "listElement=" + (listElement != null ? listElement : "null") +
+               '}';
+    }
 }

@@ -33,4 +33,17 @@ public class IgnoredMethodsType extends Type {
     public String getIgnoreMethodsProperty() {
         return ignoreMethodsProperty;
     }
+    
+    /**
+     * Returns a string representation of this IgnoredMethodsType instance.
+     *
+     * @return a string representation of this object
+     */
+    @Override
+    public String toString() {
+        return "IgnoredMethodsType{" +
+               "ignoreMethodsProperty='" + ignoreMethodsProperty + "'" +
+               ", " + super.toString() +
+               '}';
+    }
 }

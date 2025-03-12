@@ -31,4 +31,18 @@ public class Teacher {
     public void setAddress(final Address address) {
         this.address = address;
     }
+    
+    /**
+     * Returns a string representation of this Teacher instance.
+     *
+     * @return a string representation of this object
+     */
+    @Override
+    public String toString() {
+        return "Teacher{" +
+               "name='" + (name != null ? name : "null") + "'" +
+               ", student=" + (student != null ? student : "null") +
+               ", address=" + (address != null ? address : "null") +
+               '}';
+    }
 }

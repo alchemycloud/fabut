@@ -53,8 +53,16 @@ public class EntityTierOneType extends TierOneType {
         this.id = id;
     }
 
+    /**
+     * Returns a string representation of this EntityTierOneType instance.
+     *
+     * @return a string representation of this object
+     */
     @Override
     public String toString() {
-        return id + " " + getProperty();
+        return "EntityTierOneType{" +
+               "id=" + id +
+               ", property='" + getProperty() + "'" +
+               '}';
     }
 }

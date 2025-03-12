@@ -33,4 +33,16 @@ public class TierFourType extends Type {
     public TierThreeType getProperty() {
         return property;
     }
+    
+    /**
+     * Returns a string representation of this TierFourType instance.
+     *
+     * @return a string representation of this object
+     */
+    @Override
+    public String toString() {
+        return "TierFourType{" +
+               "property=" + (property != null ? property : "null") +
+               '}';
+    }
 }

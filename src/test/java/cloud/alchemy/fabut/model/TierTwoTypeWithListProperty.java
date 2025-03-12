@@ -37,4 +37,16 @@ public class TierTwoTypeWithListProperty extends Type {
     public List<String> getProperty() {
         return property;
     }
+    
+    /**
+     * Returns a string representation of this TierTwoTypeWithListProperty instance.
+     *
+     * @return a string representation of this object
+     */
+    @Override
+    public String toString() {
+        return "TierTwoTypeWithListProperty{" +
+               "property=" + (property != null ? property : "null") +
+               '}';
+    }
 }

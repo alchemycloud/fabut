@@ -81,4 +81,19 @@ public class DoubleLink extends Type {
     public String getProperty() {
         return property;
     }
+    
+    /**
+     * Returns a string representation of this DoubleLink instance.
+     *
+     * @return a string representation of this object
+     */
+    @Override
+    public String toString() {
+        return "DoubleLink{" +
+               "as=" + (as != null ? as : "null") +
+               ", start=" + (start != null ? start : "null") +
+               ", property='" + property + "'" +
+               ", " + super.toString() +
+               '}';
+    }
 }

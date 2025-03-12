@@ -8,4 +8,15 @@ package cloud.alchemy.fabut.model;
  * @author Bojan Babic
  * @author Nikola Trkulja
  */
-public abstract class Type {}
+public abstract class Type {
+    
+    /**
+     * Returns a string representation of this Type instance.
+     *
+     * @return a string representation of this object
+     */
+    @Override
+    public String toString() {
+        return "Type{}";
+    }
+}

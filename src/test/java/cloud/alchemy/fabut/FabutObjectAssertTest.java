@@ -362,7 +362,7 @@ public class FabutObjectAssertTest extends AbstractFabutTest {
                         + "■>property: but was: test\n"
                         + "CODE:\n"
                         + "assertObject(object,\n"
-                        + "value(TierTwoType.PROPERTY, testtest),\n"
+                        + "value(TierTwoType.PROPERTY, TierOneType{property='testtest'}),\n"
                         + "value(TierOneType.PROPERTY.chain(TierOneType.PROPERTY), \"testtest\"));");
     }
 
@@ -467,16 +467,17 @@ public class FabutObjectAssertTest extends AbstractFabutTest {
         // assert
         assertFabutReportFailure(
                 report,
-                "■>property: expected: testtest\n"
-                        + "■>property: but was: test\n"
-                        + "CODE:\n"
-                        + "assertObject(object,\n"
-                        + "value(TierSixType.PROPERTY, cloud.alchemy.fabut.model.TierFiveType@4f6ee6e4),\n"
-                        + "value(TierFiveType.PROPERTY.chain(TierFiveType.PROPERTY), cloud.alchemy.fabut.model.TierFourType@4466af20),\n"
-                        + "value(TierFiveType.PROPERTY.chain(TierFourType.PROPERTY.chain(TierFourType.PROPERTY)), cloud.alchemy.fabut.model.TierThreeType@a514af7),\n"
-                        + "value(TierFiveType.PROPERTY.chain(TierFourType.PROPERTY.chain(TierThreeType.PROPERTY.chain(TierThreeType.PROPERTY))), cloud.alchemy.fabut.model.TierTwoType@6b927fb),\n"
-                        + "value(TierFiveType.PROPERTY.chain(TierFourType.PROPERTY.chain(TierThreeType.PROPERTY.chain(TierTwoType.PROPERTY.chain(TierTwoType.PROPERTY)))), testtest),\n"
-                        + "value(TierFiveType.PROPERTY.chain(TierFourType.PROPERTY.chain(TierThreeType.PROPERTY.chain(TierTwoType.PROPERTY.chain(TierOneType.PROPERTY.chain(TierOneType.PROPERTY))))), \"testtest\"));");
+                """
+■>property: expected: testtest
+■>property: but was: test
+CODE:
+assertObject(object,
+value(TierSixType.PROPERTY, TierFiveType{property=TierFourType{property=TierThreeType{property=TierTwoType{property=TierOneType{property='testtest'}}}}}),
+value(TierFiveType.PROPERTY.chain(TierFiveType.PROPERTY), TierFourType{property=TierThreeType{property=TierTwoType{property=TierOneType{property='testtest'}}}}),
+value(TierFiveType.PROPERTY.chain(TierFourType.PROPERTY.chain(TierFourType.PROPERTY)), TierThreeType{property=TierTwoType{property=TierOneType{property='testtest'}}}),
+value(TierFiveType.PROPERTY.chain(TierFourType.PROPERTY.chain(TierThreeType.PROPERTY.chain(TierThreeType.PROPERTY))), TierTwoType{property=TierOneType{property='testtest'}}),
+value(TierFiveType.PROPERTY.chain(TierFourType.PROPERTY.chain(TierThreeType.PROPERTY.chain(TierTwoType.PROPERTY.chain(TierTwoType.PROPERTY)))), TierOneType{property='testtest'}),
+value(TierFiveType.PROPERTY.chain(TierFourType.PROPERTY.chain(TierThreeType.PROPERTY.chain(TierTwoType.PROPERTY.chain(TierOneType.PROPERTY.chain(TierOneType.PROPERTY))))), "testtest"));""");
     }
 
     @Test
@@ -491,7 +492,7 @@ public class FabutObjectAssertTest extends AbstractFabutTest {
         assertObjects(report, expected, actual, new LinkedList<>());
 
         // assert
-        assertFabutReportFailure(report, "■>: expected: [test]\n" + "■>: but was: test");
+        assertFabutReportFailure(report, "■>: expected: [TierOneType{property='test'}]\n" + "■>: but was: TierOneType{property='test'}");
     }
 
     /** Test for assertObjects with {@link TierOneType} when varargs of properties is called. */
