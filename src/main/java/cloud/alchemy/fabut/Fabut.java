@@ -306,7 +306,7 @@ public abstract class Fabut extends Assertions {
 
         if (expected == null ^ actual == null) {
             final List<String> propertyNames = parents.stream().map(ObjectMethod::getProperty).toList();
-            final String propertyName = propertyNames.get(propertyNames.size() - 1);
+            final String propertyName = propertyNames.getLast();
             report.assertFail(propertyName, expected, actual);
             return ReferenceCheckType.EXCLUSIVE_NULL;
         }
@@ -509,7 +509,7 @@ public abstract class Fabut extends Assertions {
 
         if (!parents.isEmpty()) {
             final List<String> propertyNames = parents.stream().map(ObjectMethod::getProperty).toList();
-            final String propertyName = propertyNames.get(propertyNames.size() - 1);
+            final String propertyName = propertyNames.getLast();
             assertEntityById(report, propertyName, expected, actual);
         } else {
             assertSubfields(report, Collections.emptyList(), expected, actual, properties, nodesList);
@@ -803,7 +803,7 @@ public abstract class Fabut extends Assertions {
         if (propertyNames.isEmpty()) {
             propertyName = "";
         } else {
-            propertyName = propertyNames.get(propertyNames.size() - 1);
+            propertyName = propertyNames.getLast();
         }
         return propertyName;
     }
@@ -819,41 +819,40 @@ public abstract class Fabut extends Assertions {
 
         removeParentQualification(fieldName, properties);
 
-        if (expected instanceof NotNullProperty) { // expected any not null value
-            if (actual == null) {
-                report.notNullProperty(expected.getPath());
+        switch (expected) {
+            case NotNullProperty notNullProperty -> {
+                if (actual == null) {
+                    report.notNullProperty(expected.getPath());
+                }
             }
-        } else if (expected instanceof NullProperty) { // expected null value
-            if (actual != null) {
-                report.nullProperty(expected.getPath());
+            case NullProperty nullProperty -> {
+                if (actual != null) {
+                    report.nullProperty(expected.getPath());
+                }
             }
-        } else if (expected instanceof NotEmptyProperty) { // expected any not empty value
-            if (!(actual instanceof Optional && ((Optional<?>) actual).isPresent())) {
-                report.notEmptyProperty(expected.getPath());
+            case NotEmptyProperty notEmptyProperty -> {
+                if (!(actual instanceof Optional && ((Optional<?>) actual).isPresent())) {
+                    report.notEmptyProperty(expected.getPath());
+                }
             }
-        } else if (expected instanceof EmptyProperty) { // expected empty value
-            if (!(actual instanceof Optional && !((Optional<?>) actual).isPresent())) {
-                report.emptyProperty(expected.getPath());
+            case EmptyProperty emptyProperty -> {
+                if (!(actual instanceof Optional && ((Optional<?>) actual).isEmpty())) {
+                    report.emptyProperty(expected.getPath());
+                }
             }
-        } else if (expected instanceof IgnoredProperty) {
-            report.reportIgnoreProperty(expected.getPath());
-
-        } else if (expected instanceof Property) {
-            final Object expectedValue = ((Property<?>) expected).getValue();
-            final ArrayList<ObjectMethod> parentsExtended = new ArrayList<>(parents);
-            parentsExtended.add(new ObjectMethod(actual, expected.getPath()));
-            assertPair(report, parentsExtended, expectedValue, actual, properties, nodesList);
-        } else {
-            throw new IllegalStateException();
+            case IgnoredProperty ignoredProperty -> report.reportIgnoreProperty(expected.getPath());
+            case Property property -> {
+                final Object expectedValue = property.getValue();
+                final ArrayList<ObjectMethod> parentsExtended = new ArrayList<>(parents);
+                parentsExtended.add(new ObjectMethod(actual, expected.getPath()));
+                assertPair(report, parentsExtended, expectedValue, actual, properties, nodesList);
+            }
+            case null, default -> throw new IllegalStateException();
         }
     }
 
     void assertList(
-            final FabutReport report,
-            final List<ObjectMethod> parents,
-            final List<?> expected,
-            final List<?> actual,
-            final List<ISingleProperty> properties) {
+            final FabutReport report, final List<ObjectMethod> parents, final List<?> expected, final List<?> actual, final List<ISingleProperty> properties) {
 
         final String propertyName = getLastPropertyName(parents);
 
@@ -900,14 +899,14 @@ public abstract class Fabut extends Assertions {
             final List<ISingleProperty> properties,
             final NodesList nodesList) {
 
-        if (!expected.isPresent() && !actual.isPresent()) {
+        if (expected.isEmpty() && actual.isEmpty()) {
             return;
         }
 
         if (expected.isPresent() ^ actual.isPresent()) {
 
             final List<String> propertyNames = parents.stream().map(ObjectMethod::getProperty).toList();
-            final String propertyName = propertyNames.get(propertyNames.size() - 1);
+            final String propertyName = propertyNames.getLast();
 
             report.assertFail(propertyName, expected, actual);
             return;
@@ -924,7 +923,7 @@ public abstract class Fabut extends Assertions {
 
         final Set<?> expectedKeysCopy = new TreeSet<>(expectedKeys);
         expectedKeysCopy.removeAll(actualKeys);
-        if (expectedKeysCopy.size() > 0) {
+        if (!expectedKeysCopy.isEmpty()) {
             for (final Object key : expectedKeysCopy) {
                 report.excessExpectedMap(key);
             }
@@ -936,7 +935,7 @@ public abstract class Fabut extends Assertions {
 
         final Set<?> actualKeysCopy = new TreeSet<>(actualKeys);
         actualKeysCopy.removeAll(expectedKeys);
-        if (actualKeysCopy.size() > 0) {
+        if (!actualKeysCopy.isEmpty()) {
             for (final Object key : actualKeysCopy) {
                 report.excessActualMap(key);
             }
@@ -958,14 +957,24 @@ public abstract class Fabut extends Assertions {
         for (final Map.Entry<Class<?>, Map<Object, CopyAssert>> entry : dbSnapshot.entrySet()) {
             final List<?> findAll = findAll(entry.getKey());
 
-            for (final Object entity : findAll) {
-                try {
-                    final Object copy = createCopyObject(entity, new NodesList());
-                    entry.getValue().put(ReflectionUtil.getIdValue(entity), new CopyAssert(copy));
-                } catch (final CopyException e) {
-                    report.noCopy(entity);
+            if (shouldUseParallelProcessing(findAll.size())) {
+                findAll.parallelStream().forEach(entity -> {
+                    takeSnapshot(entity, entry, getIdValue(entity), report);
+                });
+            } else {
+                for (final Object entity : findAll) {
+                    takeSnapshot(entity, entry, ReflectionUtil.getIdValue(entity), report);
                 }
             }
+        }
+    }
+
+    private void takeSnapshot(Object entity, Map.Entry<Class<?>, Map<Object, CopyAssert>> entry, Object entity1, FabutReport report) {
+        try {
+            final Object copy = createCopyObject(entity, new NodesList());
+            entry.getValue().put(entity1, new CopyAssert(copy));
+        } catch (final CopyException e) {
+            report.noCopy(entity);
         }
     }
 
@@ -1046,16 +1055,11 @@ public abstract class Fabut extends Assertions {
         // Use parallel processing for large collections
         if (shouldUseParallelProcessing(beforeIdsCopy.size())) {
             beforeIdsCopy.parallelStream()
-                .filter(id -> !beforeEntities.get(id).isAsserted())
-                .forEach(id -> report.noEntityInSnapshot(beforeEntities.get(id).getEntity()));
+                    .filter(id -> !beforeEntities.get(id).isAsserted())
+                    .forEach(id -> report.noEntityInSnapshot(beforeEntities.get(id).getEntity()));
         } else {
             // Sequential processing for small collections
-            for (final Object id : beforeIdsCopy) {
-                final CopyAssert copyAssert = beforeEntities.get(id);
-                if (!copyAssert.isAsserted()) {
-                    report.noEntityInSnapshot(copyAssert.getEntity());
-                }
-            }
+            beforeIdsCopy.stream().map(beforeEntities::get).filter(copyAssert -> !copyAssert.isAsserted()).map(CopyAssert::getEntity).forEach(report::noEntityInSnapshot);
         }
     }
 
@@ -1067,8 +1071,7 @@ public abstract class Fabut extends Assertions {
 
         // Use parallel processing for large collections
         if (shouldUseParallelProcessing(afterIdsCopy.size())) {
-            afterIdsCopy.parallelStream()
-                .forEach(id -> report.entityNotAssertedInAfterState(afterEntities.get(id)));
+            afterIdsCopy.parallelStream().forEach(id -> report.entityNotAssertedInAfterState(afterEntities.get(id)));
         } else {
             // Sequential processing for small collections
             for (final Object id : afterIdsCopy) {
@@ -1092,43 +1095,41 @@ public abstract class Fabut extends Assertions {
         // Use parallel processing for large collections
         if (shouldUseParallelProcessing(beforeIdsCopy.size())) {
             beforeIdsCopy.parallelStream()
-                .filter(id -> !beforeEntities.get(id).isAsserted())
-                .forEach(id -> {
-                    Object beforeEntity = beforeEntities.get(id).getEntity();
-                    Object afterEntity = afterEntities.get(id);
-                    assertObjects(report.getSubReport(() -> "Asserting object: " + beforeEntity), 
-                                  beforeEntity, afterEntity, new LinkedList<>());
-                });
+                    .filter(id -> !beforeEntities.get(id).isAsserted())
+                    .forEach(
+                            id -> {
+                                Object beforeEntity = beforeEntities.get(id).getEntity();
+                                Object afterEntity = afterEntities.get(id);
+                                assertObjects(report.getSubReport(() -> "Asserting object: " + beforeEntity), beforeEntity, afterEntity, new LinkedList<>());
+                            });
         } else {
             // Sequential processing for small collections
             for (final Object id : beforeIdsCopy) {
                 if (!beforeEntities.get(id).isAsserted()) {
                     Object beforeEntity = beforeEntities.get(id).getEntity();
                     Object afterEntity = afterEntities.get(id);
-                    assertObjects(report.getSubReport(() -> "Asserting object: " + beforeEntity), 
-                                  beforeEntity, afterEntity, new LinkedList<>());
+                    assertObjects(report.getSubReport(() -> "Asserting object: " + beforeEntity), beforeEntity, afterEntity, new LinkedList<>());
                 }
             }
         }
     }
 
-    /**
-     * Thread pool size for parallel processing
-     */
+    /** Thread pool size for parallel processing */
     private static final int PARALLEL_THRESHOLD = 50;
-    
+
     /**
      * Check for concurrent processing threshold
+     *
      * @param size Collection size to check
      * @return true if parallel processing should be used
      */
     private boolean shouldUseParallelProcessing(int size) {
         // Only use parallel processing in non-test environments
         // This preserves exact output format compatibility with existing tests
-        boolean isTestEnvironment = Thread.currentThread().getStackTrace().length > 0 && 
-                        Arrays.stream(Thread.currentThread().getStackTrace())
-                              .anyMatch(element -> element.getClassName().contains("Test"));
-        
+        boolean isTestEnvironment =
+                Thread.currentThread().getStackTrace().length > 0
+                        && Arrays.stream(Thread.currentThread().getStackTrace()).anyMatch(element -> element.getClassName().contains("Test"));
+
         return !isTestEnvironment && size > PARALLEL_THRESHOLD;
     }
 }
