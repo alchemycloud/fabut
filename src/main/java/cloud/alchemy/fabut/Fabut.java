@@ -14,6 +14,8 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import static cloud.alchemy.fabut.ReflectionUtil.*;
 import static java.util.Optional.of;
@@ -22,12 +24,11 @@ public abstract class Fabut extends Assertions {
 
     private static final String DOT = ".";
 
-    protected final List<Class<?>> entityTypes = new ArrayList<>();
-    protected final List<Class<?>> complexTypes = new ArrayList<>();
-    protected final List<Class<?>> ignoredTypes = new ArrayList<>();
-    protected final Map<Class<?>, List<String>> ignoredFields = new HashMap<>();
-
-    private final Map<Class<?>, Map<Object, CopyAssert>> dbSnapshot = new HashMap<>();
+    protected final Queue<Class<?>> entityTypes = new ConcurrentLinkedQueue<>();
+    protected final Queue<Class<?>> complexTypes = new ConcurrentLinkedQueue<>();
+    protected final Queue<Class<?>> ignoredTypes = new ConcurrentLinkedQueue<>();
+    protected final Map<Class<?>, List<String>> ignoredFields = new ConcurrentHashMap<>();
+    private final Map<Class<?>, Map<Object, CopyAssert>> dbSnapshot = new ConcurrentHashMap<>();
     final List<SnapshotPair> parameterSnapshot = new ArrayList<>();
 
     protected void customAssertEquals(Object expected, Object actual) {
