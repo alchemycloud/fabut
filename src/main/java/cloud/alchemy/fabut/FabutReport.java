@@ -3,65 +3,132 @@ package cloud.alchemy.fabut;
 import org.apache.commons.lang3.StringUtils;
 
 import java.lang.reflect.Method;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+/**
+ * Functional interface for providing string representations in Fabut reports.
+ */
+@FunctionalInterface
 interface FabutToString {
+    /**
+     * Provides a string representation for use in Fabut reports.
+     *
+     * @return The string representation
+     */
     String fabutToString();
 }
 
+/**
+ * Report class for Fabut testing framework.
+ * Handles test failures, successes, and hierarchical reporting.
+ */
 class FabutReport {
 
+    // Constants for report formatting
     private static final String ARROW = ">";
     private static final String DASH = "-";
     private static final String NEW_LINE = "\n";
+    
+    // State variables
     private boolean success = true;
-    private final List<FabutReport> subReports = new ArrayList<>();
-    private final List<FabutToString> messages = new ArrayList<>();
-    private final List<ReportCode> codes = new ArrayList<>();
+    
+    // Thread-safe collections for concurrent access
+    private final List<FabutReport> subReports = new CopyOnWriteArrayList<>();
+    private final List<FabutToString> messages = new CopyOnWriteArrayList<>();
+    private final List<ReportCode> codes = new CopyOnWriteArrayList<>();
 
+    /**
+     * Default constructor for empty report.
+     */
     FabutReport() {}
 
+    /**
+     * Constructor with initial message.
+     *
+     * @param message The initial message to add to this report
+     */
     FabutReport(final FabutToString message) {
         this();
-        messages.add(message);
+        if (message != null) {
+            messages.add(message);
+        }
     }
 
+    /**
+     * Checks if this report and all its subreports indicate success.
+     *
+     * @return true if this report and all subreports are successful, false otherwise
+     */
     boolean isSuccess() {
         return success && subReports.stream().allMatch(FabutReport::isSuccess);
     }
 
+    /**
+     * Creates a new subreport with the given message and adds it to this report.
+     *
+     * @param subReport The message for the new subreport
+     * @return The newly created subreport
+     */
     FabutReport getSubReport(final FabutToString subReport) {
+        Objects.requireNonNull(subReport, "Subreport message cannot be null");
         FabutReport newSubReport = new FabutReport(subReport);
         subReports.add(newSubReport);
         return newSubReport;
     }
 
+    /**
+     * Gets the complete message for this report.
+     *
+     * @return The formatted message string
+     */
     String getMessage() {
         return getMessage(0);
     }
 
+    /**
+     * Gets the message for this report at the specified depth.
+     *
+     * @param depth The depth level for indentation
+     * @return The formatted message string
+     */
     private String getMessage(Integer depth) {
         final String spacer = NEW_LINE + StringUtils.repeat(DASH, depth * 2);
 
-        String message = messages.stream().map(FabutToString::fabutToString).filter(a -> !a.isEmpty()).collect(Collectors.joining(spacer));
+        // Build messages from this report
+        StringBuilder sb = new StringBuilder();
+        
+        // Add regular messages
+        String messagesText = messages.stream()
+                .map(FabutToString::fabutToString)
+                .filter(text -> !text.isEmpty())
+                .collect(Collectors.joining(spacer));
+        sb.append(messagesText);
+        
+        // Add code messages if present
         if (!codes.isEmpty()) {
-            message = message + "\nCODE:" + String.join("", codes.stream().map(ReportCode::code).toList());
+            sb.append("\nCODE:");
+            codes.stream().map(ReportCode::code).forEach(sb::append);
         }
-
-        final String subMessages =
-                subReports.stream()
-                        .filter(a -> !a.isSuccess())
-                        .map(a -> a.getMessage(depth + 1))
-                        .filter(a -> !a.isEmpty())
-                        .collect(Collectors.joining(NEW_LINE));
-
-        if (subMessages.isEmpty()) {
-            return message;
-        } else {
-            return message + NEW_LINE + subMessages;
+        
+        // Add failed subreport messages
+        List<String> failedSubreports = subReports.stream()
+                .filter(report -> !report.isSuccess())
+                .map(report -> report.getMessage(depth + 1))
+                .filter(text -> !text.isEmpty())
+                .collect(Collectors.toList());
+                
+        if (!failedSubreports.isEmpty()) {
+            if (!messagesText.isEmpty()) {
+                sb.append(NEW_LINE);
+            }
+            sb.append(String.join(NEW_LINE, failedSubreports));
         }
+        
+        return sb.toString();
     }
 
     /**
@@ -71,21 +138,66 @@ class FabutReport {
      * @param type type of comment
      */
     private void addComment(final String comment, final CommentType type) {
-        messages.add(() -> type.getMark() + ARROW + comment);
+        Objects.requireNonNull(comment, "Comment cannot be null");
+        Objects.requireNonNull(type, "Comment type cannot be null");
+        
+        // Cache the string value to avoid recomputation in the lambda
+        final String prefix = type.getMark() + ARROW;
+        messages.add(() -> prefix + comment);
+
+        if (type == CommentType.FAIL) {
+            success = false;
+        }
+    }
+    
+    /**
+     * Add a comment with lazy evaluation of the message.
+     * This is useful for expensive string operations that might not be needed if the report is filtered out.
+     *
+     * @param commentSupplier supplier for the comment string
+     * @param type type of comment
+     */
+    private void addLazyComment(final Supplier<String> commentSupplier, final CommentType type) {
+        Objects.requireNonNull(commentSupplier, "Comment supplier cannot be null");
+        Objects.requireNonNull(type, "Comment type cannot be null");
+        
+        final String prefix = type.getMark() + ARROW;
+        messages.add(() -> prefix + commentSupplier.get());
 
         if (type == CommentType.FAIL) {
             success = false;
         }
     }
 
+    /**
+     * Reports a list size mismatch.
+     *
+     * @param propertyName The name of the list property
+     * @param expectedSize The expected size
+     * @param actualSize The actual size
+     */
     void listDifferentSizeComment(final String propertyName, final int expectedSize, final int actualSize) {
-        final String comment = String.format("Expected size for list: %s is: %d, but was: %d", propertyName, expectedSize, actualSize);
-        addComment(comment, CommentType.FAIL);
+        addLazyComment(
+            () -> String.format("Expected size for list: %s is: %d, but was: %d", propertyName, expectedSize, actualSize),
+            CommentType.FAIL
+        );
     }
 
+    /**
+     * Reports that no property was found for a field.
+     *
+     * @param fieldOwner The owner of the field
+     * @param fieldName The name of the field
+     * @param field The field value
+     */
     void noPropertyForField(final Object fieldOwner, final String fieldName, final Object field) {
-        final String comment = String.format("There was no property for field:  %s of class:  %s, with value: %s", fieldName, fieldOwner.getClass(), field);
-        addComment(comment, CommentType.FAIL);
+        addLazyComment(
+            () -> String.format("There was no property for field: %s of class: %s, with value: %s", 
+                                fieldName, 
+                                fieldOwner.getClass().getSimpleName(), 
+                                field),
+            CommentType.FAIL
+        );
     }
 
     void notNullProperty(final String fieldName) {
@@ -208,11 +320,45 @@ class FabutReport {
         addComment(comment, CommentType.FAIL);
     }
 
+    /**
+     * Adds a code to this report.
+     *
+     * @param code The code to add
+     */
     void addCode(ReportCode code) {
-        codes.add(code);
+        if (code != null) {
+            codes.add(code);
+        }
+    }
+    
+    /**
+     * Returns the number of messages in this report.
+     *
+     * @return The message count
+     */
+    int getMessageCount() {
+        return messages.size();
+    }
+    
+    /**
+     * Returns the number of subreports.
+     *
+     * @return The subreport count
+     */
+    int getSubreportCount() {
+        return subReports.size();
     }
 }
 
+/**
+ * Interface for providing code reports.
+ */
+@FunctionalInterface
 interface ReportCode {
+    /**
+     * Provides a code string for the report.
+     *
+     * @return The code string
+     */
     String code();
 }

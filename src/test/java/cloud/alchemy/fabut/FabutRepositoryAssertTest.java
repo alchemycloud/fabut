@@ -173,26 +173,26 @@ public class FabutRepositoryAssertTest extends AbstractFabutTest {
         // assert
         assertFabutReportFailure(
                 report,
-                "\n"
-                        + "Asserting object: 1 test\n"
-                        + "--■>property: expected: test\n"
-                        + "--■>property: but was: testtest\n"
-                        + "CODE:\n"
-                        + "assertObject(object,\n"
-                        + "value(EntityTierOneType.PROPERTY, \"test\"),\n"
-                        + "value(EntityTierOneType.ID, 1));\n"
-                        + "Asserting object: property\n"
-                        + "--■>property: expected: test\n"
-                        + "--■>property: but was: testtest\n"
-                        + "--■>property: expected: property\n"
-                        + "--■>property: but was: propertyproperty\n"
-                        + "CODE:\n"
-                        + "assertObject(object,\n"
-                        + "value(EntityTierTwoType.SUB_PROPERTY, 7 test),\n"
-                        + "value(EntityTierOneType.SUB_PROPERTY.chain(EntityTierOneType.PROPERTY), \"test\"),\n"
-                        + "value(EntityTierOneType.SUB_PROPERTY.chain(EntityTierOneType.ID), 7),\n"
-                        + "value(EntityTierTwoType.PROPERTY, \"property\"),\n"
-                        + "value(EntityTierTwoType.ID, 4));");
+                """
+Asserting object: EntityTierTwoType{id=4, subProperty=EntityTierOneType{id=7, property='test'}, property='property'}
+--■>property: expected: test
+--■>property: but was: testtest
+--■>property: expected: property
+--■>property: but was: propertyproperty
+CODE:
+assertObject(object,
+value(EntityTierTwoType.SUB_PROPERTY, EntityTierOneType{id=7, property='test'}),
+value(EntityTierOneType.SUB_PROPERTY.chain(EntityTierOneType.PROPERTY), "test"),
+value(EntityTierOneType.SUB_PROPERTY.chain(EntityTierOneType.ID), 7),
+value(EntityTierTwoType.PROPERTY, "property"),
+value(EntityTierTwoType.ID, 4));
+Asserting object: EntityTierOneType{id=1, property='test'}
+--■>property: expected: test
+--■>property: but was: testtest
+CODE:
+assertObject(object,
+value(EntityTierOneType.PROPERTY, "test"),
+value(EntityTierOneType.ID, 1));""");
     }
 
     @Test
@@ -446,7 +446,7 @@ public class FabutRepositoryAssertTest extends AbstractFabutTest {
         checkNotExistingInAfterDbState(beforeIds, afterIds, beforeEntities, report);
 
         // assert
-        assertFabutReportFailure(report, "■>Entity null null doesn't exist in DB any more but is not asserted in test.");
+        assertFabutReportFailure(report, "■>Entity EntityTierOneType{id=null, property='null'} doesn't exist in DB any more but is not asserted in test.");
     }
 
     @Test
@@ -469,7 +469,8 @@ public class FabutRepositoryAssertTest extends AbstractFabutTest {
         checkNewToAfterDbState(beforeIds, afterIds, afterEntities, report);
 
         // assert
-        assertFabutReportFailure(report, "■>Entity null null is created in system after last snapshot but hasn't been asserted in test.");
+        assertFabutReportFailure(
+                report, "■>Entity EntityTierOneType{id=null, property='null'} is created in system after last snapshot but hasn't been asserted in test.");
     }
 
     @Test
@@ -566,8 +567,7 @@ public class FabutRepositoryAssertTest extends AbstractFabutTest {
         // assert
         assertFabutReportFailure(
                 report,
-                "\n"
-                        + "Asserting object: 3 test\n"
+                "Asserting object: EntityTierOneType{id=3, property='test'}\n"
                         + "--■>property: expected: test\n"
                         + "--■>property: but was: testtest\n"
                         + "CODE:\n"
@@ -650,6 +650,6 @@ public class FabutRepositoryAssertTest extends AbstractFabutTest {
         assertEntityWithSnapshot(report, entity, properties);
 
         // assert
-        assertFabutReportFailure(report, "■>Entity 1 testtest doesn't exist in DB any more but is not asserted in test.");
+        assertFabutReportFailure(report, "■>Entity EntityTierOneType{id=1, property='testtest'} doesn't exist in DB any more but is not asserted in test.");
     }
 }

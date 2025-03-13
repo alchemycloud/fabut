@@ -31,4 +31,18 @@ public class Address {
     public void setStreetNumber(final String streetNumber) {
         this.streetNumber = streetNumber;
     }
+    
+    /**
+     * Returns a string representation of this Address instance.
+     *
+     * @return a string representation of this object
+     */
+    @Override
+    public String toString() {
+        return "Address{" +
+               "city='" + (city != null ? city : "null") + "'" +
+               ", street='" + (street != null ? street : "null") + "'" +
+               ", streetNumber='" + (streetNumber != null ? streetNumber : "null") + "'" +
+               '}';
+    }
 }

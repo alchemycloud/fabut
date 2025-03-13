@@ -42,4 +42,16 @@ public class B {
     public void setC(final C c) {
         this.c = c;
     }
+    
+    /**
+     * Returns a string representation of this B instance.
+     *
+     * @return a string representation of this object
+     */
+    @Override
+    public String toString() {
+        return "B{" +
+               "c="  +
+               '}';
+    }
 }

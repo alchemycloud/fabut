@@ -60,4 +60,18 @@ public class A extends Type {
     public void setProperty(final String property) {
         this.property = property;
     }
+    
+    /**
+     * Returns a string representation of this A instance.
+     *
+     * @return a string representation of this object
+     */
+    @Override
+    public String toString() {
+        return "A{" +
+               "b=" + (b != null ? b : "null") +
+               ", property='" + property + "'" +
+               ", " + super.toString() +
+               '}';
+    }
 }

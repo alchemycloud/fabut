@@ -70,4 +70,18 @@ public class EntityTierTwoType extends TierOneType {
     public void setSubProperty(final EntityTierOneType subProperty) {
         this.subProperty = subProperty;
     }
+    
+    /**
+     * Returns a string representation of this EntityTierTwoType instance.
+     *
+     * @return a string representation of this object
+     */
+    @Override
+    public String toString() {
+        return "EntityTierTwoType{" +
+               "id=" + id +
+               ", subProperty=" + (subProperty != null ? subProperty : "null") +
+               ", property='" + getProperty() + "'" +
+               '}';
+    }
 }

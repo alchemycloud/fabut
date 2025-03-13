@@ -48,12 +48,33 @@ public class TierOneType extends Type {
         this.property = property;
     }
 
-    /*
-     * (non-Javadoc)
-     * @see java.lang.Object#toString()
+    /**
+     * Returns a string representation of this TierOneType instance.
+     *
+     * @return a string representation of this object
      */
     @Override
     public String toString() {
-        return property;
+        // Check for circular references
+        if (isCircularReference(this)) {
+            return getClass().getSimpleName() + "{...circular reference...}";
+        }
+        
+        // Check cache for existing representation
+        String cached = getCachedToString(this);
+        if (cached != null) {
+            return cached;
+        }
+        
+        try {
+            startRendering(this);
+            String result = getClass().getSimpleName() + "{" +
+                   "property=" + formatString(property) +
+                   '}';
+            cacheToString(this, result);
+            return result;
+        } finally {
+            finishRendering(this);
+        }
     }
 }

@@ -35,4 +35,16 @@ public class TierTwoType extends Type {
     public TierOneType getProperty() {
         return property;
     }
+    
+    /**
+     * Returns a string representation of this TierTwoType instance.
+     *
+     * @return a string representation of this object
+     */
+    @Override
+    public String toString() {
+        return "TierTwoType{" +
+               "property=" + (property != null ? property : "null") +
+               '}';
+    }
 }

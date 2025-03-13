@@ -37,4 +37,17 @@ public class TierTwoTypeWithPrimitiveProperty extends TierTwoType {
     public String getProperty2() {
         return property2;
     }
+    
+    /**
+     * Returns a string representation of this TierTwoTypeWithPrimitiveProperty instance.
+     *
+     * @return a string representation of this object
+     */
+    @Override
+    public String toString() {
+        return "TierTwoTypeWithPrimitiveProperty{" +
+               "property2='" + property2 + "'" +
+               ", " + super.toString() +
+               '}';
+    }
 }
