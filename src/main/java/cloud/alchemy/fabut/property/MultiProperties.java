@@ -33,29 +33,5 @@ public class MultiProperties implements IMultiProperties {
     public List<ISingleProperty> getProperties() {
         return propertiesDefinitions;
     }
-    
-    /**
-     * Filters properties in parallel when the collection is large enough.
-     * This improves performance for large property sets.
-     * 
-     * @param predicate The filter predicate to apply
-     * @return Filtered list of properties
-     */
-    public List<ISingleProperty> getPropertiesFiltered(java.util.function.Predicate<ISingleProperty> predicate) {
-        if (propertiesDefinitions.size() > PARALLEL_THRESHOLD) {
-            // Use parallel stream for large collections
-            return propertiesDefinitions.parallelStream()
-                    .filter(predicate)
-                    .collect(Collectors.toList());
-        } else {
-            // Use sequential processing for small collections to avoid overhead
-            List<ISingleProperty> result = new ArrayList<>();
-            for (ISingleProperty property : propertiesDefinitions) {
-                if (predicate.test(property)) {
-                    result.add(property);
-                }
-            }
-            return result;
-        }
-    }
+
 }

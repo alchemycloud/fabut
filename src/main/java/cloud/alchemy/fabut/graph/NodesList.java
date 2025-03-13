@@ -38,7 +38,7 @@ public class NodesList implements IsomorphicGraph {
     public Object getExpected(final Object actual) {
         // For large collections, use parallel stream for better performance
         if (isomorphicNodes.size() > PARALLEL_THRESHOLD) {
-            return isomorphicNodes.parallelStream()
+            return isomorphicNodes.stream()
                     .filter(node -> node.getActual() == actual)
                     .findFirst()
                     .map(IsomorphicNodePair::getExpected)
@@ -58,7 +58,7 @@ public class NodesList implements IsomorphicGraph {
     public boolean containsActual(final Object actual) {
         // For large collections, use parallel stream for better performance
         if (isomorphicNodes.size() > PARALLEL_THRESHOLD) {
-            return isomorphicNodes.parallelStream()
+            return isomorphicNodes.stream()
                     .anyMatch(node -> node.getActual() == actual);
         } else {
             // Sequential approach for smaller collections to avoid overhead
@@ -75,7 +75,7 @@ public class NodesList implements IsomorphicGraph {
     public boolean containsExpected(final Object expected) {
         // For large collections, use parallel stream for better performance
         if (isomorphicNodes.size() > PARALLEL_THRESHOLD) {
-            return isomorphicNodes.parallelStream()
+            return isomorphicNodes.stream()
                     .anyMatch(node -> node.getExpected() == expected);
         } else {
             // Sequential approach for smaller collections to avoid overhead

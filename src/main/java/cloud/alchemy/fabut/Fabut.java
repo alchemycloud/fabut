@@ -958,7 +958,7 @@ public abstract class Fabut extends Assertions {
             final List<?> findAll = findAll(entry.getKey());
 
             if (shouldUseParallelProcessing(findAll.size())) {
-                findAll.parallelStream().forEach(entity -> {
+                findAll.stream().forEach(entity -> {
                     takeSnapshot(entity, entry, getIdValue(entity), report);
                 });
             } else {
@@ -1054,7 +1054,7 @@ public abstract class Fabut extends Assertions {
 
         // Use parallel processing for large collections
         if (shouldUseParallelProcessing(beforeIdsCopy.size())) {
-            beforeIdsCopy.parallelStream()
+            beforeIdsCopy.stream()
                     .filter(id -> !beforeEntities.get(id).isAsserted())
                     .forEach(id -> report.noEntityInSnapshot(beforeEntities.get(id).getEntity()));
         } else {
@@ -1071,7 +1071,7 @@ public abstract class Fabut extends Assertions {
 
         // Use parallel processing for large collections
         if (shouldUseParallelProcessing(afterIdsCopy.size())) {
-            afterIdsCopy.parallelStream().forEach(id -> report.entityNotAssertedInAfterState(afterEntities.get(id)));
+            afterIdsCopy.stream().forEach(id -> report.entityNotAssertedInAfterState(afterEntities.get(id)));
         } else {
             // Sequential processing for small collections
             for (final Object id : afterIdsCopy) {
@@ -1094,7 +1094,7 @@ public abstract class Fabut extends Assertions {
 
         // Use parallel processing for large collections
         if (shouldUseParallelProcessing(beforeIdsCopy.size())) {
-            beforeIdsCopy.parallelStream()
+            beforeIdsCopy.stream()
                     .filter(id -> !beforeEntities.get(id).isAsserted())
                     .forEach(
                             id -> {
@@ -1126,11 +1126,9 @@ public abstract class Fabut extends Assertions {
     private boolean shouldUseParallelProcessing(int size) {
         // Only use parallel processing in non-test environments
         // This preserves exact output format compatibility with existing tests
-        boolean isTestEnvironment =
-                Thread.currentThread().getStackTrace().length > 0
-                        && Arrays.stream(Thread.currentThread().getStackTrace()).anyMatch(element -> element.getClassName().contains("Test"));
-
-        return !isTestEnvironment && size > PARALLEL_THRESHOLD;
+        final boolean sizeGreaterThenThrashodl = size > PARALLEL_THRESHOLD;
+//        System.out.println("Using parallel processing:  " + sizeGreaterThenThrashodl);
+        return  sizeGreaterThenThrashodl;
     }
 }
 
