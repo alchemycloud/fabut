@@ -28,9 +28,9 @@ public class ReflectionUtil {
     static final String ID = "id";
 
     // Thread-safe caches for reflection operations
-    private static final Map<Class<?>, Map<String, Method>> classGetMethods = new ConcurrentHashMap<>();
-    private static final Map<Class<?>, Map<String, Method>> classSetMethods = new ConcurrentHashMap<>();
-    private static final Map<Class<?>, Map<String, Field>> classFields = new ConcurrentHashMap<>();
+    private static final Map<Class<?>, Map<String, Method>> classGetMethods = new HashMap<>();
+    private static final Map<Class<?>, Map<String, Method>> classSetMethods = new HashMap<>();
+    private static final Map<Class<?>, Map<String, Field>> classFields = new HashMap<>();
 
     /**
      * Private constructor to prevent instantiation of utility class.
@@ -92,7 +92,7 @@ public class ReflectionUtil {
             
             // For classes with many methods, use parallel processing
             Arrays.stream(clazz.getMethods())
-                  .parallel()
+//                  .parallel()
                   .filter(method -> isGetMethod(clazz, method))
                   .forEach(method -> methodMap.put(method.getName(), method));
                   
@@ -140,7 +140,7 @@ public class ReflectionUtil {
             
             // Use parallel processing for classes with many methods
             Arrays.stream(clazz.getMethods())
-                  .parallel()
+//                  .parallel()
                   .filter(method -> isSetMethod(clazz, method))
                   .forEach(method -> methodMap.put(method.getName(), method));
                   
@@ -194,23 +194,28 @@ public class ReflectionUtil {
      * @return The Field object, or null if not found
      */
     static Field findField(final Class<?> fieldClass, final String fieldName) {
-        Map<String, Field> fieldMap = classFields.computeIfAbsent(fieldClass, clazz -> {
-            var map = new ConcurrentHashMap<String, Field>();
-            
-            // Use parallel processing for classes with many fields
-            Arrays.stream(clazz.getDeclaredFields())
-                  .parallel()
-                  .forEach(field -> map.put(field.getName(), field));
-                  
-            return map;
-        });
-        
+        final Map<String, Field> fieldMap = getFields(fieldClass);
+
         Field field = fieldMap.get(fieldName);
         if (field != null) return field;
 
         if (fieldClass.getSuperclass() == null) return null;
 
         return findField(fieldClass.getSuperclass(), fieldName);
+    }
+
+    static Map<String, Field> getFields(Class<?> fieldClass) {
+        Map<String, Field> fieldMap = classFields.computeIfAbsent(fieldClass, clazz -> {
+            var map = new ConcurrentHashMap<String, Field>();
+
+            // Use parallel processing for classes with many fields
+            Arrays.stream(clazz.getDeclaredFields())
+//                  .parallel()
+                  .forEach(field -> map.put(field.getName(), field));
+
+            return map;
+        });
+        return fieldMap;
     }
 
     /**
@@ -331,7 +336,7 @@ public class ReflectionUtil {
      * @param classes The list of classes to check against
      * @return true if the class is one of the given types, false otherwise
      */
-    static boolean isOneOfType(final Class<?> clazz, List<Class<?>> classes) {
+    static boolean isOneOfType(final Class<?> clazz, Collection<Class<?>> classes) {
         return classes.stream().anyMatch(c -> c.isAssignableFrom(clazz) || clazz.isAssignableFrom(c));
     }
 }
