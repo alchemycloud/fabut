@@ -9,6 +9,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import static java.util.Objects.requireNonNull;
+
 /**
  * Utility class that provides helper methods for reflection operations.
  * This class handles method finding, field access, and type checking operations.
@@ -32,6 +34,8 @@ public class ReflectionUtil {
     private static final Map<Class<?>, Map<String, Method>> classSetMethods = new ConcurrentHashMap<>();
     private static final Map<Class<?>, Map<String, Field>> classFields = new ConcurrentHashMap<>();
     private static final Map<Class<?>, Class<?>> realClassCache = new ConcurrentHashMap<>();
+    // Cache for fields that have been made accessible
+    private static final Set<Field> accessibleFields = ConcurrentHashMap.newKeySet();
 
     /**
      * Private constructor to prevent instantiation of utility class.
@@ -205,18 +209,41 @@ public class ReflectionUtil {
         return findField(fieldClass.getSuperclass(), fieldName);
     }
 
+    /**
+     * Finds a field and makes it accessible, caching the accessibility state.
+     *
+     * @param object The object to find the field on
+     * @param fieldName The name of the field to find
+     * @return The accessible Field object, or null if not found
+     */
+    static Field findAccessibleField(final Object object, final String fieldName) {
+        Field field = findField(object.getClass(), fieldName);
+        if (field != null) {
+            makeAccessible(field);
+        }
+        return field;
+    }
+
+    /**
+     * Makes a field accessible, caching the state to avoid repeated calls.
+     *
+     * @param field The field to make accessible
+     */
+    static void makeAccessible(Field field) {
+        if (!accessibleFields.contains(field)) {
+            field.setAccessible(true);
+            accessibleFields.add(field);
+        }
+    }
+
     static Map<String, Field> getFields(Class<?> fieldClass) {
-        Map<String, Field> fieldMap = classFields.computeIfAbsent(fieldClass, clazz -> {
+        return classFields.computeIfAbsent(fieldClass, clazz -> {
             var map = new ConcurrentHashMap<String, Field>();
-
-            // Use parallel processing for classes with many fields
-            Arrays.stream(clazz.getDeclaredFields())
-//                  .parallel()
-                  .forEach(field -> map.put(field.getName(), field));
-
+            for (Field field : clazz.getDeclaredFields()) {
+                map.put(field.getName(), field);
+            }
             return map;
         });
-        return fieldMap;
     }
 
     /**

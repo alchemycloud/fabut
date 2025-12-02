@@ -449,14 +449,12 @@ public abstract class Fabut extends Assertions {
                 final String getMethodName = getMethod.getName();
                 final String fieldName = getFieldNameOfGet(getMethod);
 
-                final Field objectField = findField(object, fieldName);
-                objectField.setAccessible(true);
+                final Field objectField = findAccessibleField(object, fieldName);
 
                 final String setMethodName = SET_METHOD_PREFIX + getMethodName.substring(3);
                 final Method setMethod = findSetMethod(copy, setMethodName);
 
-                final Field copyField = findField(copy, fieldName);
-                copyField.setAccessible(true);
+                final Field copyField = findAccessibleField(copy, fieldName);
 
                 if (setMethod == null) {
                     throw new CopyException(object.getClass().getSimpleName());
@@ -1049,23 +1047,24 @@ public abstract class Fabut extends Assertions {
         // Take database snapshots with parallel processing for large datasets
         for (final Map.Entry<Class<?>, Map<Object, CopyAssert>> entry : dbSnapshot.entrySet()) {
             final List<?> findAll = findAll(entry.getKey());
+            final Map<Object, CopyAssert> entityMap = entry.getValue();
 
             if (shouldUseParallelProcessing(findAll.size())) {
-                findAll.parallelStream().forEach(entity -> {
-                    takeSnapshot(entity, entry, getIdValue(entity), report);
-                });
+                findAll.parallelStream().forEach(entity ->
+                    takeSnapshot(entity, entityMap, report));
             } else {
                 for (final Object entity : findAll) {
-                    takeSnapshot(entity, entry, getIdValue(entity), report);
+                    takeSnapshot(entity, entityMap, report);
                 }
             }
         }
     }
 
-    private void takeSnapshot(Object entity, Map.Entry<Class<?>, Map<Object, CopyAssert>> entry, Object id, FabutReport report) {
+    private void takeSnapshot(Object entity, Map<Object, CopyAssert> entityMap, FabutReport report) {
         try {
+            final Object id = getIdValue(entity);  // Only call once
             final Object copy = createCopyObject(entity, new NodesList());
-            entry.getValue().put(id, new CopyAssert(copy));
+            entityMap.put(id, new CopyAssert(copy));
         } catch (final CopyException e) {
             report.noCopy(entity);
         }
@@ -1113,7 +1112,7 @@ public abstract class Fabut extends Assertions {
         CopyAssert copyAssert = map.get(id);
         if (copyAssert == null) {
             copyAssert = new CopyAssert(copy);
-            map.put(getIdValue(copy), copyAssert);
+            map.put(id, copyAssert);  // Use id parameter directly instead of calling getIdValue again
         }
         copyAssert.setAsserted(true);
     }
