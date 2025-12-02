@@ -20,7 +20,7 @@ public class PropertyTest extends Fabut {
         assertEquals(properties.length, multi.getProperties().size());
 
         for (int i = 0; i < properties.length; i++) {
-            assertTrue(multi.getProperties().get(i) instanceof IgnoredProperty);
+            assertInstanceOf(IgnoredProperty.class, multi.getProperties().get(i));
             assertEquals(properties[i].getPath(), multi.getProperties().get(i).getPath());
         }
     }
@@ -38,7 +38,7 @@ public class PropertyTest extends Fabut {
         assertEquals(properties.length, multi.getProperties().size());
 
         for (int i = 0; i < properties.length; i++) {
-            assertTrue(multi.getProperties().get(i) instanceof NullProperty);
+            assertInstanceOf(NullProperty.class, multi.getProperties().get(i));
             assertEquals(properties[i].getPath(), multi.getProperties().get(i).getPath());
         }
     }
@@ -56,7 +56,7 @@ public class PropertyTest extends Fabut {
         assertEquals(properties.length, multi.getProperties().size());
 
         for (int i = 0; i < properties.length; i++) {
-            assertTrue(multi.getProperties().get(i) instanceof NotNullProperty);
+            assertInstanceOf(NotNullProperty.class, multi.getProperties().get(i));
             assertEquals(properties[i].getPath(), multi.getProperties().get(i).getPath());
         }
     }

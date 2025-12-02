@@ -23,26 +23,22 @@ public class IsomorphicNodePair extends Pair {
     }
 
     @Override
-    public boolean equals(final Object arg0) {
-
-        try {
-            final IsomorphicNodePair node = (IsomorphicNodePair) arg0;
-            if (ReflectionUtil.hasIdMethod(arg0)) {
-                final Object nodeActualId = ReflectionUtil.getIdValue(node.getActual());
-                final Object actualId = ReflectionUtil.getIdValue(getActual());
-                final Object nodeExpectedId = ReflectionUtil.getIdValue(node.getExpected());
-                final Object expectedId = ReflectionUtil.getIdValue(getExpected());
-
-                return (nodeActualId == actualId && nodeExpectedId == expectedId) || (nodeActualId == expectedId && nodeExpectedId == actualId);
-
-            } else {
-
-                return (node.getActual() == getActual() && node.getExpected() == getExpected())
-                        || (node.getActual() == getExpected() && node.getExpected() == getActual());
-            }
-
-        } catch (final Exception e) {
+    public boolean equals(final Object obj) {
+        if (!(obj instanceof IsomorphicNodePair node)) {
             return false;
         }
+
+        if (ReflectionUtil.hasIdMethod(obj)) {
+            final Object nodeActualId = ReflectionUtil.getIdValue(node.getActual());
+            final Object actualId = ReflectionUtil.getIdValue(getActual());
+            final Object nodeExpectedId = ReflectionUtil.getIdValue(node.getExpected());
+            final Object expectedId = ReflectionUtil.getIdValue(getExpected());
+
+            return (nodeActualId == actualId && nodeExpectedId == expectedId)
+                    || (nodeActualId == expectedId && nodeExpectedId == actualId);
+        }
+
+        return (node.getActual() == getActual() && node.getExpected() == getExpected())
+                || (node.getActual() == getExpected() && node.getExpected() == getActual());
     }
 }

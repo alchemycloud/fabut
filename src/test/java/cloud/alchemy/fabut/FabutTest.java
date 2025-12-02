@@ -74,45 +74,35 @@ public class FabutTest extends AbstractFabutTest {
 
     @Override
     public List<Object> findAll(final Class<?> entityClass) {
-        if (entityClass == EntityTierOneType.class) {
-            return entityTierOneTypes;
-        }
-        if (entityClass == EntityTierTwoType.class) {
-            return entityTierTwoTypes;
-        }
-        if (entityClass == EntityWithList.class) {
-            return entityWithListTypes;
-        }
-        if (entityClass == NoDefaultConstructorEntity.class) {
-            return noDefaultConstructorEntities;
-        }
-        return null;
+        return switch (entityClass) {
+            case Class<?> c when c == EntityTierOneType.class -> entityTierOneTypes;
+            case Class<?> c when c == EntityTierTwoType.class -> entityTierTwoTypes;
+            case Class<?> c when c == EntityWithList.class -> entityWithListTypes;
+            case Class<?> c when c == NoDefaultConstructorEntity.class -> noDefaultConstructorEntities;
+            default -> null;
+        };
     }
 
     @Override
     public Object findById(final Class<?> entityClass, final Object id) {
-        if (entityClass == EntityTierOneType.class) {
-            for (final Object entity : entityTierOneTypes) {
-                if (((EntityTierOneType) entity).getId().equals(id)) {
-                    return entity;
-                }
-            }
-        }
-        if (entityClass == EntityWithList.class) {
-            for (final Object entity : entityWithListTypes) {
-                if (((EntityWithList) entity).getId().equals(id)) {
-                    return entity;
-                }
-            }
-        }
-        if (entityClass == NoDefaultConstructorEntity.class) {
-            for (final Object entity : noDefaultConstructorEntities) {
-                if (((NoDefaultConstructorEntity) entity).getId().equals(id)) {
-                    return entity;
-                }
-            }
-        }
-        return null;
+        return switch (entityClass) {
+            case Class<?> c when c == EntityTierOneType.class ->
+                    entityTierOneTypes.stream()
+                            .filter(e -> ((EntityTierOneType) e).getId().equals(id))
+                            .findFirst()
+                            .orElse(null);
+            case Class<?> c when c == EntityWithList.class ->
+                    entityWithListTypes.stream()
+                            .filter(e -> ((EntityWithList) e).getId().equals(id))
+                            .findFirst()
+                            .orElse(null);
+            case Class<?> c when c == NoDefaultConstructorEntity.class ->
+                    noDefaultConstructorEntities.stream()
+                            .filter(e -> ((NoDefaultConstructorEntity) e).getId().equals(id))
+                            .findFirst()
+                            .orElse(null);
+            default -> null;
+        };
     }
 
     private List<Object> getEntityTierOneTypes() {
@@ -140,7 +130,7 @@ public class FabutTest extends AbstractFabutTest {
         assertEquals(properties.length, multi.getProperties().size());
 
         for (int i = 0; i < properties.length; i++) {
-            assertTrue(multi.getProperties().get(i) instanceof IgnoredProperty);
+            assertInstanceOf(IgnoredProperty.class, multi.getProperties().get(i));
             assertEquals(properties[i].getPath(), multi.getProperties().get(i).getPath());
         }
     }
@@ -158,7 +148,7 @@ public class FabutTest extends AbstractFabutTest {
         assertEquals(properties.length, multi.getProperties().size());
 
         for (int i = 0; i < properties.length; i++) {
-            assertTrue(multi.getProperties().get(i) instanceof NullProperty);
+            assertInstanceOf(NullProperty.class, multi.getProperties().get(i));
             assertEquals(properties[i].getPath(), multi.getProperties().get(i).getPath());
         }
     }
@@ -176,7 +166,7 @@ public class FabutTest extends AbstractFabutTest {
         assertEquals(properties.length, multi.getProperties().size());
 
         for (int i = 0; i < properties.length; i++) {
-            assertTrue(multi.getProperties().get(i) instanceof NotNullProperty);
+            assertInstanceOf(NotNullProperty.class, multi.getProperties().get(i));
             assertEquals(properties[i].getPath(), multi.getProperties().get(i).getPath());
         }
     }

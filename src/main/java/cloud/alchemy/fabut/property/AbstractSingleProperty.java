@@ -65,10 +65,9 @@ public abstract class AbstractSingleProperty implements ISingleProperty {
         if (this == obj) {
             return true;
         }
-        if (obj == null || !(obj instanceof ISingleProperty)) {
+        if (!(obj instanceof ISingleProperty property)) {
             return false;
         }
-        final ISingleProperty property = (ISingleProperty) obj;
         return path.equalsIgnoreCase(property.getPath());
     }
     

@@ -28,7 +28,7 @@ public abstract class Fabut extends Assertions {
     protected final Queue<Class<?>> complexTypes = new ConcurrentLinkedQueue<>();
     protected final Queue<Class<?>> ignoredTypes = new ConcurrentLinkedQueue<>();
     protected final Map<Class<?>, List<String>> ignoredFields = new ConcurrentHashMap<>();
-    private final Map<Class<?>, Map<Object, CopyAssert>> dbSnapshot = new ConcurrentHashMap<>();
+    private final Map<Class<?>, Map<Object, CopyAssert>> dbSnapshot = Collections.synchronizedMap(new LinkedHashMap<>());
     final List<SnapshotPair> parameterSnapshot = new ArrayList<>();
 
     protected void customAssertEquals(Object expected, Object actual) {
@@ -306,7 +306,7 @@ public abstract class Fabut extends Assertions {
         }
 
         if (expected == null ^ actual == null) {
-            final List<String> propertyNames = parents.stream().map(ObjectMethod::getProperty).toList();
+            final List<String> propertyNames = parents.stream().map(ObjectMethod::property).toList();
             final String propertyName = propertyNames.getLast();
             report.assertFail(propertyName, expected, actual);
             return ReferenceCheckType.EXCLUSIVE_NULL;
@@ -318,10 +318,10 @@ public abstract class Fabut extends Assertions {
         final ArrayList<ISingleProperty> list = new ArrayList<>();
 
         for (final IProperty property : properties) {
-            if (property instanceof ISingleProperty) {
-                list.add((ISingleProperty) property);
-            } else {
-                list.addAll(((IMultiProperties) property).getProperties());
+            switch (property) {
+                case ISingleProperty single -> list.add(single);
+                case IMultiProperties multi -> list.addAll(multi.getProperties());
+                case null, default -> {}
             }
         }
 
@@ -509,7 +509,7 @@ public abstract class Fabut extends Assertions {
             final NodesList nodesList) {
 
         if (!parents.isEmpty()) {
-            final List<String> propertyNames = parents.stream().map(ObjectMethod::getProperty).toList();
+            final List<String> propertyNames = parents.stream().map(ObjectMethod::property).toList();
             final String propertyName = propertyNames.getLast();
             assertEntityById(report, propertyName, expected, actual);
         } else {
@@ -728,8 +728,8 @@ public abstract class Fabut extends Assertions {
         Collections.reverse(reversedParents);
 
         for (ObjectMethod parent : reversedParents) {
-            final String parentClass = getRealClass(parent.getParrent().getClass()).getSimpleName();
-            chainPrefix.insert(0, parentClass + "." + upperUnderscored(parent.getProperty()) + ".chain(");
+            final String parentClass = getRealClass(parent.parent().getClass()).getSimpleName();
+            chainPrefix.insert(0, parentClass + "." + upperUnderscored(parent.property()) + ".chain(");
             chainPostfix.append(")");
         }
 
@@ -799,7 +799,7 @@ public abstract class Fabut extends Assertions {
     }
 
     private String getLastPropertyName(List<ObjectMethod> parents) {
-        final List<String> propertyNames = parents.stream().map(ObjectMethod::getProperty).toList();
+        final List<String> propertyNames = parents.stream().map(ObjectMethod::property).toList();
         final String propertyName;
         if (propertyNames.isEmpty()) {
             propertyName = "";
@@ -906,7 +906,7 @@ public abstract class Fabut extends Assertions {
 
         if (expected.isPresent() ^ actual.isPresent()) {
 
-            final List<String> propertyNames = parents.stream().map(ObjectMethod::getProperty).toList();
+            final List<String> propertyNames = parents.stream().map(ObjectMethod::property).toList();
             final String propertyName = propertyNames.getLast();
 
             report.assertFail(propertyName, expected, actual);
@@ -1133,21 +1133,4 @@ public abstract class Fabut extends Assertions {
     }
 }
 
-class ObjectMethod {
-
-    private final Object parrent;
-    private final String property;
-
-    public ObjectMethod(Object parrent, String property) {
-        this.parrent = parrent;
-        this.property = property;
-    }
-
-    public Object getParrent() {
-        return parrent;
-    }
-
-    public String getProperty() {
-        return property;
-    }
-}
+record ObjectMethod(Object parent, String property) {}

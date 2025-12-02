@@ -79,10 +79,9 @@ public class Property<T> extends AbstractSingleProperty {
         if (!super.equals(obj)) {
             return false;
         }
-        if (!(obj instanceof Property)) {
+        if (!(obj instanceof Property<?> other)) {
             return false;
         }
-        final Property<?> other = (Property<?>) obj;
         return Objects.equals(value, other.value);
     }
     

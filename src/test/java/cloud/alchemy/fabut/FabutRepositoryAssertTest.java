@@ -170,10 +170,17 @@ public class FabutRepositoryAssertTest extends AbstractFabutTest {
         final FabutReport report = new FabutReport();
         assertDbSnapshot(report);
 
-        // assert
+        // assert - order matches entityTypes insertion order (EntityTierOneType first, then EntityTierTwoType)
         assertFabutReportFailure(
                 report,
                 """
+Asserting object: EntityTierOneType{id=1, property='test'}
+--■>property: expected: test
+--■>property: but was: testtest
+CODE:
+assertObject(object,
+value(EntityTierOneType.PROPERTY, "test"),
+value(EntityTierOneType.ID, 1));
 Asserting object: EntityTierTwoType{id=4, subProperty=EntityTierOneType{id=7, property='test'}, property='property'}
 --■>property: expected: test
 --■>property: but was: testtest
@@ -185,14 +192,7 @@ value(EntityTierTwoType.SUB_PROPERTY, EntityTierOneType{id=7, property='test'}),
 value(EntityTierOneType.SUB_PROPERTY.chain(EntityTierOneType.PROPERTY), "test"),
 value(EntityTierOneType.SUB_PROPERTY.chain(EntityTierOneType.ID), 7),
 value(EntityTierTwoType.PROPERTY, "property"),
-value(EntityTierTwoType.ID, 4));
-Asserting object: EntityTierOneType{id=1, property='test'}
---■>property: expected: test
---■>property: but was: testtest
-CODE:
-assertObject(object,
-value(EntityTierOneType.PROPERTY, "test"),
-value(EntityTierOneType.ID, 1));""");
+value(EntityTierTwoType.ID, 4));""");
     }
 
     @Test
