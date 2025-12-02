@@ -366,7 +366,7 @@ public abstract class Fabut extends Assertions {
         if (expected == null ^ actual == null) {
             final List<String> propertyNames = parents.stream().map(ObjectMethod::property).toList();
             final String propertyName = propertyNames.getLast();
-            report.assertFailFormatted(propertyName, formatValue(expected), formatValue(actual));
+            report.assertFailFormatted(propertyName, () -> formatValue(expected), () -> formatValue(actual));
             return ReferenceCheckType.EXCLUSIVE_NULL;
         }
         return ReferenceCheckType.NOT_NULL_PAIR;
@@ -623,7 +623,7 @@ public abstract class Fabut extends Assertions {
         try {
             customAssertEquals(expectedId, actualId);
         } catch (final AssertionError e) {
-            report.assertFailFormatted(propertyName, formatValue(expected), formatValue(actual));
+            report.assertFailFormatted(propertyName, () -> formatValue(expected), () -> formatValue(actual));
         }
     }
 
@@ -869,7 +869,7 @@ public abstract class Fabut extends Assertions {
             customAssertEquals(expected, actual);
         } catch (final AssertionError e) {
             final String propertyName = getLastPropertyName(parents);
-            report.assertFailFormatted(propertyName, formatValue(expected), formatValue(actual));
+            report.assertFailFormatted(propertyName, () -> formatValue(expected), () -> formatValue(actual));
         }
     }
 
@@ -984,7 +984,7 @@ public abstract class Fabut extends Assertions {
             final List<String> propertyNames = parents.stream().map(ObjectMethod::property).toList();
             final String propertyName = propertyNames.getLast();
 
-            report.assertFailFormatted(propertyName, formatValue(expected), formatValue(actual));
+            report.assertFailFormatted(propertyName, () -> formatValue(expected), () -> formatValue(actual));
             return;
         }
 

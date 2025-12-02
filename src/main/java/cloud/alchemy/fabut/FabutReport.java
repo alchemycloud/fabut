@@ -295,9 +295,11 @@ class FabutReport {
         addComment(comment, CommentType.FAIL);
     }
 
-    void assertFailFormatted(final String propertyName, final String expectedFormatted, final String actualFormatted) {
-        final String comment = String.format("%s: expected: %s but was: %s", propertyName, expectedFormatted, actualFormatted);
-        addComment(comment, CommentType.FAIL);
+    void assertFailFormatted(final String propertyName, final Supplier<String> expectedSupplier, final Supplier<String> actualSupplier) {
+        addLazyComment(
+            () -> String.format("%s: expected: %s but was: %s", propertyName, expectedSupplier.get(), actualSupplier.get()),
+            CommentType.FAIL
+        );
     }
 
     void idNull(final Class<?> clazz) {
