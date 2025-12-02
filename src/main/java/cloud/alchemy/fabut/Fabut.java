@@ -772,29 +772,39 @@ public abstract class Fabut extends Assertions {
             if (!isIgnoredField(expected.getClass(), fieldName)) {
                 try {
 
-                    final Object invoke = expectedMethod.invoke(expected);
-
-                    report.addCode(
-                            () -> {
-                                final String propertyPath = chainPrefix + className + "." + upperUnderscored(fieldName) + chainPostfix;
-                                final String code;
-                                if (invoke == null) {
-                                    code = ",\nisNull(" + propertyPath + ")";
-                                } else if (invoke.getClass().isAssignableFrom(String.class)) {
-                                    code = ",\nvalue(" + propertyPath + ", " + "\"" + invoke + "\"" + ")";
-                                } else if (invoke.getClass().isEnum()) {
-                                    code = ",\nvalue(" + propertyPath + ", " + invoke.getClass().getSimpleName() + "." + invoke + ")";
-                                } else if (invoke.getClass().isAssignableFrom(Optional.class) && ((Optional<?>) invoke).isEmpty()) {
-                                    code = ",\nisEmpty(" + propertyPath + ")";
-                                } else {
-                                    code = ",\nvalue(" + propertyPath + ", " + invoke + ")";
-                                }
-                                return code;
-                            });
-
-                    final ISingleProperty property = obtainProperty(invoke, fieldName, properties);
+                    final Object expectedValue = expectedMethod.invoke(expected);
                     final Method actualMethod = findGetMethod(actual, expectedMethod.getName());
-                    assertProperty(report, parents, fieldName, property, actualMethod.invoke(actual), properties, nodesList);
+                    final Object actualValue = actualMethod.invoke(actual);
+
+                    // For ENTITY_WITH_SNAPSHOT, only add CODE for changed properties
+                    final boolean isSnapshotContext = report.getAssertionContext() == ENTITY_WITH_SNAPSHOT;
+                    final boolean valuesEqual = Objects.equals(expectedValue, actualValue);
+
+                    if (!isSnapshotContext || !valuesEqual) {
+                        final Object invoke = expectedValue;
+                        report.addCode(
+                                () -> {
+                                    final String propertyPath = chainPrefix + className + "." + upperUnderscored(fieldName) + chainPostfix;
+                                    final String code;
+                                    if (invoke == null) {
+                                        code = ",\nisNull(" + propertyPath + ")";
+                                    } else if (invoke.getClass().isAssignableFrom(String.class)) {
+                                        code = ",\nvalue(" + propertyPath + ", " + "\"" + invoke + "\"" + ")";
+                                    } else if (invoke.getClass().isEnum()) {
+                                        code = ",\nvalue(" + propertyPath + ", " + invoke.getClass().getSimpleName() + "." + invoke + ")";
+                                    } else if (invoke.getClass().isAssignableFrom(Optional.class) && ((Optional<?>) invoke).isEmpty()) {
+                                        code = ",\nisEmpty(" + propertyPath + ")";
+                                    } else if (isEntityType(invoke.getClass())) {
+                                        code = ",\nvalue(" + propertyPath + ", " + entityPath(invoke) + ")";
+                                    } else {
+                                        code = ",\nvalue(" + propertyPath + ", " + invoke + ")";
+                                    }
+                                    return code;
+                                });
+                    }
+
+                    final ISingleProperty property = obtainProperty(expectedValue, fieldName, properties);
+                    assertProperty(report, parents, fieldName, property, actualValue, properties, nodesList);
 
                     if (propertiesCopy.contains(property)) {
                         final FabutReport optimisationReport = new FabutReport();
@@ -802,8 +812,8 @@ public abstract class Fabut extends Assertions {
                                 optimisationReport,
                                 parents,
                                 fieldName,
-                                value(new PropertyPath<>(fieldName), invoke),
-                                actualMethod.invoke(actual),
+                                value(new PropertyPath<>(fieldName), expectedValue),
+                                actualValue,
                                 new ArrayList<>(),
                                 new NodesList());
 

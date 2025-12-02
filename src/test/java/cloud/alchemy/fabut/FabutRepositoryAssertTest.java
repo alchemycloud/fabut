@@ -170,15 +170,14 @@ public class FabutRepositoryAssertTest extends AbstractFabutTest {
         final FabutReport report = new FabutReport();
         assertDbSnapshot(report);
 
-        // assert - exact message match
+        // assert - CODE only shows changed properties
         assertFabutReportFailure(report, """
 UPDATED: EntityTierOneType[id=1]
 --■>property: expected: test
 --■>property: but was: testtest
 CODE:
 assertEntityWithSnapshot(object,
-value(EntityTierOneType.PROPERTY, "test"),
-value(EntityTierOneType.ID, 1));
+value(EntityTierOneType.PROPERTY, "test"));
 UPDATED: EntityTierTwoType[id=4]
 --■>property: expected: test
 --■>property: but was: testtest
@@ -186,11 +185,9 @@ UPDATED: EntityTierTwoType[id=4]
 --■>property: but was: propertyproperty
 CODE:
 assertEntityWithSnapshot(object,
-value(EntityTierTwoType.SUB_PROPERTY, EntityTierOneType{id=7, property='test'}),
+value(EntityTierTwoType.SUB_PROPERTY, EntityTierOneType[id=7]),
 value(EntityTierOneType.SUB_PROPERTY.chain(EntityTierOneType.PROPERTY), "test"),
-value(EntityTierOneType.SUB_PROPERTY.chain(EntityTierOneType.ID), 7),
-value(EntityTierTwoType.PROPERTY, "property"),
-value(EntityTierTwoType.ID, 4));""");
+value(EntityTierTwoType.PROPERTY, "property"));""");
     }
 
     @Test
@@ -597,15 +594,14 @@ value(EntityTierTwoType.ID, 2));""");
         final FabutReport report = new FabutReport();
         assertDbSnapshotWithAfterState(beforeIds, afterIds, beforeEntities, afterEntities, report);
 
-        // assert
+        // assert - CODE only shows changed property (not ID which didn't change)
         assertFabutReportFailure(report, """
 UPDATED: EntityTierOneType[id=3]
 --■>property: expected: test
 --■>property: but was: testtest
 CODE:
 assertEntityWithSnapshot(object,
-value(EntityTierOneType.PROPERTY, "test"),
-value(EntityTierOneType.ID, 3));""");
+value(EntityTierOneType.PROPERTY, "test"));""");
     }
 
     @Test
