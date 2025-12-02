@@ -295,6 +295,11 @@ class FabutReport {
         addComment(comment, CommentType.FAIL);
     }
 
+    void assertFailFormatted(final String propertyName, final String expectedFormatted, final String actualFormatted) {
+        final String comment = String.format("%s: expected: %s but was: %s", propertyName, expectedFormatted, actualFormatted);
+        addComment(comment, CommentType.FAIL);
+    }
+
     void idNull(final Class<?> clazz) {
         final String comment = String.format("Id of %s cannot be null", clazz.getSimpleName());
         addComment(comment, CommentType.FAIL);

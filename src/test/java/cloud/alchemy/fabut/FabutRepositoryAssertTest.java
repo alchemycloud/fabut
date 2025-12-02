@@ -45,6 +45,7 @@ public class FabutRepositoryAssertTest extends AbstractFabutTest {
         complexTypes.add(DoubleLink.class);
         complexTypes.add(Start.class);
         complexTypes.add(TierTwoTypeWithMap.class);
+        complexTypes.add(TypeWithOptionalEntity.class);
 
         ignoredTypes.add(IgnoredType.class);
     }
@@ -675,5 +676,43 @@ value(EntityTierOneType.PROPERTY, "test"));""");
 
         // assert
         assertFabutReportFailure(report, "■>Entity EntityTierOneType{id=1, property='testtest'} doesn't exist in DB any more but is not asserted in test.");
+    }
+
+    @Test
+    public void testAssertOptionalEntityFormattingExpectedEmptyActualPresent() {
+        // setup
+        assertAfterTest = false;
+        final TypeWithOptionalEntity expected = new TypeWithOptionalEntity(Optional.empty());
+        final TypeWithOptionalEntity actual = new TypeWithOptionalEntity(Optional.of(new EntityTierOneType("test", 123)));
+
+        // method
+        final FabutReport report = new FabutReport();
+        assertObjects(report, expected, actual, new LinkedList<>());
+
+        // assert
+        assertFabutReportFailure(report,
+                "■>optionalEntity: expected: Optional.empty but was: Optional[EntityTierOneType[id=123]]\n" +
+                "CODE:\n" +
+                "assertObject(object,\n" +
+                "isEmpty(TypeWithOptionalEntity.OPTIONAL_ENTITY));");
+    }
+
+    @Test
+    public void testAssertOptionalEntityFormattingExpectedPresentActualEmpty() {
+        // setup
+        assertAfterTest = false;
+        final TypeWithOptionalEntity expected = new TypeWithOptionalEntity(Optional.of(new EntityTierOneType("test", 456)));
+        final TypeWithOptionalEntity actual = new TypeWithOptionalEntity(Optional.empty());
+
+        // method
+        final FabutReport report = new FabutReport();
+        assertObjects(report, expected, actual, new LinkedList<>());
+
+        // assert
+        assertFabutReportFailure(report,
+                "■>optionalEntity: expected: Optional[EntityTierOneType[id=456]] but was: Optional.empty\n" +
+                "CODE:\n" +
+                "assertObject(object,\n" +
+                "value(TypeWithOptionalEntity.OPTIONAL_ENTITY, Optional[EntityTierOneType{id=456, property='test'}]));");
     }
 }

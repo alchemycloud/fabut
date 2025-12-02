@@ -76,6 +76,30 @@ public abstract class Fabut extends Assertions {
         return className + "[id=null]";
     }
 
+    /**
+     * Formats a value for display in assertion failure messages.
+     * Handles Optional containing entities by using entityPath format.
+     */
+    private String formatValue(final Object value) {
+        if (value == null) {
+            return "null";
+        }
+        if (value instanceof Optional<?> opt) {
+            if (opt.isEmpty()) {
+                return "Optional.empty";
+            }
+            Object inner = opt.get();
+            if (isEntityType(inner.getClass())) {
+                return "Optional[" + entityPath(inner) + "]";
+            }
+            return value.toString();
+        }
+        if (isEntityType(value.getClass())) {
+            return entityPath(value);
+        }
+        return String.valueOf(value);
+    }
+
     @BeforeEach
     public void before() {
         parameterSnapshot.clear();
@@ -132,7 +156,8 @@ public abstract class Fabut extends Assertions {
     }
 
     public void assertObject(final Object expected, final IProperty... properties) {
-        assertObject("", expected, properties);
+        String label = isEntityType(expected.getClass()) ? "CREATED" : "Asserting object";
+        assertObject(label, expected, properties);
     }
 
     public <T> T assertEntityWithSnapshot(final T entity, final IProperty... expectedChanges) {
@@ -341,7 +366,7 @@ public abstract class Fabut extends Assertions {
         if (expected == null ^ actual == null) {
             final List<String> propertyNames = parents.stream().map(ObjectMethod::property).toList();
             final String propertyName = propertyNames.getLast();
-            report.assertFail(propertyName, expected, actual);
+            report.assertFailFormatted(propertyName, formatValue(expected), formatValue(actual));
             return ReferenceCheckType.EXCLUSIVE_NULL;
         }
         return ReferenceCheckType.NOT_NULL_PAIR;
@@ -598,7 +623,7 @@ public abstract class Fabut extends Assertions {
         try {
             customAssertEquals(expectedId, actualId);
         } catch (final AssertionError e) {
-            report.assertFail(propertyName, expected, actual);
+            report.assertFailFormatted(propertyName, formatValue(expected), formatValue(actual));
         }
     }
 
@@ -844,7 +869,7 @@ public abstract class Fabut extends Assertions {
             customAssertEquals(expected, actual);
         } catch (final AssertionError e) {
             final String propertyName = getLastPropertyName(parents);
-            report.assertFail(propertyName, expected, actual);
+            report.assertFailFormatted(propertyName, formatValue(expected), formatValue(actual));
         }
     }
 
@@ -959,7 +984,7 @@ public abstract class Fabut extends Assertions {
             final List<String> propertyNames = parents.stream().map(ObjectMethod::property).toList();
             final String propertyName = propertyNames.getLast();
 
-            report.assertFail(propertyName, expected, actual);
+            report.assertFailFormatted(propertyName, formatValue(expected), formatValue(actual));
             return;
         }
 
