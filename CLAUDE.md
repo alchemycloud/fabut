@@ -23,9 +23,9 @@ mvn javadoc:jar
 
 ## Technology Stack
 
-- Java 21
+- Java 25
 - Maven 3.8.0+
-- JUnit 5 (Jupiter)
+- JUnit 6 (Jupiter)
 - Apache Commons Lang3
 
 ## Project Structure
@@ -45,5 +45,5 @@ src/
 
 - Follow existing code style and patterns
 - All new functionality must have corresponding unit tests
-- Use JUnit 5 assertions and test annotations
+- Use JUnit 6 assertions and test annotations
 - Package namespace: `cloud.alchemy.fabut`
