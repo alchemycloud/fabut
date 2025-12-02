@@ -73,8 +73,7 @@ public class FabutObjectAssertTest extends AbstractFabutTest {
         // assert
         assertFabutReportFailure(
                 report,
-                "■>property: expected: testtest\n"
-                        + "■>property: but was: test\n"
+                "■>property: expected: testtest but was: test\n"
                         + "■>There was no property for field: notBooleanProperty of class: NoGetMethodsType, with value: test");
     }
 
@@ -195,7 +194,7 @@ public class FabutObjectAssertTest extends AbstractFabutTest {
         assertObjectWithProperties(report, tierOneType, properties);
 
         // assert
-        assertFabutReportFailure(report, "■>property: expected: test\n" + "■>property: but was: null");
+        assertFabutReportFailure(report, "■>property: expected: test but was: null");
     }
 
     @Test
@@ -210,7 +209,7 @@ public class FabutObjectAssertTest extends AbstractFabutTest {
         assertObjectWithProperties(report, tierOneType, properties);
 
         // assert
-        assertFabutReportFailure(report, "■>property: expected: null\n" + "■>property: but was: test");
+        assertFabutReportFailure(report, "■>property: expected: null but was: test");
     }
 
     @Test
@@ -240,7 +239,7 @@ public class FabutObjectAssertTest extends AbstractFabutTest {
         assertObjectWithProperties(report, tierOneType, properties);
 
         // assert
-        assertFabutReportFailure(report, "■>property: expected: testtest\n" + "■>property: but was: test");
+        assertFabutReportFailure(report, "■>property: expected: testtest but was: test");
     }
 
     @Test
@@ -329,7 +328,7 @@ public class FabutObjectAssertTest extends AbstractFabutTest {
         assertObjectWithProperties(report, tierTwoTypeWithListProperty, properties);
 
         // assert
-        assertFabutReportFailure(report, "#>Asserting object at index [0] of list property.\n" + "■>: expected: testtest\n" + "■>: but was: test");
+        assertFabutReportFailure(report, "#>Asserting object at index [0] of list property.\n" + "■>: expected: testtest but was: test");
     }
 
     /** Test for assertObjects for two {@link TierTwoType} objects with equal values. */
@@ -358,8 +357,7 @@ public class FabutObjectAssertTest extends AbstractFabutTest {
         // assert
         assertFabutReportFailure(
                 report,
-                "■>property: expected: testtest\n"
-                        + "■>property: but was: test\n"
+                "■>property: expected: testtest but was: test\n"
                         + "CODE:\n"
                         + "assertObject(object,\n"
                         + "value(TierTwoType.PROPERTY, TierOneType{property='testtest'}),\n"
@@ -410,14 +408,11 @@ public class FabutObjectAssertTest extends AbstractFabutTest {
         assertFabutReportFailure(
                 report,
                 "#>Asserting object at index [0] of list .\n"
-                        + "■>property: expected: testtest\n"
-                        + "■>property: but was: test\n"
+                        + "■>property: expected: testtest but was: test\n"
                         + "#>Asserting object at index [1] of list .\n"
-                        + "■>property: expected: testtesttest\n"
-                        + "■>property: but was: testtest\n"
+                        + "■>property: expected: testtesttest but was: testtest\n"
                         + "#>Asserting object at index [2] of list .\n"
-                        + "■>property: expected: testtesttesttest\n"
-                        + "■>property: but was: testtesttest\n"
+                        + "■>property: expected: testtesttesttest but was: testtesttest\n"
                         + "CODE:\n"
                         + "assertObject(object,\n"
                         + "value(TierOneType.PROPERTY, \"testtest\"));\n"
@@ -468,8 +463,7 @@ public class FabutObjectAssertTest extends AbstractFabutTest {
         assertFabutReportFailure(
                 report,
                 """
-■>property: expected: testtest
-■>property: but was: test
+■>property: expected: testtest but was: test
 CODE:
 assertObject(object,
 value(TierSixType.PROPERTY, TierFiveType{property=TierFourType{property=TierThreeType{property=TierTwoType{property=TierOneType{property='testtest'}}}}}),
@@ -492,7 +486,7 @@ value(TierFiveType.PROPERTY.chain(TierFourType.PROPERTY.chain(TierThreeType.PROP
         assertObjects(report, expected, actual, new LinkedList<>());
 
         // assert
-        assertFabutReportFailure(report, "■>: expected: [TierOneType{property='test'}]\n" + "■>: but was: TierOneType{property='test'}");
+        assertFabutReportFailure(report, "■>: expected: [TierOneType{property='test'}] but was: TierOneType{property='test'}");
     }
 
     /** Test for assertObjects with {@link TierOneType} when varargs of properties is called. */
@@ -622,7 +616,7 @@ value(TierFiveType.PROPERTY.chain(TierFourType.PROPERTY.chain(TierThreeType.PROP
         assertPair(report, Collections.emptyList(), expected, TEST, new ArrayList<>(), new NodesList());
 
         // assert
-        assertFabutReportFailure(report, "■>: expected: testtest\n" + "■>: but was: test");
+        assertFabutReportFailure(report, "■>: expected: testtest but was: test");
     }
 
     @Test
@@ -747,8 +741,7 @@ value(TierFiveType.PROPERTY.chain(TierFourType.PROPERTY.chain(TierThreeType.PROP
                 report,
                 "#>Asserting object at index [0] of list .\n"
                         + "#>Asserting object at index [1] of list .\n"
-                        + "■>: expected: test\n"
-                        + "■>: but was: testtest");
+                        + "■>: expected: test but was: testtest");
     }
 
     @Test
@@ -773,7 +766,7 @@ value(TierFiveType.PROPERTY.chain(TierFourType.PROPERTY.chain(TierThreeType.PROP
         assertObjectWithProperties(report, new TierOneType(TEST + TEST), properties);
 
         // assert
-        assertFabutReportFailure(report, "■>property: expected: test\n" + "■>property: but was: testtest");
+        assertFabutReportFailure(report, "■>property: expected: test but was: testtest");
     }
 
     @Test
@@ -1140,8 +1133,7 @@ value(TierFiveType.PROPERTY.chain(TierFourType.PROPERTY.chain(TierThreeType.PROP
         assertFabutReportFailure(
                 report,
                 "#>Map key: first\n"
-                        + "■>property: expected: test\n"
-                        + "■>property: but was: testtest\n"
+                        + "■>property: expected: test but was: testtest\n"
                         + "#>Map key: second\n"
                         + "CODE:\n"
                         + "assertObject(object,\n"

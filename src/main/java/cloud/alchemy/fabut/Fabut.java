@@ -778,7 +778,13 @@ public abstract class Fabut extends Assertions {
 
                     // For ENTITY_WITH_SNAPSHOT, only add CODE for changed properties
                     final boolean isSnapshotContext = report.getAssertionContext() == ENTITY_WITH_SNAPSHOT;
-                    final boolean valuesEqual = Objects.equals(expectedValue, actualValue);
+                    boolean valuesEqual;
+                    try {
+                        valuesEqual = Objects.equals(expectedValue, actualValue);
+                    } catch (Exception e) {
+                        // Handle LazyInitializationException and similar - treat as not equal
+                        valuesEqual = false;
+                    }
 
                     if (!isSnapshotContext || !valuesEqual) {
                         final Object invoke = expectedValue;

@@ -291,10 +291,8 @@ class FabutReport {
     }
 
     void assertFail(final String propertyName, final Object expected, final Object actual) {
-        final String commentComment = String.format("%s: expected: %s", propertyName, expected);
-        addComment(commentComment, CommentType.FAIL);
-        final String butWasComment = String.format("%s: but was: %s", propertyName, actual);
-        addComment(butWasComment, CommentType.FAIL);
+        final String comment = String.format("%s: expected: %s but was: %s", propertyName, expected, actual);
+        addComment(comment, CommentType.FAIL);
     }
 
     void idNull(final Class<?> clazz) {
