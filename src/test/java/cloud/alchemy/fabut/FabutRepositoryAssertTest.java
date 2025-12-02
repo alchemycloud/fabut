@@ -170,24 +170,22 @@ public class FabutRepositoryAssertTest extends AbstractFabutTest {
         final FabutReport report = new FabutReport();
         assertDbSnapshot(report);
 
-        // assert - order matches entityTypes insertion order (EntityTierOneType first, then EntityTierTwoType)
-        assertFabutReportFailure(
-                report,
-                """
-Asserting object: EntityTierOneType{id=1, property='test'}
+        // assert - exact message match
+        assertFabutReportFailure(report, """
+UPDATED: EntityTierOneType[id=1]
 --■>property: expected: test
 --■>property: but was: testtest
 CODE:
-assertObject(object,
+assertEntityWithSnapshot(object,
 value(EntityTierOneType.PROPERTY, "test"),
 value(EntityTierOneType.ID, 1));
-Asserting object: EntityTierTwoType{id=4, subProperty=EntityTierOneType{id=7, property='test'}, property='property'}
+UPDATED: EntityTierTwoType[id=4]
 --■>property: expected: test
 --■>property: but was: testtest
 --■>property: expected: property
 --■>property: but was: propertyproperty
 CODE:
-assertObject(object,
+assertEntityWithSnapshot(object,
 value(EntityTierTwoType.SUB_PROPERTY, EntityTierOneType{id=7, property='test'}),
 value(EntityTierOneType.SUB_PROPERTY.chain(EntityTierOneType.PROPERTY), "test"),
 value(EntityTierOneType.SUB_PROPERTY.chain(EntityTierOneType.ID), 7),
@@ -446,7 +444,9 @@ value(EntityTierTwoType.ID, 4));""");
         checkNotExistingInAfterDbState(beforeIds, afterIds, beforeEntities, report);
 
         // assert
-        assertFabutReportFailure(report, "■>Entity EntityTierOneType{id=null, property='null'} doesn't exist in DB any more but is not asserted in test.");
+        assertFabutReportFailure(report, """
+DELETED: EntityTierOneType[id=null]
+  -> assertEntityAsDeleted(entityTierOneType);""");
     }
 
     @Test
@@ -469,8 +469,12 @@ value(EntityTierTwoType.ID, 4));""");
         checkNewToAfterDbState(beforeIds, afterIds, afterEntities, report);
 
         // assert
-        assertFabutReportFailure(
-                report, "■>Entity EntityTierOneType{id=null, property='null'} is created in system after last snapshot but hasn't been asserted in test.");
+        assertFabutReportFailure(report, """
+CREATED: EntityTierOneType[id=null]
+CODE:
+assertObject(object,
+isNull(EntityTierOneType.PROPERTY),
+isNull(EntityTierOneType.ID));""");
     }
 
     @Test
@@ -565,15 +569,14 @@ value(EntityTierTwoType.ID, 4));""");
         assertDbSnapshotWithAfterState(beforeIds, afterIds, beforeEntities, afterEntities, report);
 
         // assert
-        assertFabutReportFailure(
-                report,
-                "Asserting object: EntityTierOneType{id=3, property='test'}\n"
-                        + "--■>property: expected: test\n"
-                        + "--■>property: but was: testtest\n"
-                        + "CODE:\n"
-                        + "assertObject(object,\n"
-                        + "value(EntityTierOneType.PROPERTY, \"test\"),\n"
-                        + "value(EntityTierOneType.ID, 3));");
+        assertFabutReportFailure(report, """
+UPDATED: EntityTierOneType[id=3]
+--■>property: expected: test
+--■>property: but was: testtest
+CODE:
+assertEntityWithSnapshot(object,
+value(EntityTierOneType.PROPERTY, "test"),
+value(EntityTierOneType.ID, 3));""");
     }
 
     @Test

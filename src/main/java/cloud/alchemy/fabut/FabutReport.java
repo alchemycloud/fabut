@@ -1,10 +1,11 @@
 package cloud.alchemy.fabut;
 
+import cloud.alchemy.fabut.enums.AssertionContext;
+import cloud.alchemy.fabut.enums.EntityChangeType;
 import org.apache.commons.lang3.StringUtils;
 
 import java.lang.reflect.Method;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -35,11 +36,17 @@ class FabutReport {
     
     // State variables
     private boolean success = true;
-    
+
     // Thread-safe collections for concurrent access
     private final List<FabutReport> subReports = new CopyOnWriteArrayList<>();
     private final List<FabutToString> messages = new CopyOnWriteArrayList<>();
     private final List<ReportCode> codes = new CopyOnWriteArrayList<>();
+
+    // Entity change tracking grouped by change type
+    private final Map<EntityChangeType, List<EntityChange>> entityChanges = new EnumMap<>(EntityChangeType.class);
+
+    // Assertion context for code generation
+    private AssertionContext assertionContext = AssertionContext.NEW_OBJECT;
 
     /**
      * Default constructor for empty report.
@@ -86,7 +93,17 @@ class FabutReport {
      * @return The formatted message string
      */
     String getMessage() {
-        return getMessage(0);
+        String baseMessage = getMessage(0);
+        String entityChangesMessage = getEntityChangesMessage();
+        String separator = "=".repeat(60);
+
+        // Combine entity changes with regular messages
+        if (!entityChangesMessage.isEmpty() && !baseMessage.isEmpty()) {
+            return entityChangesMessage + "\n" + separator + "\n" + baseMessage;
+        } else if (!entityChangesMessage.isEmpty()) {
+            return entityChangesMessage;
+        }
+        return baseMessage;
     }
 
     /**
@@ -120,7 +137,7 @@ class FabutReport {
                 .map(report -> report.getMessage(depth + 1))
                 .filter(text -> !text.isEmpty())
                 .collect(Collectors.toList());
-                
+
         if (!failedSubreports.isEmpty()) {
             if (!messagesText.isEmpty()) {
                 sb.append(NEW_LINE);
@@ -348,6 +365,103 @@ class FabutReport {
     int getSubreportCount() {
         return subReports.size();
     }
+
+    /**
+     * Sets the assertion context for code generation.
+     */
+    void setAssertionContext(AssertionContext context) {
+        this.assertionContext = context;
+    }
+
+    /**
+     * Marks this report as failed (for including CODE output).
+     */
+    void markAsFailed() {
+        this.success = false;
+    }
+
+    /**
+     * Gets the assertion context for code generation.
+     */
+    AssertionContext getAssertionContext() {
+        return assertionContext;
+    }
+
+    /**
+     * Records an entity change for grouped reporting.
+     *
+     * @param changeType The type of change (CREATED, DELETED)
+     * @param entityPath The unique path/identifier of the entity
+     * @param entityClass The class of the entity
+     * @param details Additional details about the change
+     * @param suggestedFix The suggested code to fix this issue
+     */
+    void recordEntityChange(EntityChangeType changeType, String entityPath, Class<?> entityClass,
+                           String details, String suggestedFix) {
+        recordEntityChange(changeType, entityPath, entityClass, details, suggestedFix, null);
+    }
+
+    /**
+     * Records an entity change for grouped reporting with generated code.
+     */
+    void recordEntityChange(EntityChangeType changeType, String entityPath, Class<?> entityClass,
+                           String details, String suggestedFix, String code) {
+        entityChanges.computeIfAbsent(changeType, k -> new CopyOnWriteArrayList<>())
+                .add(new EntityChange(entityPath, entityClass, details, suggestedFix, code));
+        success = false;
+    }
+
+    /**
+     * Checks if there are any recorded entity changes.
+     */
+    boolean hasEntityChanges() {
+        return !entityChanges.isEmpty();
+    }
+
+    /**
+     * Gets the formatted entity changes section for the report.
+     */
+    String getEntityChangesMessage() {
+        if (entityChanges.isEmpty()) {
+            return "";
+        }
+
+        StringBuilder sb = new StringBuilder();
+        String separator = "=".repeat(60);
+        boolean firstGroup = true;
+
+        for (EntityChangeType changeType : EntityChangeType.values()) {
+            List<EntityChange> changes = entityChanges.get(changeType);
+            if (changes != null && !changes.isEmpty()) {
+                if (!firstGroup) {
+                    sb.append("\n").append(separator).append("\n");
+                }
+                firstGroup = false;
+
+                sb.append(changeType.getLabel()).append(": ");
+                for (int i = 0; i < changes.size(); i++) {
+                    if (i > 0) sb.append(", ");
+                    sb.append(changes.get(i).entityPath());
+                }
+
+                // For CREATED entities, show CODE; for others, show suggestedFix
+                if (changeType == EntityChangeType.CREATED) {
+                    for (EntityChange change : changes) {
+                        if (change.code() != null && !change.code().isEmpty()) {
+                            sb.append(change.code());
+                        }
+                    }
+                } else {
+                    String fix = changes.getFirst().suggestedFix();
+                    if (fix != null && !fix.isEmpty()) {
+                        sb.append("\n  -> ").append(fix);
+                    }
+                }
+            }
+        }
+
+        return sb.toString();
+    }
 }
 
 /**
@@ -362,3 +476,14 @@ interface ReportCode {
      */
     String code();
 }
+
+/**
+ * Record representing an entity change with all relevant information for error reporting.
+ *
+ * @param entityPath The unique path/identifier of the entity
+ * @param entityClass The class of the entity
+ * @param details Additional details about the change
+ * @param suggestedFix The suggested code to fix this issue
+ * @param code The generated code for this entity (used for CREATED entities)
+ */
+record EntityChange(String entityPath, Class<?> entityClass, String details, String suggestedFix, String code) {}

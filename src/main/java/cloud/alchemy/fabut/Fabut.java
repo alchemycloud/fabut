@@ -16,8 +16,11 @@ import java.lang.reflect.Method;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.stream.Collectors;
 
 import static cloud.alchemy.fabut.ReflectionUtil.*;
+import static cloud.alchemy.fabut.enums.AssertionContext.*;
+import static cloud.alchemy.fabut.enums.EntityChangeType.*;
 import static java.util.Optional.of;
 
 public abstract class Fabut extends Assertions {
@@ -41,6 +44,36 @@ public abstract class Fabut extends Assertions {
 
     protected Object findById(final Class<?> entityClass, final Object id) {
         throw new IllegalStateException("Override findById method");
+    }
+
+    /**
+     * Generates a unique, human-readable path/identifier for an entity.
+     * Override this method to provide meaningful entity identification in error messages.
+     * <p>
+     * Example implementations:
+     * <pre>
+     * // Simple: class name + ID
+     * return entity.getClass().getSimpleName() + "#" + getIdValue(entity);
+     *
+     * // With business key
+     * if (entity instanceof User user) {
+     *     return "User[id=" + user.getId() + ", email=" + user.getEmail() + "]";
+     * }
+     * </pre>
+     *
+     * @param entity The entity to identify
+     * @return A unique, readable identifier for the entity
+     */
+    protected String entityPath(final Object entity) {
+        if (entity == null) {
+            return "null";
+        }
+        final Object id = getIdValue(entity);
+        final String className = getRealClass(entity.getClass()).getSimpleName();
+        if (id != null) {
+            return className + "[id=" + id + "]";
+        }
+        return className + "[id=null]";
     }
 
     @BeforeEach
@@ -716,7 +749,8 @@ public abstract class Fabut extends Assertions {
         final List<Method> getMethods = getGetMethods(expected);
 
         if (parents.isEmpty()) {
-            report.addCode(() -> "\nassertObject(object");
+            final String methodName = report.getAssertionContext().getMethodName();
+            report.addCode(() -> "\n" + methodName + "(object");
         }
 
         final String className = getRealClass(actual.getClass()).getSimpleName();
@@ -1053,15 +1087,16 @@ public abstract class Fabut extends Assertions {
         // does difference between db snapshot and after db state
         beforeIdsCopy.removeAll(afterIds);
 
-        // Use parallel processing for large collections
-        if (shouldUseParallelProcessing(beforeIdsCopy.size())) {
-            beforeIdsCopy.stream()
-                    .filter(id -> !beforeEntities.get(id).isAsserted())
-                    .forEach(id -> report.noEntityInSnapshot(beforeEntities.get(id).getEntity()));
-        } else {
-            // Sequential processing for small collections
-            beforeIdsCopy.stream().map(beforeEntities::get).filter(copyAssert -> !copyAssert.isAsserted()).map(CopyAssert::getEntity).forEach(report::noEntityInSnapshot);
-        }
+        // Report deleted entities with enhanced information
+        beforeIdsCopy.stream()
+                .map(beforeEntities::get)
+                .filter(copyAssert -> !copyAssert.isAsserted())
+                .map(CopyAssert::getEntity)
+                .forEach(entity -> {
+                    String path = entityPath(entity);
+                    String suggestedFix = String.format("assertEntityAsDeleted(%s);", varName(entity));
+                    report.recordEntityChange(DELETED, path, entity.getClass(), null, suggestedFix);
+                });
     }
 
     void checkNewToAfterDbState(final Set<?> beforeIds, final Set<?> afterIds, final Map<Object, Object> afterEntities, final FabutReport report) {
@@ -1070,16 +1105,77 @@ public abstract class Fabut extends Assertions {
         // does difference between after db state and db snapshot
         afterIdsCopy.removeAll(beforeIds);
 
-        // Use parallel processing for large collections
-        if (shouldUseParallelProcessing(afterIdsCopy.size())) {
-            afterIdsCopy.stream().forEach(id -> report.entityNotAssertedInAfterState(afterEntities.get(id)));
-        } else {
-            // Sequential processing for small collections
-            for (final Object id : afterIdsCopy) {
-                final Object entity = afterEntities.get(id);
-                report.entityNotAssertedInAfterState(entity);
+        if (afterIdsCopy.isEmpty()) {
+            return;
+        }
+
+        // Collect all created entities and generate CODE for each
+        List<Object> createdEntities = afterIdsCopy.stream()
+                .map(afterEntities::get)
+                .toList();
+
+        String allPaths = createdEntities.stream()
+                .map(this::entityPath)
+                .collect(Collectors.joining(", "));
+
+        // Generate CODE for all created entities
+        StringBuilder codeBuilder = new StringBuilder();
+        for (Object entity : createdEntities) {
+            codeBuilder.append(generateEntityCodeString(entity));
+        }
+
+        report.recordEntityChange(CREATED, allPaths, createdEntities.getFirst().getClass(), null, null, codeBuilder.toString());
+    }
+
+    /**
+     * Generates CODE showing all properties of an entity.
+     */
+    private void generateEntityCode(FabutReport report, Object entity) {
+        report.addCode(() -> generateEntityCodeString(entity));
+    }
+
+    /**
+     * Generates CODE string showing all properties of an entity.
+     */
+    private String generateEntityCodeString(Object entity) {
+        final String className = getRealClass(entity.getClass()).getSimpleName();
+        final List<Method> getMethods = getGetMethods(entity);
+        StringBuilder sb = new StringBuilder();
+
+        sb.append("\nCODE:\nassertObject(object");
+
+        for (final Method method : getMethods) {
+            final String fieldName = ReflectionUtil.getFieldNameOfGet(method);
+            if (!isIgnoredField(entity.getClass(), fieldName)) {
+                try {
+                    final Object value = method.invoke(entity);
+                    final String propertyPath = className + "." + upperUnderscored(fieldName);
+                    if (value == null) {
+                        sb.append(",\nisNull(").append(propertyPath).append(")");
+                    } else if (value.getClass().isAssignableFrom(String.class)) {
+                        sb.append(",\nvalue(").append(propertyPath).append(", \"").append(value).append("\")");
+                    } else if (value.getClass().isEnum()) {
+                        sb.append(",\nvalue(").append(propertyPath).append(", ").append(value.getClass().getSimpleName()).append(".").append(value).append(")");
+                    } else {
+                        sb.append(",\nvalue(").append(propertyPath).append(", ").append(value).append(")");
+                    }
+                } catch (Exception e) {
+                    // Skip fields that can't be accessed
+                }
             }
         }
+
+        sb.append(");");
+        return sb.toString();
+    }
+
+    /**
+     * Generates a variable name suggestion for an entity (camelCase of class name).
+     */
+    private String varName(Object entity) {
+        if (entity == null) return "entity";
+        String simpleName = getRealClass(entity.getClass()).getSimpleName();
+        return Character.toLowerCase(simpleName.charAt(0)) + simpleName.substring(1);
     }
 
     void assertDbSnapshotWithAfterState(
@@ -1093,24 +1189,15 @@ public abstract class Fabut extends Assertions {
         // does intersection between db snapshot and after db state
         beforeIdsCopy.retainAll(afterIds);
 
-        // Use parallel processing for large collections
-        if (shouldUseParallelProcessing(beforeIdsCopy.size())) {
-            beforeIdsCopy.stream()
-                    .filter(id -> !beforeEntities.get(id).isAsserted())
-                    .forEach(
-                            id -> {
-                                Object beforeEntity = beforeEntities.get(id).getEntity();
-                                Object afterEntity = afterEntities.get(id);
-                                assertObjects(report.getSubReport(() -> "Asserting object: " + beforeEntity), beforeEntity, afterEntity, new LinkedList<>());
-                            });
-        } else {
-            // Sequential processing for small collections
-            for (final Object id : beforeIdsCopy) {
-                if (!beforeEntities.get(id).isAsserted()) {
-                    Object beforeEntity = beforeEntities.get(id).getEntity();
-                    Object afterEntity = afterEntities.get(id);
-                    assertObjects(report.getSubReport(() -> "Asserting object: " + beforeEntity), beforeEntity, afterEntity, new LinkedList<>());
-                }
+        // Sequential processing to properly track modifications
+        for (final Object id : beforeIdsCopy) {
+            if (!beforeEntities.get(id).isAsserted()) {
+                Object beforeEntity = beforeEntities.get(id).getEntity();
+                Object afterEntity = afterEntities.get(id);
+
+                FabutReport subReport = report.getSubReport(() -> "UPDATED: " + entityPath(beforeEntity));
+                subReport.setAssertionContext(ENTITY_WITH_SNAPSHOT);
+                assertObjects(subReport, beforeEntity, afterEntity, new LinkedList<>());
             }
         }
     }
