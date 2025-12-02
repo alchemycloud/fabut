@@ -1156,6 +1156,8 @@ public abstract class Fabut extends Assertions {
                         sb.append(",\nvalue(").append(propertyPath).append(", \"").append(value).append("\")");
                     } else if (value.getClass().isEnum()) {
                         sb.append(",\nvalue(").append(propertyPath).append(", ").append(value.getClass().getSimpleName()).append(".").append(value).append(")");
+                    } else if (isEntityType(value.getClass())) {
+                        sb.append(",\nvalue(").append(propertyPath).append(", ").append(entityPath(value)).append(")");
                     } else {
                         sb.append(",\nvalue(").append(propertyPath).append(", ").append(value).append(")");
                     }

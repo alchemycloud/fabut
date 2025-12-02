@@ -478,6 +478,35 @@ isNull(EntityTierOneType.ID));""");
     }
 
     @Test
+    public void testCheckAddedToAfterDbStateWithEntityReference() {
+        // setup - EntityTierTwoType has a subProperty that references EntityTierOneType
+        final TreeSet beforeIds = new TreeSet();
+        beforeIds.add(1);
+
+        final TreeSet afterIds = new TreeSet();
+        afterIds.add(1);
+        afterIds.add(2);
+
+        final EntityTierOneType referencedEntity = new EntityTierOneType(TEST, 5);
+        final Map<Object, Object> afterEntities = new HashMap<>();
+        afterEntities.put(1, new EntityTierTwoType(PROPERTY, 1, null));
+        afterEntities.put(2, new EntityTierTwoType(PROPERTY, 2, referencedEntity));
+
+        // method
+        final FabutReport report = new FabutReport();
+        checkNewToAfterDbState(beforeIds, afterIds, afterEntities, report);
+
+        // assert - entity reference should use entityPath format
+        assertFabutReportFailure(report, """
+CREATED: EntityTierTwoType[id=2]
+CODE:
+assertObject(object,
+value(EntityTierTwoType.SUB_PROPERTY, EntityTierOneType[id=5]),
+value(EntityTierTwoType.PROPERTY, "property"),
+value(EntityTierTwoType.ID, 2));""");
+    }
+
+    @Test
     public void testCheckAddedToAfterDbStateTrue() {
         // setup
         final TreeSet beforeIds = new TreeSet();
