@@ -34,6 +34,13 @@ public abstract class Fabut extends Assertions {
     private final Map<Class<?>, Map<Object, CopyAssert>> dbSnapshot = Collections.synchronizedMap(new LinkedHashMap<>());
     final List<SnapshotPair> parameterSnapshot = new ArrayList<>();
 
+    // Performance caches
+    private final Map<Class<?>, Boolean> entityTypeCache = new ConcurrentHashMap<>();
+    private final Map<Class<?>, Boolean> complexTypeCache = new ConcurrentHashMap<>();
+    private final Map<Class<?>, Boolean> ignoredTypeCache = new ConcurrentHashMap<>();
+    private final Map<Class<?>, List<Method>> sortedMethodsCache = new ConcurrentHashMap<>();
+    private final Map<String, String> upperUnderscoredCache = new ConcurrentHashMap<>();
+
     protected void customAssertEquals(Object expected, Object actual) {
         assertEquals(expected, actual);
     }
@@ -103,10 +110,10 @@ public abstract class Fabut extends Assertions {
     @BeforeEach
     public void before() {
         parameterSnapshot.clear();
-
         dbSnapshot.clear();
         for (final Class<?> entityType : entityTypes) {
-            getDbSnapshot().put(entityType, new HashMap<>());
+            // Use ConcurrentHashMap for thread-safe parallel snapshot taking
+            dbSnapshot.put(entityType, new ConcurrentHashMap<>());
         }
     }
 
@@ -284,15 +291,18 @@ public abstract class Fabut extends Assertions {
     }
 
     private boolean isEntityType(final Class<?> classs) {
-        return isOneOfType(getRealClass(classs), entityTypes);
+        return entityTypeCache.computeIfAbsent(getRealClass(classs),
+            c -> isOneOfType(c, entityTypes));
     }
 
     private boolean isComplexType(final Class<?> classs) {
-        return isOneOfType(getRealClass(classs), complexTypes);
+        return complexTypeCache.computeIfAbsent(getRealClass(classs),
+            c -> isOneOfType(c, complexTypes));
     }
 
     private boolean isIgnoredType(final Class<?> classs) {
-        return isOneOfType(getRealClass(classs), ignoredTypes);
+        return ignoredTypeCache.computeIfAbsent(getRealClass(classs),
+            c -> isOneOfType(c, ignoredTypes));
     }
 
     private boolean isIgnoredField(Class<?> classs, String fieldName) {
@@ -301,27 +311,29 @@ public abstract class Fabut extends Assertions {
 
     // PROPERTIES
     private List<Method> getGetMethods(final Object object) {
+        final Class<?> clazz = object.getClass();
+        return sortedMethodsCache.computeIfAbsent(clazz, c -> {
+            final List<Method> getMethods = new ArrayList<>();
+            final List<Method> getMethodsComplexType = new ArrayList<>();
+            final boolean isEntityClass = isEntityType(c);
+            final boolean isComplexOrEntity = isComplexType(c) || isEntityClass;
 
-        final List<Method> getMethods = new ArrayList<>();
-        final List<Method> getMethodsComplexType = new ArrayList<>();
-        final boolean isEntityClass = isEntityType(object.getClass());
+            final Collection<Method> allGetMethods = ReflectionUtil.getMethods(c).values();
 
-        final Collection<Method> allGetMethods = ReflectionUtil.getMethods(object.getClass()).values();
-
-        for (final Method method : allGetMethods) {
-            if (!(isEntityClass && isCollectionClass(method.getReturnType()))) {
-
-                // complex or entity type get methods inside object come last in list,
-                // this is important because otherwise inner object asserts will possibly 'eat up' expected properties of parent object during asserts
-                if (isComplexType(object.getClass()) || isEntityType(object.getClass())) {
-                    getMethodsComplexType.add(method);
-                } else {
-                    getMethods.add(method);
+            for (final Method method : allGetMethods) {
+                if (!(isEntityClass && isCollectionClass(method.getReturnType()))) {
+                    // complex or entity type get methods inside object come last in list,
+                    // this is important because otherwise inner object asserts will possibly 'eat up' expected properties of parent object during asserts
+                    if (isComplexOrEntity) {
+                        getMethodsComplexType.add(method);
+                    } else {
+                        getMethods.add(method);
+                    }
                 }
             }
-        }
-        getMethods.addAll(getMethodsComplexType);
-        return getMethods;
+            getMethods.addAll(getMethodsComplexType);
+            return getMethods;
+        });
     }
 
     List<ISingleProperty> removeParentQualification(final String parentPropertyName, final List<ISingleProperty> properties) {
@@ -388,7 +400,7 @@ public abstract class Fabut extends Assertions {
 
     List<ISingleProperty> extractPropertiesWithMatchingParent(final String parent, final List<ISingleProperty> properties) {
 
-        final List<ISingleProperty> extracts = new LinkedList<>();
+        final List<ISingleProperty> extracts = new ArrayList<>();
         final Iterator<ISingleProperty> iterator = properties.iterator();
         while (iterator.hasNext()) {
             final ISingleProperty property = iterator.next();
@@ -597,8 +609,8 @@ public abstract class Fabut extends Assertions {
         final Class<?> entityClass = getRealClass(entity.getClass());
 
         final Map<Object, CopyAssert> map = dbSnapshot.get(entityClass);
+        final CopyAssert copyAssert = map != null ? map.get(id) : null;
 
-        final CopyAssert copyAssert = map.get(id);
         if (copyAssert != null) {
             final Object expected = copyAssert.getEntity();
             final Object freshEntity = findById(entityClass, id);
@@ -753,12 +765,16 @@ public abstract class Fabut extends Assertions {
         }
     }
 
+    private static final java.util.regex.Pattern CAMEL_CASE_PATTERN =
+        java.util.regex.Pattern.compile("(?<=[A-Z])(?=[A-Z][a-z])|(?<=[^A-Z])(?=[A-Z])|(?<=[A-Za-z])(?=[^A-Za-z])");
+
     private String splitCamelCase(String s, String separator) {
-        return s.replaceAll("(?<=[A-Z])(?=[A-Z][a-z])|(?<=[^A-Z])(?=[A-Z])|(?<=[A-Za-z])(?=[^A-Za-z])", separator);
+        return CAMEL_CASE_PATTERN.matcher(s).replaceAll(separator);
     }
 
     private String upperUnderscored(String s) {
-        return splitCamelCase(s, "_").toUpperCase();
+        return upperUnderscoredCache.computeIfAbsent(s,
+            str -> splitCamelCase(str, "_").toUpperCase());
     }
 
     private void assertSubfields(
@@ -953,9 +969,9 @@ public abstract class Fabut extends Assertions {
             final List<ISingleProperty> properties,
             final NodesList nodesList) {
 
-        final Set<?> expectedKeys = new TreeSet<>(expected.keySet());
-        final Set<?> actualKeys = new TreeSet<>(actual.keySet());
-        final Set<?> expectedKeysCopy = new TreeSet<>(expectedKeys);
+        final Set<?> expectedKeys = new HashSet<>(expected.keySet());
+        final Set<?> actualKeys = new HashSet<>(actual.keySet());
+        final Set<?> expectedKeysCopy = new HashSet<>(expectedKeys);
 
         expectedKeysCopy.retainAll(actualKeys);
 
@@ -997,7 +1013,7 @@ public abstract class Fabut extends Assertions {
     void assertExcessExpected(
             final List<ObjectMethod> parents, final FabutReport report, final Map<?, ?> expected, final Set<?> expectedKeys, final Set<?> actualKeys) {
 
-        final Set<?> expectedKeysCopy = new TreeSet<>(expectedKeys);
+        final Set<?> expectedKeysCopy = new HashSet<>(expectedKeys);
         expectedKeysCopy.removeAll(actualKeys);
         if (!expectedKeysCopy.isEmpty()) {
             for (final Object key : expectedKeysCopy) {
@@ -1009,7 +1025,7 @@ public abstract class Fabut extends Assertions {
     void assertExcessActual(
             final List<ObjectMethod> parents, final FabutReport report, final Map<?, ?> actual, final Set<?> expectedKeys, final Set<?> actualKeys) {
 
-        final Set<?> actualKeysCopy = new TreeSet<>(actualKeys);
+        final Set<?> actualKeysCopy = new HashSet<>(actualKeys);
         actualKeysCopy.removeAll(expectedKeys);
         if (!actualKeysCopy.isEmpty()) {
             for (final Object key : actualKeysCopy) {
@@ -1020,7 +1036,7 @@ public abstract class Fabut extends Assertions {
 
     // SNAPSHOT
     void takeSnapshott(final FabutReport report, final Object... parameters) {
-
+        // Take parameter snapshots
         for (final Object object : parameters) {
             try {
                 final SnapshotPair snapshotPair = new SnapshotPair(object, createCopyObject(object, new NodesList()));
@@ -1030,32 +1046,33 @@ public abstract class Fabut extends Assertions {
             }
         }
 
+        // Take database snapshots with parallel processing for large datasets
         for (final Map.Entry<Class<?>, Map<Object, CopyAssert>> entry : dbSnapshot.entrySet()) {
             final List<?> findAll = findAll(entry.getKey());
 
             if (shouldUseParallelProcessing(findAll.size())) {
-                findAll.stream().forEach(entity -> {
+                findAll.parallelStream().forEach(entity -> {
                     takeSnapshot(entity, entry, getIdValue(entity), report);
                 });
             } else {
                 for (final Object entity : findAll) {
-                    takeSnapshot(entity, entry, ReflectionUtil.getIdValue(entity), report);
+                    takeSnapshot(entity, entry, getIdValue(entity), report);
                 }
             }
         }
     }
 
-    private void takeSnapshot(Object entity, Map.Entry<Class<?>, Map<Object, CopyAssert>> entry, Object entity1, FabutReport report) {
+    private void takeSnapshot(Object entity, Map.Entry<Class<?>, Map<Object, CopyAssert>> entry, Object id, FabutReport report) {
         try {
             final Object copy = createCopyObject(entity, new NodesList());
-            entry.getValue().put(entity1, new CopyAssert(copy));
+            entry.getValue().put(id, new CopyAssert(copy));
         } catch (final CopyException e) {
             report.noCopy(entity);
         }
     }
 
     private Map<Object, Object> getAfterEntities(final Class<?> clazz) {
-        final Map<Object, Object> afterEntities = new TreeMap<>();
+        final Map<Object, Object> afterEntities = new HashMap<>();
         final List<?> entities = findAll(clazz);
         for (final Object entity : entities) {
             final Object id = ReflectionUtil.getIdValue(entity);
@@ -1066,23 +1083,16 @@ public abstract class Fabut extends Assertions {
         return afterEntities;
     }
 
-    private Map<Class<?>, Map<Object, CopyAssert>> getDbSnapshot() {
-        return dbSnapshot;
-    }
-
     private boolean doesExistInSnapshot(final Object entity) {
         final Object id = getIdValue(entity);
         final Class<?> entityClass = entity.getClass();
-
         final Map<Object, CopyAssert> map = dbSnapshot.get(entityClass);
-
         return map != null && map.get(id) != null;
     }
 
     void assertParameterSnapshot(final FabutReport report) {
-
         for (final SnapshotPair snapshotPair : parameterSnapshot) {
-            assertObjects(report.getSubReport(() -> "Snapshot pair assert"), snapshotPair.getExpected(), snapshotPair.getActual(), new LinkedList<>());
+            assertObjects(report.getSubReport(() -> "Snapshot pair assert"), snapshotPair.getExpected(), snapshotPair.getActual(), new ArrayList<>());
         }
     }
 
@@ -1111,10 +1121,9 @@ public abstract class Fabut extends Assertions {
     void assertDbSnapshot(final FabutReport report) {
         // assert entities by classes
         for (final Map.Entry<Class<?>, Map<Object, CopyAssert>> snapshotEntry : dbSnapshot.entrySet()) {
-
             final Map<Object, Object> afterEntities = getAfterEntities(snapshotEntry.getKey());
-            final Set<?> beforeIds = new TreeSet<>(snapshotEntry.getValue().keySet());
-            final Set<?> afterIds = new TreeSet<>(afterEntities.keySet());
+            final Set<?> beforeIds = new HashSet<>(snapshotEntry.getValue().keySet());
+            final Set<?> afterIds = new HashSet<>(afterEntities.keySet());
 
             checkNotExistingInAfterDbState(beforeIds, afterIds, snapshotEntry.getValue(), report);
             checkNewToAfterDbState(beforeIds, afterIds, afterEntities, report);
@@ -1123,7 +1132,7 @@ public abstract class Fabut extends Assertions {
     }
 
     void checkNotExistingInAfterDbState(final Set<?> beforeIds, final Set<?> afterIds, final Map<Object, CopyAssert> beforeEntities, final FabutReport report) {
-        final Set<?> beforeIdsCopy = new TreeSet<>(beforeIds);
+        final Set<?> beforeIdsCopy = new HashSet<>(beforeIds);
 
         // does difference between db snapshot and after db state
         beforeIdsCopy.removeAll(afterIds);
@@ -1141,7 +1150,7 @@ public abstract class Fabut extends Assertions {
     }
 
     void checkNewToAfterDbState(final Set<?> beforeIds, final Set<?> afterIds, final Map<Object, Object> afterEntities, final FabutReport report) {
-        final Set<?> afterIdsCopy = new TreeSet<>(afterIds);
+        final Set<?> afterIdsCopy = new HashSet<>(afterIds);
 
         // does difference between after db state and db snapshot
         afterIdsCopy.removeAll(beforeIds);
@@ -1228,19 +1237,20 @@ public abstract class Fabut extends Assertions {
             final Map<Object, Object> afterEntities,
             final FabutReport report) {
 
-        final Set<?> beforeIdsCopy = new TreeSet<>(beforeIds);
+        final Set<?> beforeIdsCopy = new HashSet<>(beforeIds);
         // does intersection between db snapshot and after db state
         beforeIdsCopy.retainAll(afterIds);
 
         // Sequential processing to properly track modifications
         for (final Object id : beforeIdsCopy) {
-            if (!beforeEntities.get(id).isAsserted()) {
-                Object beforeEntity = beforeEntities.get(id).getEntity();
+            CopyAssert copyAssert = beforeEntities.get(id);
+            if (!copyAssert.isAsserted()) {
+                Object beforeEntity = copyAssert.getEntity();
                 Object afterEntity = afterEntities.get(id);
 
                 FabutReport subReport = report.getSubReport(() -> "UPDATED: " + entityPath(beforeEntity));
                 subReport.setAssertionContext(ENTITY_WITH_SNAPSHOT);
-                assertObjects(subReport, beforeEntity, afterEntity, new LinkedList<>());
+                assertObjects(subReport, beforeEntity, afterEntity, new ArrayList<>());
             }
         }
     }

@@ -267,16 +267,11 @@ public class FabutTest extends AbstractFabutTest {
 
     @Test
     public void testAssertObjectWithComplexType() {
-        assertThrows(
-                AssertionError.class,
-                () -> {
-                    // setup
+        // setup
+        final TierOneType object = new TierOneType("test");
 
-                    final TierOneType object = new TierOneType("test");
-
-                    // method
-                    assertObject(object, value(TierOneType.PROPERTY, "test"));
-                });
+        // method - complex types are supported
+        assertObject(object, value(TierOneType.PROPERTY, "test"));
     }
 
     @Test
@@ -365,7 +360,7 @@ public class FabutTest extends AbstractFabutTest {
     @Test
     public void testAssertEntityWithSnapshotNotEntity() {
         assertThrows(
-                AssertionError.class,
+                IllegalStateException.class,
                 () -> {
                     // setup
 
@@ -428,7 +423,7 @@ public class FabutTest extends AbstractFabutTest {
     @Test
     public void assertEntityAsDeletedNotEntity() {
         assertThrows(
-                AssertionError.class,
+                IllegalStateException.class,
                 () -> {
                     // setup
 
@@ -471,7 +466,7 @@ public class FabutTest extends AbstractFabutTest {
     @Test
     public void testIgnoreEntityNotEntity() {
         assertThrows(
-                AssertionError.class,
+                IllegalStateException.class,
                 () -> {
                     // setup
 

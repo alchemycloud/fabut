@@ -382,12 +382,12 @@ value(EntityTierTwoType.PROPERTY, "property"));""");
     @Test
     public void testCheckNotExistingInAfterDbStateTrue() {
         // setup
-        final TreeSet beforeIds = new TreeSet();
+        final HashSet beforeIds = new HashSet();
         beforeIds.add(1);
         beforeIds.add(2);
         beforeIds.add(3);
 
-        final TreeSet afterIds = new TreeSet();
+        final HashSet afterIds = new HashSet();
         afterIds.add(1);
         afterIds.add(3);
 
@@ -414,12 +414,12 @@ value(EntityTierTwoType.PROPERTY, "property"));""");
     @Test
     public void testCheckNotExistingInAfterDbStateFalse() {
         // setup
-        final TreeSet beforeIds = new TreeSet();
+        final HashSet beforeIds = new HashSet();
         beforeIds.add(1);
         beforeIds.add(2);
         beforeIds.add(3);
 
-        final TreeSet afterIds = new TreeSet();
+        final HashSet afterIds = new HashSet();
         afterIds.add(1);
         afterIds.add(3);
 
@@ -447,11 +447,11 @@ DELETED: EntityTierOneType[id=null]
     @Test
     public void testCheckAddedToAfterDbStateFalse() {
         // setup
-        final TreeSet beforeIds = new TreeSet();
+        final HashSet beforeIds = new HashSet();
         beforeIds.add(1);
         beforeIds.add(2);
 
-        final TreeSet afterIds = new TreeSet();
+        final HashSet afterIds = new HashSet();
         afterIds.add(1);
         afterIds.add(3);
 
@@ -475,10 +475,10 @@ isNull(EntityTierOneType.ID));""");
     @Test
     public void testCheckAddedToAfterDbStateWithEntityReference() {
         // setup - EntityTierTwoType has a subProperty that references EntityTierOneType
-        final TreeSet beforeIds = new TreeSet();
+        final HashSet beforeIds = new HashSet();
         beforeIds.add(1);
 
-        final TreeSet afterIds = new TreeSet();
+        final HashSet afterIds = new HashSet();
         afterIds.add(1);
         afterIds.add(2);
 
@@ -504,11 +504,11 @@ value(EntityTierTwoType.ID, 2));""");
     @Test
     public void testCheckAddedToAfterDbStateTrue() {
         // setup
-        final TreeSet beforeIds = new TreeSet();
+        final HashSet beforeIds = new HashSet();
         beforeIds.add(1);
         beforeIds.add(3);
 
-        final TreeSet afterIds = new TreeSet();
+        final HashSet afterIds = new HashSet();
         afterIds.add(1);
         afterIds.add(3);
 
@@ -527,11 +527,11 @@ value(EntityTierTwoType.ID, 2));""");
     @Test
     public void testAssertDbSnapshotWithAfterStateTrue() {
         // setup
-        final TreeSet beforeIds = new TreeSet();
+        final HashSet beforeIds = new HashSet();
         beforeIds.add(1);
         beforeIds.add(3);
 
-        final TreeSet afterIds = new TreeSet();
+        final HashSet afterIds = new HashSet();
         afterIds.add(1);
         afterIds.add(3);
 
@@ -563,11 +563,11 @@ value(EntityTierTwoType.ID, 2));""");
     @Test
     public void testAssertDbSnapshotWithAfterStateFalse() {
         // setup
-        final TreeSet beforeIds = new TreeSet();
+        final HashSet beforeIds = new HashSet();
         beforeIds.add(1);
         beforeIds.add(3);
 
-        final TreeSet afterIds = new TreeSet();
+        final HashSet afterIds = new HashSet();
         afterIds.add(1);
         afterIds.add(3);
 

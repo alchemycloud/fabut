@@ -2,12 +2,14 @@ package cloud.alchemy.fabut.graph;
 
 import cloud.alchemy.fabut.enums.NodeCheckType;
 
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.Queue;
+import java.util.Collections;
+import java.util.IdentityHashMap;
+import java.util.Map;
+import java.util.Set;
 
 /**
- * Implementing class for {@link IsomorphicGraph} using concurrent collections for thread-safety
- * and parallel processing for improved performance.
+ * Implementing class for {@link IsomorphicGraph} using IdentityHashMap for O(1) lookups.
+ * Uses object identity (==) rather than equals() for comparisons.
  *
  * @author Dusko Vesin
  * @author Nikola Olah
@@ -15,77 +17,36 @@ import java.util.Queue;
  * @author Nikola Trkulja
  */
 public class NodesList implements IsomorphicGraph {
-    private final Queue<IsomorphicNodePair> isomorphicNodes;
-    private static final int PARALLEL_THRESHOLD = 100;
+    // O(1) lookup: actual object -> expected object
+    private final Map<Object, Object> actualToExpected = new IdentityHashMap<>();
+    // O(1) lookup: expected objects set
+    private final Set<Object> expectedSet = Collections.newSetFromMap(new IdentityHashMap<>());
 
-    /** Default constructor. */
-    public NodesList() {
-        isomorphicNodes = new ConcurrentLinkedQueue<>();
+    @Override
+    public boolean containsPair(final Object expected, final Object actual) {
+        Object mapped = actualToExpected.get(actual);
+        return mapped != null && mapped == expected;
     }
 
     @Override
-    public boolean containsPair(final Object actual, final Object expected) {
-        return isomorphicNodes.contains(new IsomorphicNodePair(actual, expected));
+    public void addPair(final Object expected, final Object actual) {
+        actualToExpected.put(actual, expected);
+        expectedSet.add(expected);
     }
 
-    @Override
-    public void addPair(final Object actual, final Object expected) {
-        isomorphicNodes.add(new IsomorphicNodePair(actual, expected));
-    }
-
-    @SuppressWarnings("unchecked")
     @Override
     public Object getExpected(final Object actual) {
-        // For large collections, use parallel stream for better performance
-        if (isomorphicNodes.size() > PARALLEL_THRESHOLD) {
-            return isomorphicNodes.stream()
-                    .filter(node -> node.getActual() == actual)
-                    .findFirst()
-                    .map(IsomorphicNodePair::getExpected)
-                    .orElse(null);
-        } else {
-            // Sequential approach for smaller collections to avoid overhead
-            for (final IsomorphicNodePair isomorphicNode : isomorphicNodes) {
-                if (isomorphicNode.getActual() == actual) {
-                    return isomorphicNode.getExpected();
-                }
-            }
-            return null;
-        }
+        return actualToExpected.get(actual);
     }
 
     @Override
     public boolean containsActual(final Object actual) {
-        // For large collections, use parallel stream for better performance
-        if (isomorphicNodes.size() > PARALLEL_THRESHOLD) {
-            return isomorphicNodes.stream()
-                    .anyMatch(node -> node.getActual() == actual);
-        } else {
-            // Sequential approach for smaller collections to avoid overhead
-            for (final IsomorphicNodePair isomorphicNode : isomorphicNodes) {
-                if (isomorphicNode.getActual() == actual) {
-                    return true;
-                }
-            }
-            return false;
-        }
+        return actualToExpected.containsKey(actual);
     }
 
     @Override
     public boolean containsExpected(final Object expected) {
-        // For large collections, use parallel stream for better performance
-        if (isomorphicNodes.size() > PARALLEL_THRESHOLD) {
-            return isomorphicNodes.stream()
-                    .anyMatch(node -> node.getExpected() == expected);
-        } else {
-            // Sequential approach for smaller collections to avoid overhead
-            for (final IsomorphicNodePair isomorphicNode : isomorphicNodes) {
-                if (isomorphicNode.getExpected() == expected) {
-                    return true;
-                }
-            }
-            return false;
-        }
+        return expectedSet.contains(expected);
     }
 
     @Override

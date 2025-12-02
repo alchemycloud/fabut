@@ -27,10 +27,11 @@ public class ReflectionUtil {
     static final String SET_ID = "setId";
     static final String ID = "id";
 
-    // Thread-safe caches for reflection operations
-    private static final Map<Class<?>, Map<String, Method>> classGetMethods = new HashMap<>();
-    private static final Map<Class<?>, Map<String, Method>> classSetMethods = new HashMap<>();
-    private static final Map<Class<?>, Map<String, Field>> classFields = new HashMap<>();
+    // Thread-safe caches for reflection operations (required for parallel snapshot taking)
+    private static final Map<Class<?>, Map<String, Method>> classGetMethods = new ConcurrentHashMap<>();
+    private static final Map<Class<?>, Map<String, Method>> classSetMethods = new ConcurrentHashMap<>();
+    private static final Map<Class<?>, Map<String, Field>> classFields = new ConcurrentHashMap<>();
+    private static final Map<Class<?>, Class<?>> realClassCache = new ConcurrentHashMap<>();
 
     /**
      * Private constructor to prevent instantiation of utility class.
@@ -41,15 +42,15 @@ public class ReflectionUtil {
 
     /**
      * Returns the real class of an object, handling proxy classes.
+     * Results are cached for O(1) subsequent lookups.
      *
      * @param clazz The class to evaluate
      * @return The real class (superclass if proxy)
      */
     static Class<?> getRealClass(final Class<?> clazz) {
-        if (clazz.getName().contains("Proxy")) {
-            return clazz.getSuperclass();
-        }
-        return clazz;
+        return realClassCache.computeIfAbsent(clazz, c ->
+            c.getName().contains("Proxy") ? c.getSuperclass() : c
+        );
     }
 
     /**
@@ -330,13 +331,21 @@ public class ReflectionUtil {
     }
 
     /**
-     * Checks if a class is one of the given types.
+     * Checks if a class is one of the given types (exact match or subclass).
+     * Only checks if clazz is assignable TO the registered types, not the reverse.
+     * This prevents parent classes from matching when only child classes are registered.
+     * Uses simple for loop instead of stream for better performance.
      *
      * @param clazz The class to check
      * @param classes The list of classes to check against
-     * @return true if the class is one of the given types, false otherwise
+     * @return true if clazz is the same as or a subclass of any registered type
      */
     static boolean isOneOfType(final Class<?> clazz, Collection<Class<?>> classes) {
-        return classes.stream().anyMatch(c -> c.isAssignableFrom(clazz) || clazz.isAssignableFrom(c));
+        for (Class<?> c : classes) {
+            if (c.isAssignableFrom(clazz)) {
+                return true;
+            }
+        }
+        return false;
     }
 }

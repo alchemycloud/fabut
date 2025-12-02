@@ -1172,9 +1172,9 @@ value(TierFiveType.PROPERTY.chain(TierFourType.PROPERTY.chain(TierThreeType.PROP
         // setup
         final Map<String, TierOneType> expected = new HashMap<>();
         expected.put("first", new TierOneType());
-        final TreeSet<String> expectedKeys = new TreeSet<>();
+        final HashSet<String> expectedKeys = new HashSet<>();
         expectedKeys.add("first");
-        final TreeSet<String> actualKeys = new TreeSet<>();
+        final HashSet<String> actualKeys = new HashSet<>();
         actualKeys.add("first");
 
         // method
@@ -1190,9 +1190,9 @@ value(TierFiveType.PROPERTY.chain(TierFourType.PROPERTY.chain(TierThreeType.PROP
         // setup
         final Map<String, TierOneType> expected = new HashMap<>();
         expected.put("first", new TierOneType());
-        final TreeSet<String> expectedKeys = new TreeSet<>();
+        final HashSet<String> expectedKeys = new HashSet<>();
         expectedKeys.add("first");
-        final TreeSet<String> actualKeys = new TreeSet<>();
+        final HashSet<String> actualKeys = new HashSet<>();
         final FabutReport report = new FabutReport();
         // method
         assertExcessExpected(Collections.emptyList(), report, expected, expectedKeys, actualKeys);
@@ -1206,9 +1206,9 @@ value(TierFiveType.PROPERTY.chain(TierFourType.PROPERTY.chain(TierThreeType.PROP
         // setup
         final Map<String, TierOneType> actual = new HashMap<>();
         actual.put("first", new TierOneType());
-        final TreeSet<String> expectedKeys = new TreeSet<>();
+        final HashSet<String> expectedKeys = new HashSet<>();
         expectedKeys.add("first");
-        final TreeSet<String> actualKeys = new TreeSet<>();
+        final HashSet<String> actualKeys = new HashSet<>();
         actualKeys.add("first");
 
         // method
@@ -1224,8 +1224,8 @@ value(TierFiveType.PROPERTY.chain(TierFourType.PROPERTY.chain(TierThreeType.PROP
         // setup
         final Map<String, TierOneType> actual = new HashMap<>();
         actual.put("first", new TierOneType());
-        final TreeSet<String> expectedKeys = new TreeSet<>();
-        final TreeSet<String> actualKeys = new TreeSet<>();
+        final HashSet<String> expectedKeys = new HashSet<>();
+        final HashSet<String> actualKeys = new HashSet<>();
         actualKeys.add("first");
         final FabutReport report = new FabutReport();
         // method
