@@ -35,9 +35,8 @@ public abstract class Fabut extends Assertions {
     final List<SnapshotPair> parameterSnapshot = new ArrayList<>();
 
     // Performance caches
-    private final Map<Class<?>, Boolean> entityTypeCache = new ConcurrentHashMap<>();
-    private final Map<Class<?>, Boolean> complexTypeCache = new ConcurrentHashMap<>();
-    private final Map<Class<?>, Boolean> ignoredTypeCache = new ConcurrentHashMap<>();
+    private enum TypeCategory { ENTITY, COMPLEX, IGNORED }
+    private final Map<Class<?>, EnumSet<TypeCategory>> typeCategoriesCache = new ConcurrentHashMap<>();
     private final Map<Class<?>, List<Method>> sortedMethodsCache = new ConcurrentHashMap<>();
     private final Map<String, String> upperUnderscoredCache = new ConcurrentHashMap<>();
 
@@ -75,12 +74,12 @@ public abstract class Fabut extends Assertions {
         if (entity == null) {
             return "null";
         }
-        final Object id = getIdValue(entity);
-        final String className = getRealClass(entity.getClass()).getSimpleName();
-        if (id != null) {
-            return className + "[id=" + id + "]";
+        if (isEntityType(entity.getClass())) {
+            final String className = getRealClass(entity.getClass()).getSimpleName();
+            final Object id = getIdValue(entity);
+            return className + "[id=" + (id != null ? id : "null") + "]";
         }
-        return className + "[id=null]";
+        return entity.toString();
     }
 
     /**
@@ -144,7 +143,7 @@ public abstract class Fabut extends Assertions {
 
     public void assertObject(final String message, final Object object, final IProperty... properties) {
 
-        final FabutReport report = new FabutReport(() -> message + ": " + object);
+        final FabutReport report = new FabutReport(() -> message + ": " + entityPath(object));
 
         if (!isComplexType(object.getClass()) && !isEntityType(object.getClass())) {
             throw new IllegalStateException("Unsupported object type" + object.getClass() + " " + object);
@@ -169,7 +168,7 @@ public abstract class Fabut extends Assertions {
 
     public <T> T assertEntityWithSnapshot(final T entity, final IProperty... expectedChanges) {
         checkIfEntity(entity);
-        final FabutReport report = new FabutReport(() -> "Assert with snapshot: " + entity);
+        final FabutReport report = new FabutReport(() -> "Assert with snapshot: " + entityPath(entity));
 
         if (expectedChanges.length == 0) {
             report.assertWithSnapshotMustHaveAtLeastOnChange(entity);
@@ -188,7 +187,7 @@ public abstract class Fabut extends Assertions {
     public void assertEntityAsDeleted(final Object entity) {
         checkIfEntity(entity);
 
-        final FabutReport report = new FabutReport(() -> "Assert entity as deleted: " + entity);
+        final FabutReport report = new FabutReport(() -> "Assert entity as deleted: " + entityPath(entity));
         assertEntityAsDeleted(report, entity);
         if (!report.isSuccess()) {
             throw new AssertionFailedError(report.getMessage());
@@ -290,23 +289,33 @@ public abstract class Fabut extends Assertions {
         }
     }
 
-    private boolean isEntityType(final Class<?> classs) {
-        return entityTypeCache.computeIfAbsent(getRealClass(classs),
-            c -> isOneOfType(c, entityTypes));
+    private EnumSet<TypeCategory> getTypeCategories(Class<?> clazz) {
+        return typeCategoriesCache.computeIfAbsent(getRealClass(clazz), this::computeTypeCategories);
     }
 
-    private boolean isComplexType(final Class<?> classs) {
-        return complexTypeCache.computeIfAbsent(getRealClass(classs),
-            c -> isOneOfType(c, complexTypes));
+    private EnumSet<TypeCategory> computeTypeCategories(Class<?> c) {
+        EnumSet<TypeCategory> categories = EnumSet.noneOf(TypeCategory.class);
+        if (isOneOfType(c, ignoredTypes)) categories.add(TypeCategory.IGNORED);
+        if (isOneOfType(c, entityTypes)) categories.add(TypeCategory.ENTITY);
+        if (isOneOfType(c, complexTypes)) categories.add(TypeCategory.COMPLEX);
+        return categories;
     }
 
-    private boolean isIgnoredType(final Class<?> classs) {
-        return ignoredTypeCache.computeIfAbsent(getRealClass(classs),
-            c -> isOneOfType(c, ignoredTypes));
+    protected boolean isEntityType(Class<?> clazz) {
+        return getTypeCategories(clazz).contains(TypeCategory.ENTITY);
     }
 
-    private boolean isIgnoredField(Class<?> classs, String fieldName) {
-        return ignoredFields.getOrDefault(getRealClass(classs), Collections.emptyList()).contains(fieldName);
+    protected boolean isComplexType(Class<?> clazz) {
+        return getTypeCategories(clazz).contains(TypeCategory.COMPLEX);
+    }
+
+    protected boolean isIgnoredType(Class<?> clazz) {
+        return getTypeCategories(clazz).contains(TypeCategory.IGNORED);
+    }
+
+    private boolean isIgnoredField(Class<?> clazz, String fieldName) {
+        List<String> fields = ignoredFields.get(getRealClass(clazz));
+        return fields != null && fields.contains(fieldName);
     }
 
     // PROPERTIES

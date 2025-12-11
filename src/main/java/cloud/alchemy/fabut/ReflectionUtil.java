@@ -51,7 +51,7 @@ public class ReflectionUtil {
      * @param clazz The class to evaluate
      * @return The real class (superclass if proxy)
      */
-    static Class<?> getRealClass(final Class<?> clazz) {
+    public static Class<?> getRealClass(final Class<?> clazz) {
         return realClassCache.computeIfAbsent(clazz, c ->
             c.getName().contains("Proxy") ? c.getSuperclass() : c
         );
@@ -64,7 +64,7 @@ public class ReflectionUtil {
      * @param methodName The name of the method to find
      * @return The Method object, or null if not found
      */
-    static Method findGetMethod(final Object object, final String methodName) {
+   public static Method findGetMethod(final Object object, final String methodName) {
         return findGetMethod(object.getClass(), methodName);
     }
 
