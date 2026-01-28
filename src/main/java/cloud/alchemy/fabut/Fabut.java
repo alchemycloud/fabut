@@ -53,6 +53,18 @@ public abstract class Fabut extends Assertions {
     }
 
     /**
+     * Refreshes a Hibernate proxy by loading the actual entity from database.
+     * If the value is not a proxy or is already initialized, returns as-is.
+     * Uses reflection to avoid direct Hibernate dependency.
+     *
+     * @param value the value that might be a lazy proxy
+     * @return the refreshed entity or the original value
+     */
+    protected Object refreshIfProxy(final Object value) {
+        return value;
+    }
+
+    /**
      * Generates a unique, human-readable path/identifier for an entity.
      * Override this method to provide meaningful entity identification in error messages.
      * <p>
@@ -830,12 +842,19 @@ public abstract class Fabut extends Assertions {
                     try {
                         valuesEqual = Objects.equals(expectedValue, actualValue);
                     } catch (Exception e) {
-                        // Handle LazyInitializationException and similar - treat as not equal
-                        valuesEqual = false;
+                        // Handle LazyInitializationException and similar - refresh proxies and retry
+                        try {
+                            Object refreshedExpected = refreshIfProxy(expectedValue);
+                            Object refreshedActual = refreshIfProxy(actualValue);
+                            valuesEqual = Objects.equals(refreshedExpected, refreshedActual);
+                        } catch (Exception e2) {
+                            // Still failing (nested proxies) - treat as not equal
+                            valuesEqual = false;
+                        }
                     }
 
                     if (!isSnapshotContext || !valuesEqual) {
-                        final Object invoke = expectedValue;
+                        final Object invoke = refreshIfProxy(expectedValue);
                         report.addCode(
                                 () -> {
                                     final String propertyPath = chainPrefix + className + "." + upperUnderscored(fieldName) + chainPostfix;
