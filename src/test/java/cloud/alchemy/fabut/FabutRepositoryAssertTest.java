@@ -1,5 +1,6 @@
 package cloud.alchemy.fabut;
 
+import cloud.alchemy.fabut.enums.EntityChangeType;
 import cloud.alchemy.fabut.model.*;
 import cloud.alchemy.fabut.property.CopyAssert;
 import cloud.alchemy.fabut.property.ISingleProperty;
@@ -440,8 +441,9 @@ value(EntityTierTwoType.PROPERTY, "property"));""");
 
         // assert
         assertFabutReportFailure(report, """
-DELETED: EntityTierOneType[id=null]
-  -> assertEntityAsDeleted(entityTierOneType);""");
+DELETED:
+  EntityTierOneType[id=null]
+    -> assertEntityAsDeleted(entityTierOneType);""");
     }
 
     @Test
@@ -465,7 +467,8 @@ DELETED: EntityTierOneType[id=null]
 
         // assert
         assertFabutReportFailure(report, """
-CREATED: EntityTierOneType[id=null]
+CREATED:
+  EntityTierOneType[id=null]
 CODE:
 assertObject(object,
 isNull(EntityTierOneType.PROPERTY),
@@ -493,7 +496,8 @@ isNull(EntityTierOneType.ID));""");
 
         // assert - entity reference should use entityPath format
         assertFabutReportFailure(report, """
-CREATED: EntityTierTwoType[id=2]
+CREATED:
+  EntityTierTwoType[id=2]
 CODE:
 assertObject(object,
 value(EntityTierTwoType.SUB_PROPERTY, EntityTierOneType[id=5]),
@@ -714,5 +718,33 @@ value(EntityTierOneType.PROPERTY, "test"));""");
                 "CODE:\n" +
                 "assertObject(object,\n" +
                 "value(TypeWithOptionalEntity.OPTIONAL_ENTITY, Optional[EntityTierOneType{id=456, property='test'}]));");
+    }
+
+    @Test
+    public void testEntityChangesInSubreportAppearInParentMessage() {
+        // setup - create parent report with subreport containing entity changes
+        assertAfterTest = false;
+        final FabutReport parentReport = new FabutReport(() -> "Parent report");
+
+        // Create subreport (simulates "Repository snapshot assert" structure)
+        final FabutReport subReport = parentReport.getSubReport(() -> "Repository snapshot assert");
+
+        // Record entity change in the subreport (simulates deleted entity detection)
+        subReport.recordEntityChange(
+                EntityChangeType.DELETED,
+                "EntityTierOneType[id=123]",
+                EntityTierOneType.class,
+                "Entity was deleted",
+                "assertEntityAsDeleted(entityTierOneType);"
+        );
+
+        // method - get message from parent report
+        final String message = parentReport.getMessage();
+
+        // assert - subreport entity changes must appear in parent message
+        assertTrue(message.contains("DELETED:") && message.contains("EntityTierOneType[id=123]"),
+                "Parent message should contain subreport's DELETED entity change. Actual message:\n" + message);
+        assertTrue(message.contains("assertEntityAsDeleted(entityTierOneType);"),
+                "Parent message should contain subreport's suggested fix. Actual message:\n" + message);
     }
 }

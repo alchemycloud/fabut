@@ -95,17 +95,8 @@ class FabutReport {
      * @return The formatted message string
      */
     String getMessage() {
-        String baseMessage = getMessage(0);
-        String entityChangesMessage = getEntityChangesMessage();
-        String separator = "=".repeat(60);
-
-        // Combine entity changes with regular messages
-        if (!entityChangesMessage.isEmpty() && !baseMessage.isEmpty()) {
-            return entityChangesMessage + "\n" + separator + "\n" + baseMessage;
-        } else if (!entityChangesMessage.isEmpty()) {
-            return entityChangesMessage;
-        }
-        return baseMessage;
+        // getMessage(0) now includes entity changes at all levels
+        return getMessage(0);
     }
 
     /**
@@ -131,6 +122,15 @@ class FabutReport {
                 sb.append(text);
                 firstMessage = false;
             }
+        }
+
+        // Add entity changes (DELETED, CREATED, UPDATED) for this report
+        String entityChangesText = getEntityChangesMessage();
+        if (!entityChangesText.isEmpty()) {
+            if (sb.length() > 0) {
+                sb.append(NEW_LINE);
+            }
+            sb.append(entityChangesText);
         }
 
         // Add code messages if present
@@ -429,23 +429,18 @@ class FabutReport {
                 }
                 firstGroup = false;
 
-                sb.append(changeType.getLabel()).append(": ");
-                for (int i = 0; i < changes.size(); i++) {
-                    if (i > 0) sb.append(", ");
-                    sb.append(changes.get(i).entityPath());
-                }
-
-                // For CREATED entities, show CODE; for others, show suggestedFix
-                if (changeType == EntityChangeType.CREATED) {
-                    for (EntityChange change : changes) {
+                sb.append(changeType.getLabel()).append(":");
+                for (EntityChange change : changes) {
+                    sb.append("\n  ").append(change.entityPath());
+                    // Show suggested fix or code for each entity
+                    if (changeType == EntityChangeType.CREATED) {
                         if (change.code() != null && !change.code().isEmpty()) {
                             sb.append(change.code());
                         }
-                    }
-                } else {
-                    String fix = changes.getFirst().suggestedFix();
-                    if (fix != null && !fix.isEmpty()) {
-                        sb.append("\n  -> ").append(fix);
+                    } else {
+                        if (change.suggestedFix() != null && !change.suggestedFix().isEmpty()) {
+                            sb.append("\n    -> ").append(change.suggestedFix());
+                        }
                     }
                 }
             }
