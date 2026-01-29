@@ -5,7 +5,7 @@
 
     <groupId>cloud.alchemy</groupId>
     <artifactId>fabut</artifactId>
-    <version>4.4.0-RELEASE</version>
+    <version>5.0.0-RELEASE</version>
     <packaging>jar</packaging>
 
     <name>Alchemy Fabut</name>
@@ -59,6 +59,41 @@
 
     <build>
         <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.14.0</version>
+                <configuration>
+                    <release>${java.version}</release>
+                </configuration>
+                <executions>
+                    <!-- Compile main sources without annotation processing first -->
+                    <execution>
+                        <id>default-compile</id>
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>compile</goal>
+                        </goals>
+                        <configuration>
+                            <proc>none</proc>
+                        </configuration>
+                    </execution>
+                    <!-- Compile test sources with annotation processing -->
+                    <execution>
+                        <id>default-testCompile</id>
+                        <phase>test-compile</phase>
+                        <goals>
+                            <goal>testCompile</goal>
+                        </goals>
+                        <configuration>
+                            <!-- Use processor from compiled main classes -->
+                            <annotationProcessors>
+                                <annotationProcessor>cloud.alchemy.fabut.processor.AssertableProcessor</annotationProcessor>
+                            </annotationProcessors>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
