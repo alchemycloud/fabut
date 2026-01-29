@@ -1,7 +1,5 @@
 package cloud.alchemy.fabut.model;
 
-import cloud.alchemy.fabut.property.PropertyPath;
-
 /**
  * Class representing tier two objects with one complex object property.
  *
@@ -11,10 +9,6 @@ import cloud.alchemy.fabut.property.PropertyPath;
  * @author Nikola Trkulja
  */
 public class TierTwoType extends Type {
-
-    /** The Constant PROPERTY. */
-    public static final PropertyPath<TierOneType> PROPERTY = new PropertyPath<>("property");
-
     /** The property. */
     private final TierOneType property;
 

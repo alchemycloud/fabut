@@ -1,168 +1,278 @@
 # Fabut
 
-Fabut is a Java testing library that simplifies object assertion and database snapshot testing. It automatically detects changes in entities and provides detailed failure reports with code suggestions to fix failing tests.
+> Type-safe, fluent assertion library for Java that makes testing a breeze.
+
+Fabut eliminates boilerplate in your tests by generating type-safe assertion builders from your domain classes. No more string-based property names, no more forgetting to assert fields.
+
+## Why Fabut?
+
+**Before Fabut:**
+```java
+@Test
+void testCreateOrder() {
+    Order order = orderService.create(customer, items);
+
+    assertNotNull(order.getId());
+    assertEquals("PENDING", order.getStatus());
+    assertEquals(customer.getId(), order.getCustomerId());
+    assertEquals(new BigDecimal("99.99"), order.getTotal());
+    assertNotNull(order.getCreatedAt());
+    // Did I forget any fields? 🤔
+}
+```
+
+**With Fabut:**
+```java
+@Test
+void testCreateOrder() {
+    Order order = orderService.create(customer, items);
+
+    OrderAssert.assertThat(this, order)
+        .idIsNotNull()
+        .statusIs("PENDING")
+        .customerIdIs(customer.getId())
+        .totalIs(new BigDecimal("99.99"))
+        .createdAtIsNotNull()
+        .verify();  // Fails if any field is not covered ✓
+}
+```
 
 ## Features
 
-- **Object Assertion**: Deep comparison of complex objects with property-level failure messages
-- **Database Snapshot Testing**: Automatically detect created, updated, and deleted entities
-- **Code Generation**: When tests fail, Fabut generates code snippets to help fix the test
-- **Flexible Property Matching**: Support for null checks, value matching, and ignored properties
+- **Compile-time safety** - Typos in field names? Impossible.
+- **Complete coverage** - Fabut fails if you forget to assert a field
+- **Optional support** - First-class support for `Optional<T>` fields
+- **Auto-ignore fields** - Mark audit fields as ignored once, never think about them again
+- **Snapshot testing** - Track database changes automatically
+- **IDE friendly** - Full autocomplete for all assertion methods
 
-## Installation
+## Quick Start
 
-Add Fabut to your Maven project:
+### 1. Add dependency
 
 ```xml
 <dependency>
     <groupId>cloud.alchemy</groupId>
     <artifactId>fabut</artifactId>
-    <version>4.3.0-RELEASE</version>
+    <version>5.0.0-RELEASE</version>
     <scope>test</scope>
 </dependency>
 ```
 
-## Quick Start
-
-Extend `Fabut` in your test class:
+### 2. Annotate your class
 
 ```java
-import cloud.alchemy.fabut.Fabut;
+@Assertable(ignoredFields = {"version", "createdAt", "updatedAt"})
+public class Order {
+    private Long id;
+    private String status;
+    private Long customerId;
+    private BigDecimal total;
+    private Optional<String> notes;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
+    private Long version;
 
-public class MyTest extends Fabut {
+    // getters...
+}
+```
+
+### 3. Configure annotation processor
+
+```xml
+<plugin>
+    <groupId>org.apache.maven.plugins</groupId>
+    <artifactId>maven-compiler-plugin</artifactId>
+    <version>3.14.0</version>
+    <configuration>
+        <annotationProcessors>
+            <annotationProcessor>cloud.alchemy.fabut.processor.AssertableProcessor</annotationProcessor>
+        </annotationProcessors>
+    </configuration>
+</plugin>
+```
+
+### 4. Write clean tests
+
+```java
+class OrderServiceTest extends Fabut {
 
     @Test
-    public void testObjectAssertion() {
-        User expected = new User("John", 25);
-        User actual = userService.findById(1);
+    void createOrder_withValidData_createsOrder() {
+        Order order = orderService.create(customerId, items);
 
-        assertObject(actual,
-            value(User.NAME, "John"),
-            value(User.AGE, 25)
-        );
+        OrderAssert.assertThat(this, order)
+            .idIsNotNull()
+            .statusIs("PENDING")
+            .customerIdIs(customerId)
+            .totalIs(new BigDecimal("149.99"))
+            .notesIsEmpty()
+            .verify();
     }
 }
 ```
 
-## Object Assertion
+## Real-World Examples
 
-Assert individual properties of an object:
-
-```java
-assertObject(user,
-    value(User.NAME, "John"),
-    value(User.AGE, 25),
-    isNull(User.EMAIL),
-    notNull(User.CREATED_AT)
-);
-```
-
-## Database Snapshot Testing
-
-Fabut can track database changes between snapshots:
+### Testing CRUD Operations
 
 ```java
 @Test
-public void testEntityCreation() {
+void updateOrder_changesStatusAndAddsNote() {
+    // Arrange
+    Order order = createTestOrder();
     takeSnapshot();
 
-    // Create a new entity
-    User user = userService.create("John", 25);
+    // Act
+    orderService.ship(order.getId(), "Shipped via FedEx");
 
-    // Assert the new entity
-    assertObject(user,
-        value(User.NAME, "John"),
-        value(User.AGE, 25)
-    );
+    // Assert - only specify what changed
+    OrderAssert.assertSnapshot(this, order)
+        .statusIs("SHIPPED")
+        .notesHasValue("Shipped via FedEx")
+        .verify();
+}
 
-    // Verify database state
-    assertDbSnapshot();
+@Test
+void cancelOrder_deletesOrder() {
+    Order order = createTestOrder();
+    takeSnapshot();
+
+    orderService.cancel(order.getId());
+
+    assertEntityAsDeleted(order);
 }
 ```
 
-### Handling Entity Changes
-
-When entities are modified:
+### Testing Optional Fields
 
 ```java
+@Assertable
+public class UserProfile {
+    private Long id;
+    private String username;
+    private Optional<String> bio;
+    private Optional<String> avatarUrl;
+    // getters...
+}
+
 @Test
-public void testEntityUpdate() {
+void createProfile_withoutOptionalFields() {
+    UserProfile profile = profileService.create("john_doe");
+
+    UserProfileAssert.assertThat(this, profile)
+        .idIsNotNull()
+        .usernameIs("john_doe")
+        .bioIsEmpty()           // Optional.empty()
+        .avatarUrlIsEmpty()
+        .verify();
+}
+
+@Test
+void updateProfile_addsBio() {
+    UserProfile profile = createTestProfile();
     takeSnapshot();
 
-    User user = userService.findById(1);
-    user.setName("Jane");
-    userService.save(user);
+    profileService.updateBio(profile.getId(), "Hello, world!");
 
-    // Assert the changes
-    assertEntityWithSnapshot(user,
-        value(User.NAME, "Jane")
-    );
-
-    assertDbSnapshot();
+    UserProfileAssert.assertSnapshot(this, profile)
+        .bioHasValue("Hello, world!")  // Unwraps Optional for you
+        .verify();
 }
 ```
 
-When entities are deleted:
+### Testing Complex Objects
 
 ```java
+@Assertable(ignoredFields = {"audit"})
+public class Invoice {
+    private Long id;
+    private String invoiceNumber;
+    private InvoiceStatus status;
+    private BigDecimal subtotal;
+    private BigDecimal tax;
+    private BigDecimal total;
+    private Optional<LocalDate> dueDate;
+    private AuditInfo audit;
+    // getters...
+}
+
 @Test
-public void testEntityDeletion() {
-    takeSnapshot();
+void generateInvoice_calculatesCorrectTotals() {
+    Invoice invoice = invoiceService.generate(orderId);
 
-    User user = userService.findById(1);
-    userService.delete(user);
-
-    // Mark entity as expected to be deleted
-    assertEntityAsDeleted(user);
-
-    assertDbSnapshot();
+    InvoiceAssert.assertThat(this, invoice)
+        .idIsNotNull()
+        .invoiceNumberIsNotNull()
+        .statusIs(InvoiceStatus.DRAFT)
+        .subtotalIs(new BigDecimal("100.00"))
+        .taxIs(new BigDecimal("10.00"))
+        .totalIs(new BigDecimal("110.00"))
+        .dueDateIsEmpty()
+        .verify();
 }
 ```
 
-## Failure Reports
+### Testing with Ignored Fields
 
-When a test fails, Fabut provides detailed reports showing exactly what changed:
+Fields in `ignoredFields` are automatically skipped - perfect for audit columns, versions, and timestamps:
 
+```java
+@Assertable(ignoredFields = {"id", "version", "createdAt", "createdBy", "updatedAt", "updatedBy"})
+public class Product {
+    private Long id;
+    private String name;
+    private BigDecimal price;
+    private Long version;
+    private LocalDateTime createdAt;
+    private String createdBy;
+    private LocalDateTime updatedAt;
+    private String updatedBy;
+}
+
+@Test
+void createProduct_setsNameAndPrice() {
+    Product product = productService.create("Widget", new BigDecimal("29.99"));
+
+    // No need to handle id, version, or audit fields!
+    ProductAssert.assertThat(this, product)
+        .nameIs("Widget")
+        .priceIs(new BigDecimal("29.99"))
+        .verify();
+}
 ```
-DELETED: User[id=1]
-  -> assertEntityAsDeleted(user);
-============================================================
-CREATED: User[id=2]
-CODE:
-assertObject(object,
-value(User.NAME, "John"),
-value(User.AGE, 25));
-============================================================
-UPDATED: User[id=3]
---■>name: expected: John
---■>name: but was: Jane
-CODE:
-assertEntityWithSnapshot(object,
-value(User.NAME, "John"),
-value(User.ID, 3));
-```
+
+## Generated Methods Reference
+
+For each field, Fabut generates intuitive assertion methods:
+
+| Field Type | Methods |
+|------------|---------|
+| `T field` | `fieldIs(T)`, `fieldIsNull()`, `fieldIsNotNull()`, `fieldIgnored()` |
+| `Optional<T> field` | All above + `fieldIsEmpty()`, `fieldIsNotEmpty()`, `fieldHasValue(T)` |
 
 ## Configuration
 
-### Ignoring Types
-
-Some types can be ignored during assertion:
-
 ```java
-@Override
-protected List<Class<?>> getIgnoredTypes() {
-    return List.of(Timestamp.class, Date.class);
-}
-```
+public class BaseTest extends Fabut {
 
-### Entity Types
+    @Override
+    protected List<Class<?>> getEntityTypes() {
+        // Classes tracked for database snapshot testing
+        return List.of(Order.class, Customer.class, Product.class);
+    }
 
-Define which classes are database entities:
+    @Override
+    protected List<Class<?>> getIgnoredTypes() {
+        // Types to skip during deep comparison
+        return List.of(Timestamp.class, Instant.class);
+    }
 
-```java
-@Override
-protected List<Class<?>> getEntityTypes() {
-    return List.of(User.class, Order.class);
+    @Override
+    protected List<?> findAll(Class<?> entityClass) {
+        // Hook into your persistence layer
+        return entityManager.createQuery("FROM " + entityClass.getSimpleName()).getResultList();
+    }
 }
 ```
 
@@ -173,22 +283,4 @@ protected List<Class<?>> getEntityTypes() {
 
 ## License
 
-```
-Copyright [2013] [www.execom.eu]
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-```
-
-## Links
-
-- [GitHub Repository](https://github.com/alchemycloud/fabut)
+Apache License 2.0

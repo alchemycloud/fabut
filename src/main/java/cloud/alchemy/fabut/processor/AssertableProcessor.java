@@ -177,7 +177,6 @@ public class AssertableProcessor extends AbstractProcessor {
         // Imports
         out.println("import cloud.alchemy.fabut.Fabut;");
         out.println("import cloud.alchemy.fabut.property.IProperty;");
-        out.println("import cloud.alchemy.fabut.property.PropertyPath;");
         out.println("import java.util.ArrayList;");
         out.println("import java.util.List;");
         out.println("import java.util.Optional;");
@@ -206,7 +205,7 @@ public class AssertableProcessor extends AbstractProcessor {
         out.println("        this.isSnapshot = isSnapshot;");
         // Auto-add ignored for fields specified in annotation
         for (String ignoredField : ignoredFields) {
-            out.println("        properties.add(fabut.ignored(new PropertyPath<>(\"" + ignoredField + "\")));");
+            out.println("        properties.add(fabut.ignored(\"" + ignoredField + "\"));");
         }
         out.println("    }");
         out.println();
@@ -251,13 +250,12 @@ public class AssertableProcessor extends AbstractProcessor {
     }
 
     private void generateFieldMethods(PrintWriter out, String builderClassName, FieldInfo field) {
-        String methodBaseName = capitalize(field.name);
-        String propertyPath = "new PropertyPath<>(\"" + field.name + "\")";
+        String fieldPath = "\"" + field.name + "\"";
 
         // fieldIs(value) - exact value match
         out.println("    /** Assert " + field.name + " equals the expected value. */");
         out.println("    public " + builderClassName + " " + field.name + "Is(" + field.type + " expected) {");
-        out.println("        properties.add(fabut.value(" + propertyPath + ", expected));");
+        out.println("        properties.add(fabut.value(" + fieldPath + ", expected));");
         out.println("        return this;");
         out.println("    }");
         out.println();
@@ -265,7 +263,7 @@ public class AssertableProcessor extends AbstractProcessor {
         // fieldIsNull()
         out.println("    /** Assert " + field.name + " is null. */");
         out.println("    public " + builderClassName + " " + field.name + "IsNull() {");
-        out.println("        properties.add(fabut.isNull(" + propertyPath + "));");
+        out.println("        properties.add(fabut.isNull(" + fieldPath + "));");
         out.println("        return this;");
         out.println("    }");
         out.println();
@@ -273,7 +271,7 @@ public class AssertableProcessor extends AbstractProcessor {
         // fieldIsNotNull()
         out.println("    /** Assert " + field.name + " is not null. */");
         out.println("    public " + builderClassName + " " + field.name + "IsNotNull() {");
-        out.println("        properties.add(fabut.notNull(" + propertyPath + "));");
+        out.println("        properties.add(fabut.notNull(" + fieldPath + "));");
         out.println("        return this;");
         out.println("    }");
         out.println();
@@ -281,7 +279,7 @@ public class AssertableProcessor extends AbstractProcessor {
         // fieldIgnored()
         out.println("    /** Ignore " + field.name + " in this assertion. */");
         out.println("    public " + builderClassName + " " + field.name + "Ignored() {");
-        out.println("        properties.add(fabut.ignored(" + propertyPath + "));");
+        out.println("        properties.add(fabut.ignored(" + fieldPath + "));");
         out.println("        return this;");
         out.println("    }");
         out.println();
@@ -290,14 +288,14 @@ public class AssertableProcessor extends AbstractProcessor {
         if (field.isOptional) {
             out.println("    /** Assert " + field.name + " is empty (Optional.empty()). */");
             out.println("    public " + builderClassName + " " + field.name + "IsEmpty() {");
-            out.println("        properties.add(fabut.isEmpty(" + propertyPath + "));");
+            out.println("        properties.add(fabut.isEmpty(" + fieldPath + "));");
             out.println("        return this;");
             out.println("    }");
             out.println();
 
             out.println("    /** Assert " + field.name + " is not empty (Optional has value). */");
             out.println("    public " + builderClassName + " " + field.name + "IsNotEmpty() {");
-            out.println("        properties.add(fabut.notEmpty(" + propertyPath + "));");
+            out.println("        properties.add(fabut.notEmpty(" + fieldPath + "));");
             out.println("        return this;");
             out.println("    }");
             out.println();
@@ -305,7 +303,7 @@ public class AssertableProcessor extends AbstractProcessor {
             // Convenience method to assert Optional contains specific value
             out.println("    /** Assert " + field.name + " contains the expected value. */");
             out.println("    public " + builderClassName + " " + field.name + "HasValue(" + field.innerType + " expected) {");
-            out.println("        properties.add(fabut.value(" + propertyPath + ", Optional.of(expected)));");
+            out.println("        properties.add(fabut.value(" + fieldPath + ", Optional.of(expected)));");
             out.println("        return this;");
             out.println("    }");
             out.println();

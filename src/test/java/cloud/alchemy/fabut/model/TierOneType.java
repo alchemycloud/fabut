@@ -1,7 +1,5 @@
 package cloud.alchemy.fabut.model;
 
-import cloud.alchemy.fabut.property.PropertyPath;
-
 /**
  * Tier one complex type with only one {@link String} property.
  *
@@ -13,7 +11,6 @@ import cloud.alchemy.fabut.property.PropertyPath;
 public class TierOneType extends Type {
 
     /** The property. */
-    public static final PropertyPath<String> PROPERTY = new PropertyPath<>("property");
 
     /** The property. */
     private String property;

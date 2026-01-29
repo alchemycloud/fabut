@@ -1,7 +1,5 @@
 package cloud.alchemy.fabut.model;
 
-import cloud.alchemy.fabut.property.PropertyPath;
-
 import java.util.List;
 
 /**
@@ -13,10 +11,6 @@ import java.util.List;
  * @author Nikola Trkulja
  */
 public class TierTwoTypeWithListProperty extends Type {
-
-    /** The Constant PROPERTY. */
-    public static final PropertyPath<List<String>> PROPERTY = new PropertyPath<>("property");
-
     /** The property. */
     private final List<String> property;
 

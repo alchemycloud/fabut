@@ -1,14 +1,9 @@
 package cloud.alchemy.fabut.model;
 
-import cloud.alchemy.fabut.property.PropertyPath;
-
 import java.util.List;
 
 /** Created by olahnikola on 8.6.17.. */
 public class EntityWithList {
-
-    public static final PropertyPath<Integer> ID = new PropertyPath<>("id");
-    public static final PropertyPath<List<EntityTierOneType>> LIST = new PropertyPath<>("list");
 
     private Integer id;
 

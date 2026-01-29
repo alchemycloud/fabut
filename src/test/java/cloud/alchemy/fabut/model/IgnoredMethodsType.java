@@ -9,10 +9,6 @@ package cloud.alchemy.fabut.model;
  * @author Nikola Trkulja
  */
 public class IgnoredMethodsType extends Type {
-
-    /** The Constant PROPERTY. */
-    public static final String PROPERTY = "ignoreMethodsProperty";
-
     /** The ignore methods property. */
     private final String ignoreMethodsProperty;
 

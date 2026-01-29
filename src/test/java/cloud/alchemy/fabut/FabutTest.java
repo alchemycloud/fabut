@@ -121,7 +121,7 @@ public class FabutTest extends AbstractFabutTest {
     @Test
     public void testIgnoredVarargs() {
         // setup
-        final PropertyPath<?>[] properties = new PropertyPath[] {EntityTierOneType.PROPERTY, EntityTierOneType.ID};
+        final String[] properties = new String[] {"property", "id"};
 
         // method
         final MultiProperties multi = ignored(properties);
@@ -131,7 +131,7 @@ public class FabutTest extends AbstractFabutTest {
 
         for (int i = 0; i < properties.length; i++) {
             assertInstanceOf(IgnoredProperty.class, multi.getProperties().get(i));
-            assertEquals(properties[i].getPath(), multi.getProperties().get(i).getPath());
+            assertEquals(properties[i], multi.getProperties().get(i).getPath());
         }
     }
 
@@ -139,7 +139,7 @@ public class FabutTest extends AbstractFabutTest {
     @Test
     public void testNulllVarargs() {
         // setup
-        final PropertyPath<?>[] properties = new PropertyPath<?>[] {EntityTierOneType.PROPERTY, EntityTierOneType.ID};
+        final String[] properties = new String[] {"property", "id"};
 
         // method
         final MultiProperties multi = isNull(properties);
@@ -149,7 +149,7 @@ public class FabutTest extends AbstractFabutTest {
 
         for (int i = 0; i < properties.length; i++) {
             assertInstanceOf(NullProperty.class, multi.getProperties().get(i));
-            assertEquals(properties[i].getPath(), multi.getProperties().get(i).getPath());
+            assertEquals(properties[i], multi.getProperties().get(i).getPath());
         }
     }
 
@@ -157,7 +157,7 @@ public class FabutTest extends AbstractFabutTest {
     @Test
     public void testNotNullVarargs() {
         // setup
-        final PropertyPath<?>[] properties = new PropertyPath[] {EntityTierOneType.PROPERTY, EntityTierOneType.ID};
+        final String[] properties = new String[] {"property", "id"};
 
         // method
         final MultiProperties multi = notNull(properties);
@@ -167,49 +167,49 @@ public class FabutTest extends AbstractFabutTest {
 
         for (int i = 0; i < properties.length; i++) {
             assertInstanceOf(NotNullProperty.class, multi.getProperties().get(i));
-            assertEquals(properties[i].getPath(), multi.getProperties().get(i).getPath());
+            assertEquals(properties[i], multi.getProperties().get(i).getPath());
         }
     }
 
-    /** Test for {@link Fabut#notNull(PropertyPath)}. */
+    /** Test for {@link Fabut#notNull(String)}. */
     @Test
     public void testNotNull() {
         // method
-        final NotNullProperty notNullProperty = notNull(EntityTierOneType.PROPERTY);
+        final NotNullProperty notNullProperty = notNull("property");
 
         // assert
-        assertEquals(EntityTierOneType.PROPERTY.getPath(), notNullProperty.getPath());
+        assertEquals("property", notNullProperty.getPath());
     }
 
-    /** Test for {@link Fabut#isNull(PropertyPath)}. */
+    /** Test for {@link Fabut#isNull(String)}. */
     @Test
     public void testNulll() {
         // method
-        final NullProperty nullProperty = isNull(EntityTierOneType.PROPERTY);
+        final NullProperty nullProperty = isNull("property");
 
         // assert
-        assertEquals(EntityTierOneType.PROPERTY.getPath(), nullProperty.getPath());
+        assertEquals("property", nullProperty.getPath());
     }
 
-    /** Test for {@link Fabut#ignored(PropertyPath)}. */
+    /** Test for {@link Fabut#ignored(String)}. */
     @Test
     public void testIgnored() {
         // method
-        final IgnoredProperty ignoreProperty = ignored(EntityTierOneType.PROPERTY);
+        final IgnoredProperty ignoreProperty = ignored("property");
 
         // assert
-        assertEquals(EntityTierOneType.PROPERTY.getPath(), ignoreProperty.getPath());
+        assertEquals("property", ignoreProperty.getPath());
     }
 
-    /** Test for {@link Fabut#value(PropertyPath, Object)}. */
+    /** Test for {@link Fabut#value(String, Object)}. */
     @Test
     public void testValue() {
         // method
-        final Property<String> changedProperty = value(EntityTierOneType.PROPERTY, TEST);
+        final Property<String> changedProperty = value("property", TEST);
 
         // assert
         assertEquals(TEST, changedProperty.getValue());
-        assertEquals(EntityTierOneType.PROPERTY.getPath(), changedProperty.getPath());
+        assertEquals("property", changedProperty.getPath());
     }
 
     @Test
@@ -271,7 +271,7 @@ public class FabutTest extends AbstractFabutTest {
         final TierOneType object = new TierOneType("test");
 
         // method - complex types are supported
-        assertObject(object, value(TierOneType.PROPERTY, "test"));
+        assertObject(object, value("property", "test"));
     }
 
     @Test
@@ -285,7 +285,7 @@ public class FabutTest extends AbstractFabutTest {
         // method
         takeSnapshot();
         getEntityTierOneTypes().add(entity);
-        assertObject(entity, value(EntityTierOneType.ID, 1), value(EntityTierOneType.PROPERTY, "test"));
+        assertObject(entity, value("id", 1), value("property", "test"));
     }
 
     @Test
@@ -299,7 +299,7 @@ public class FabutTest extends AbstractFabutTest {
         // method
         takeSnapshot();
         getEntityWithListTypes().add(entity);
-        assertObject(entity, value(EntityWithList.ID, 1));
+        assertObject(entity, value("id", 1));
     }
 
     @Test
@@ -316,7 +316,7 @@ public class FabutTest extends AbstractFabutTest {
                     // method
                     takeSnapshot();
                     getEntityTierOneTypes().add(entity);
-                    assertObject(entity, value(EntityTierOneType.ID, 1), value(EntityTierOneType.PROPERTY, "fail"));
+                    assertObject(entity, value("id", 1), value("property", "fail"));
                 });
     }
 
@@ -332,7 +332,7 @@ public class FabutTest extends AbstractFabutTest {
 
         // method
         ((EntityTierOneType) getEntityTierOneTypes().get(0)).setProperty("test");
-        assertEntityWithSnapshot(entityTierOneType, value(EntityTierOneType.PROPERTY, "test"));
+        assertEntityWithSnapshot(entityTierOneType, value("property", "test"));
     }
 
     @Test
@@ -350,7 +350,7 @@ public class FabutTest extends AbstractFabutTest {
 
                     // method
                     ((EntityTierOneType) getEntityTierOneTypes().get(0)).setProperty("test");
-                    assertEntityWithSnapshot(entityTierOneType, value(EntityTierOneType.PROPERTY, "testtest"));
+                    assertEntityWithSnapshot(entityTierOneType, value("property", "testtest"));
 
                     assertAfterTest = false;
                     super.after();
@@ -387,7 +387,7 @@ public class FabutTest extends AbstractFabutTest {
                     // method
                     assertAfterTest = false;
                     ((EntityTierOneType) getEntityTierOneTypes().get(0)).setProperty("test");
-                    assertEntityWithSnapshot(null, value(EntityTierOneType.PROPERTY, "test"));
+                    assertEntityWithSnapshot(null, value("property", "test"));
                 });
     }
 
@@ -506,16 +506,16 @@ public class FabutTest extends AbstractFabutTest {
         // assert
         assertObject(
                 student,
-                value(new PropertyPath<>("name"), "Nikola"),
-                value(new PropertyPath<>("lastName"), "Olah"),
-                value(new PropertyPath<>("address.city"), "Temerin"),
-                value(new PropertyPath<>("address.street"), "Novosadska"),
-                value(new PropertyPath<>("address.streetNumber"), "627"),
-                value(new PropertyPath<>("faculty.name"), "PMF"),
-                value(new PropertyPath<>("faculty.teacher.name"), "Djura"),
-                value(new PropertyPath<>("faculty.teacher.address.city"), "Kamenica"),
-                value(new PropertyPath<>("faculty.teacher.address.street"), "Ljubicica"),
-                value(new PropertyPath<>("faculty.teacher.student"), student),
-                value(new PropertyPath<>("faculty.teacher.address.streetNumber"), "10"));
+                value("name", "Nikola"),
+                value("lastName", "Olah"),
+                value("address.city", "Temerin"),
+                value("address.street", "Novosadska"),
+                value("address.streetNumber", "627"),
+                value("faculty.name", "PMF"),
+                value("faculty.teacher.name", "Djura"),
+                value("faculty.teacher.address.city", "Kamenica"),
+                value("faculty.teacher.address.street", "Ljubicica"),
+                value("faculty.teacher.student", student),
+                value("faculty.teacher.address.streetNumber", "10"));
     }
 }

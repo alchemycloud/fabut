@@ -9,10 +9,6 @@ package cloud.alchemy.fabut.model;
  * @author Nikola Trkulja
  */
 public class TierSixType extends Type {
-
-    /** The Constant PROPERTY. */
-    public static final String PROPERTY = "property";
-
     /** The property. */
     private final TierFiveType property;
 

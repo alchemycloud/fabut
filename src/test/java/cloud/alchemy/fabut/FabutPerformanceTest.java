@@ -101,7 +101,7 @@ public class FabutPerformanceTest extends Fabut {
         long startTime = System.nanoTime();
         for (EntityTierOneType entity : entities) {
             // assertEntityWithSnapshot requires at least one changed property
-            assertEntityWithSnapshot(entity, value(EntityTierOneType.PROPERTY, entity.getProperty()));
+            assertEntityWithSnapshot(entity, value("property", entity.getProperty()));
         }
         long endTime = System.nanoTime();
 
@@ -157,7 +157,7 @@ public class FabutPerformanceTest extends Fabut {
             // Assert some entities with the modified property
             for (int i = 0; i < 10; i++) {
                 EntityTierOneType entity = entities.get(i);
-                assertEntityWithSnapshot(entity, value(EntityTierOneType.PROPERTY, entity.getProperty()));
+                assertEntityWithSnapshot(entity, value("property", entity.getProperty()));
             }
         }
         long endTime = System.nanoTime();

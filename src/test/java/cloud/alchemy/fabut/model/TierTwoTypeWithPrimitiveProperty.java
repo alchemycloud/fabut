@@ -1,7 +1,5 @@
 package cloud.alchemy.fabut.model;
 
-import cloud.alchemy.fabut.property.PropertyPath;
-
 /**
  * Tier two complex type with one primitive property.
  *
@@ -12,8 +10,7 @@ import cloud.alchemy.fabut.property.PropertyPath;
  */
 public class TierTwoTypeWithPrimitiveProperty extends TierTwoType {
 
-    /** The Constant PROPERTY2. */
-    public static final PropertyPath<String> PROPERTY2 = new PropertyPath<>("property2");
+    public static final String PROPERTY2 = "property2";
 
     /** The property2. */
     private final String property2;

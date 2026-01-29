@@ -622,7 +622,7 @@ value(EntityTierOneType.PROPERTY, "test"));""");
         list2.add(entity);
         setEntityTierOneTypes(list2);
 
-        properties.add(value(EntityTierOneType.PROPERTY, TEST + TEST));
+        properties.add(value("property", TEST + TEST));
 
         final FabutReport fabutReport = new FabutReport();
         assertEntityWithSnapshot(fabutReport, entity, properties);
@@ -648,8 +648,8 @@ value(EntityTierOneType.PROPERTY, "test"));""");
         list2.add(entity);
         setEntityTierOneTypes(list2);
 
-        properties.add(value(EntityTierOneType.PROPERTY, TEST + TEST));
-        properties.add(value(EntityTierOneType.ID, 1));
+        properties.add(value("property", TEST + TEST));
+        properties.add(value("id", 1));
 
         final FabutReport fabutReport = new FabutReport();
         assertEntityWithSnapshot(fabutReport, entity, properties);
@@ -671,7 +671,7 @@ value(EntityTierOneType.PROPERTY, "test"));""");
         setEntityTierOneTypes(list1);
         final EntityTierOneType entity = new EntityTierOneType(TEST + TEST, 1);
         final List<ISingleProperty> properties = new LinkedList<>();
-        properties.add(value(EntityTierOneType.PROPERTY, TEST + TEST));
+        properties.add(value("property", TEST + TEST));
 
         // method
         takeSnapshot();

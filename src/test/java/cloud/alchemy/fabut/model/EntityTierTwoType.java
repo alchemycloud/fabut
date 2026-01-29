@@ -9,10 +9,6 @@ package cloud.alchemy.fabut.model;
  * @author Nikola Trkulja
  */
 public class EntityTierTwoType extends TierOneType {
-
-    /** The Constant ID. */
-    public static final String ID = "id";
-
     /** The id. */
     private Integer id;
 

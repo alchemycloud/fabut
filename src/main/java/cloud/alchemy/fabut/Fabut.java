@@ -216,77 +216,80 @@ public abstract class Fabut extends Assertions {
         }
     }
 
-    public <T> Property<T> value(final PropertyPath<T> path, final T expectedValue) {
-        return new Property<>(path.getPath(), expectedValue);
+    // ==================== String-based assertion methods (used by generated builders) ====================
+
+    /**
+     * Assert field equals expected value.
+     */
+    public <T> Property<T> value(final String path, final T expectedValue) {
+        return new Property<>(path, expectedValue);
     }
 
-    public IgnoredProperty ignored(final PropertyPath<?> path) {
-        return new IgnoredProperty(path.getPath());
+    /**
+     * Ignore field in assertion.
+     */
+    public IgnoredProperty ignored(final String path) {
+        return new IgnoredProperty(path);
     }
 
-    public MultiProperties ignored(final PropertyPath<?>... paths) {
+    /**
+     * Assert field is not null.
+     */
+    public NotNullProperty notNull(final String path) {
+        return new NotNullProperty(path);
+    }
+
+    /**
+     * Assert field is null.
+     */
+    public NullProperty isNull(final String path) {
+        return new NullProperty(path);
+    }
+
+    /**
+     * Assert Optional field is not empty.
+     */
+    public NotEmptyProperty notEmpty(final String path) {
+        return new NotEmptyProperty(path);
+    }
+
+    /**
+     * Assert Optional field is empty.
+     */
+    public EmptyProperty isEmpty(final String path) {
+        return new EmptyProperty(path);
+    }
+
+    /**
+     * Assert multiple fields are not null (varargs).
+     */
+    public MultiProperties notNull(final String... paths) {
         final List<ISingleProperty> properties = new ArrayList<>();
-
-        for (final PropertyPath<?> path : paths) {
-            properties.add(ignored(path));
-        }
-
-        return new MultiProperties(properties);
-    }
-
-    public NotNullProperty notNull(final PropertyPath<?> path) {
-        return new NotNullProperty(path.getPath());
-    }
-
-    public MultiProperties notNull(final PropertyPath<?>... paths) {
-        final List<ISingleProperty> properties = new ArrayList<>();
-
-        for (final PropertyPath<?> path : paths) {
+        for (String path : paths) {
             properties.add(notNull(path));
         }
-
         return new MultiProperties(properties);
     }
 
-    public NullProperty isNull(final PropertyPath<?> path) {
-        return new NullProperty(path.getPath());
-    }
-
-    public MultiProperties isNull(final PropertyPath<?>... paths) {
+    /**
+     * Assert multiple fields are null (varargs).
+     */
+    public MultiProperties isNull(final String... paths) {
         final List<ISingleProperty> properties = new ArrayList<>();
-
-        for (final PropertyPath<?> path : paths) {
+        for (String path : paths) {
             properties.add(isNull(path));
         }
-
         return new MultiProperties(properties);
     }
 
-    public NotEmptyProperty notEmpty(final PropertyPath<?> path) {
-        return new NotEmptyProperty(path.getPath());
-    }
-
-    public MultiProperties notEmpty(final PropertyPath<?>... paths) {
+    /**
+     * Ignore multiple fields (varargs).
+     */
+    public MultiProperties ignored(final String... paths) {
         final List<ISingleProperty> properties = new ArrayList<>();
-
-        for (final PropertyPath<?> path : paths) {
-            properties.add(notEmpty(path));
+        for (String path : paths) {
+            properties.add(ignored(path));
         }
-
-        return new MultiProperties(properties);
-    }
-
-    public EmptyProperty isEmpty(final PropertyPath<?> path) {
-        return new EmptyProperty(path.getPath());
-    }
-
-    public MultiProperties isEmpty(final PropertyPath<?>... paths) {
-        final List<ISingleProperty> properties = new ArrayList<>();
-
-        for (final PropertyPath<?> path : paths) {
-            properties.add(isEmpty(path));
-        }
-
         return new MultiProperties(properties);
     }
 
@@ -373,7 +376,7 @@ public abstract class Fabut extends Assertions {
         if (property != null) {
             return property;
         }
-        return value(new PropertyPath<>(propertyPath), field);
+        return value(propertyPath, field);
     }
 
     ISingleProperty getPropertyFromList(final String propertyPath, final List<ISingleProperty> properties) {
@@ -683,7 +686,7 @@ public abstract class Fabut extends Assertions {
                                 optimisationReport,
                                 new ArrayList<>(),
                                 fieldName,
-                                value(new PropertyPath<>(fieldName), method.invoke(actual)),
+                                value(fieldName, method.invoke(actual)),
                                 method.invoke(actual),
                                 new ArrayList<>(),
                                 new NodesList());
@@ -885,7 +888,7 @@ public abstract class Fabut extends Assertions {
                                 optimisationReport,
                                 parents,
                                 fieldName,
-                                value(new PropertyPath<>(fieldName), expectedValue),
+                                value(fieldName, expectedValue),
                                 actualValue,
                                 new ArrayList<>(),
                                 new NodesList());
@@ -1299,147 +1302,6 @@ public abstract class Fabut extends Assertions {
         return  sizeGreaterThenThrashodl;
     }
 
-    // ==================== Fluent Assertion Builder ====================
-
-    /**
-     * Start a fluent assertion for assertObject.
-     * Uses reflection to auto-detect field types:
-     * - Optional fields: auto-add isEmpty() if not specified
-     * - Non-Optional fields: mandatory, throws if not specified
-     *
-     * Usage: assertThat(fieldValue).value(FieldValue.NAME, "test").notNull(FieldValue.ID).verify();
-     */
-    public <T> AssertBuilder<T> assertThat(T object) {
-        return new AssertBuilder<>(this, object, false);
-    }
-
-    /**
-     * Start a fluent assertion for assertEntityWithSnapshot.
-     * Uses reflection to auto-detect field types.
-     *
-     * Usage: assertSnapshot(entity).value(Entity.STATUS, INACTIVE).verify();
-     */
-    public <T> AssertBuilder<T> assertSnapshot(T entity) {
-        return new AssertBuilder<>(this, entity, true);
-    }
-
-    /**
-     * Fluent builder for assertions. Uses reflection to auto-detect Optional fields.
-     * - Optional fields: auto-add isEmpty() if not explicitly specified
-     * - Non-Optional fields: mandatory, throws if not specified
-     * - Ignored fields (from ignoredFields map): skipped
-     */
-    public static class AssertBuilder<T> {
-        private final Fabut fabut;
-        private final T object;
-        private final boolean isSnapshot;
-        private final List<IProperty> properties = new ArrayList<>();
-        private final Set<String> specifiedPaths = new HashSet<>();
-
-        AssertBuilder(Fabut fabut, T object, boolean isSnapshot) {
-            this.fabut = fabut;
-            this.object = object;
-            this.isSnapshot = isSnapshot;
-        }
-
-        public <V> AssertBuilder<T> value(PropertyPath<V> path, V expected) {
-            properties.add(fabut.value(path, expected));
-            specifiedPaths.add(path.getPath());
-            return this;
-        }
-
-        public AssertBuilder<T> notNull(PropertyPath<?>... paths) {
-            for (PropertyPath<?> path : paths) {
-                properties.add(fabut.notNull(path));
-                specifiedPaths.add(path.getPath());
-            }
-            return this;
-        }
-
-        public AssertBuilder<T> isNull(PropertyPath<?>... paths) {
-            for (PropertyPath<?> path : paths) {
-                properties.add(fabut.isNull(path));
-                specifiedPaths.add(path.getPath());
-            }
-            return this;
-        }
-
-        public AssertBuilder<T> ignored(PropertyPath<?>... paths) {
-            for (PropertyPath<?> path : paths) {
-                properties.add(fabut.ignored(path));
-                specifiedPaths.add(path.getPath());
-            }
-            return this;
-        }
-
-        public AssertBuilder<T> isEmpty(PropertyPath<?>... paths) {
-            for (PropertyPath<?> path : paths) {
-                properties.add(fabut.isEmpty(path));
-                specifiedPaths.add(path.getPath());
-            }
-            return this;
-        }
-
-        public AssertBuilder<T> notEmpty(PropertyPath<?>... paths) {
-            for (PropertyPath<?> path : paths) {
-                properties.add(fabut.notEmpty(path));
-                specifiedPaths.add(path.getPath());
-            }
-            return this;
-        }
-
-        /**
-         * Terminal operation - executes the assertion with reflection-based field detection.
-         * Uses ReflectionUtil to scan all getter methods and determine if fields are Optional.
-         */
-        public T verify() {
-            final Class<?> clazz = object.getClass();
-            final Collection<Method> getMethods = ReflectionUtil.getMethods(clazz).values();
-            final List<String> missingMandatory = new ArrayList<>();
-
-            // Get globally ignored fields for this class
-            final List<String> globallyIgnored = fabut.ignoredFields.get(getRealClass(clazz));
-
-            for (final Method method : getMethods) {
-                final String fieldName = ReflectionUtil.getFieldNameOfGet(method);
-
-                // Skip if globally ignored
-                if (globallyIgnored != null && globallyIgnored.contains(fieldName)) {
-                    continue;
-                }
-
-                // Skip if already specified by user
-                if (specifiedPaths.contains(fieldName)) {
-                    continue;
-                }
-
-                // Skip collection fields for entity types (same logic as getGetMethods)
-                if (fabut.isEntityType(clazz) && ReflectionUtil.isCollectionClass(method.getReturnType())) {
-                    continue;
-                }
-
-                // Check return type - if Optional, auto-add isEmpty; otherwise mandatory
-                if (ReflectionUtil.isOptionalType(method.getReturnType())) {
-                    properties.add(fabut.isEmpty(new PropertyPath<>(fieldName)));
-                } else {
-                    missingMandatory.add(fieldName);
-                }
-            }
-
-            if (!missingMandatory.isEmpty()) {
-                throw new AssertionError("Missing mandatory field assertions for " + clazz.getSimpleName() + ": "
-                        + String.join(", ", missingMandatory));
-            }
-
-            IProperty[] props = properties.toArray(new IProperty[0]);
-            if (isSnapshot) {
-                return fabut.assertEntityWithSnapshot(object, props);
-            } else {
-                fabut.assertObject(object, props);
-                return object;
-            }
-        }
-    }
 }
 
 record ObjectMethod(Object parent, String property) {}

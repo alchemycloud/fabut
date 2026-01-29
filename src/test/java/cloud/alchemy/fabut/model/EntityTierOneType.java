@@ -3,8 +3,6 @@
  */
 package cloud.alchemy.fabut.model;
 
-import cloud.alchemy.fabut.property.PropertyPath;
-
 /**
  * Tier one entity type with id and one {@link String} property.
  *
@@ -14,10 +12,6 @@ import cloud.alchemy.fabut.property.PropertyPath;
  * @author Nikola Trkulja
  */
 public class EntityTierOneType extends TierOneType {
-
-    /** The Constant ID. */
-    public static final PropertyPath<Integer> ID = new PropertyPath<>("id");
-
     /** The id. */
     private Integer id;
 

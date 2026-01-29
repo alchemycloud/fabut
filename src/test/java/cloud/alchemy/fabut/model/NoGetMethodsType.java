@@ -1,7 +1,5 @@
 package cloud.alchemy.fabut.model;
 
-import cloud.alchemy.fabut.property.PropertyPath;
-
 /**
  * No conventional get methods type.
  *
@@ -11,10 +9,6 @@ import cloud.alchemy.fabut.property.PropertyPath;
  * @author Nikola Trkulja
  */
 public class NoGetMethodsType extends Type {
-
-    /** The Constant PROPERTY. */
-    public static final PropertyPath<String> PROPERTY = new PropertyPath<>("property");
-
     /** The property. */
     private final String property;
 
@@ -32,8 +26,8 @@ public class NoGetMethodsType extends Type {
     }
 
     public NoGetMethodsType() {
-        property = PROPERTY.getPath();
-        notBooleanProperty = PROPERTY.getPath();
+        property = "property";
+        notBooleanProperty = "property";
     }
 
     /**
