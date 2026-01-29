@@ -1298,6 +1298,148 @@ public abstract class Fabut extends Assertions {
 //        System.out.println("Using parallel processing:  " + sizeGreaterThenThrashodl);
         return  sizeGreaterThenThrashodl;
     }
+
+    // ==================== Fluent Assertion Builder ====================
+
+    /**
+     * Start a fluent assertion for assertObject.
+     * Uses reflection to auto-detect field types:
+     * - Optional fields: auto-add isEmpty() if not specified
+     * - Non-Optional fields: mandatory, throws if not specified
+     *
+     * Usage: assertThat(fieldValue).value(FieldValue.NAME, "test").notNull(FieldValue.ID).verify();
+     */
+    public <T> AssertBuilder<T> assertThat(T object) {
+        return new AssertBuilder<>(this, object, false);
+    }
+
+    /**
+     * Start a fluent assertion for assertEntityWithSnapshot.
+     * Uses reflection to auto-detect field types.
+     *
+     * Usage: assertSnapshot(entity).value(Entity.STATUS, INACTIVE).verify();
+     */
+    public <T> AssertBuilder<T> assertSnapshot(T entity) {
+        return new AssertBuilder<>(this, entity, true);
+    }
+
+    /**
+     * Fluent builder for assertions. Uses reflection to auto-detect Optional fields.
+     * - Optional fields: auto-add isEmpty() if not explicitly specified
+     * - Non-Optional fields: mandatory, throws if not specified
+     * - Ignored fields (from ignoredFields map): skipped
+     */
+    public static class AssertBuilder<T> {
+        private final Fabut fabut;
+        private final T object;
+        private final boolean isSnapshot;
+        private final List<IProperty> properties = new ArrayList<>();
+        private final Set<String> specifiedPaths = new HashSet<>();
+
+        AssertBuilder(Fabut fabut, T object, boolean isSnapshot) {
+            this.fabut = fabut;
+            this.object = object;
+            this.isSnapshot = isSnapshot;
+        }
+
+        public <V> AssertBuilder<T> value(PropertyPath<V> path, V expected) {
+            properties.add(fabut.value(path, expected));
+            specifiedPaths.add(path.getPath());
+            return this;
+        }
+
+        public AssertBuilder<T> notNull(PropertyPath<?>... paths) {
+            for (PropertyPath<?> path : paths) {
+                properties.add(fabut.notNull(path));
+                specifiedPaths.add(path.getPath());
+            }
+            return this;
+        }
+
+        public AssertBuilder<T> isNull(PropertyPath<?>... paths) {
+            for (PropertyPath<?> path : paths) {
+                properties.add(fabut.isNull(path));
+                specifiedPaths.add(path.getPath());
+            }
+            return this;
+        }
+
+        public AssertBuilder<T> ignored(PropertyPath<?>... paths) {
+            for (PropertyPath<?> path : paths) {
+                properties.add(fabut.ignored(path));
+                specifiedPaths.add(path.getPath());
+            }
+            return this;
+        }
+
+        public AssertBuilder<T> isEmpty(PropertyPath<?>... paths) {
+            for (PropertyPath<?> path : paths) {
+                properties.add(fabut.isEmpty(path));
+                specifiedPaths.add(path.getPath());
+            }
+            return this;
+        }
+
+        public AssertBuilder<T> notEmpty(PropertyPath<?>... paths) {
+            for (PropertyPath<?> path : paths) {
+                properties.add(fabut.notEmpty(path));
+                specifiedPaths.add(path.getPath());
+            }
+            return this;
+        }
+
+        /**
+         * Terminal operation - executes the assertion with reflection-based field detection.
+         * Uses ReflectionUtil to scan all getter methods and determine if fields are Optional.
+         */
+        public T verify() {
+            final Class<?> clazz = object.getClass();
+            final Collection<Method> getMethods = ReflectionUtil.getMethods(clazz).values();
+            final List<String> missingMandatory = new ArrayList<>();
+
+            // Get globally ignored fields for this class
+            final List<String> globallyIgnored = fabut.ignoredFields.get(getRealClass(clazz));
+
+            for (final Method method : getMethods) {
+                final String fieldName = ReflectionUtil.getFieldNameOfGet(method);
+
+                // Skip if globally ignored
+                if (globallyIgnored != null && globallyIgnored.contains(fieldName)) {
+                    continue;
+                }
+
+                // Skip if already specified by user
+                if (specifiedPaths.contains(fieldName)) {
+                    continue;
+                }
+
+                // Skip collection fields for entity types (same logic as getGetMethods)
+                if (fabut.isEntityType(clazz) && ReflectionUtil.isCollectionClass(method.getReturnType())) {
+                    continue;
+                }
+
+                // Check return type - if Optional, auto-add isEmpty; otherwise mandatory
+                if (ReflectionUtil.isOptionalType(method.getReturnType())) {
+                    properties.add(fabut.isEmpty(new PropertyPath<>(fieldName)));
+                } else {
+                    missingMandatory.add(fieldName);
+                }
+            }
+
+            if (!missingMandatory.isEmpty()) {
+                throw new AssertionError("Missing mandatory field assertions for " + clazz.getSimpleName() + ": "
+                        + String.join(", ", missingMandatory));
+            }
+
+            IProperty[] props = properties.toArray(new IProperty[0]);
+            if (isSnapshot) {
+                return fabut.assertEntityWithSnapshot(object, props);
+            } else {
+                fabut.assertObject(object, props);
+                return object;
+            }
+        }
+    }
 }
 
 record ObjectMethod(Object parent, String property) {}
