@@ -212,6 +212,18 @@ src/main/java/cloud/alchemy/fabut/
 
 ## Commands
 
+### `/migrate`
+
+Migrate a project from Fabut 4.x to 5.0. Follow [MIGRATION.md](MIGRATION.md) instructions:
+
+1. Update dependency version to 5.0.0-RELEASE
+2. Delete `PropertyPath` imports
+3. Replace `Entity.CONSTANT` → `"camelCase"` in assertions
+4. Remove `this` from `assertThat(this, obj)` → `assertThat(obj)`
+5. Delete PropertyPath constants from model classes
+6. (Optional) Add `@Assertable` and use generated builders
+7. Run tests to verify
+
 ### `/assess`
 
 Pre-commit assessment. Run before committing to check:
