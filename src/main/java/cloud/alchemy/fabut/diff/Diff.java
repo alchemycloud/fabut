@@ -155,6 +155,29 @@ public class Diff<T> {
                String.join(", ", changedNames) + "]";
     }
 
+    /**
+     * Generates a concise report showing only changed fields.
+     * Format: EntityName#id: field1: "before" → "after", field2: null → "value"
+     */
+    public String toCompactReport() {
+        return DiffReportGenerator.toCompact(this);
+    }
+
+    /**
+     * Generates assertion code to fix the diff.
+     * Returns code like: assertEntityWithSnapshot(entity, value("field", newValue));
+     */
+    public String toAssertionCode() {
+        return DiffReportGenerator.toAssertionCode(this);
+    }
+
+    /**
+     * Generates a minimal changes-only report (no unchanged fields).
+     */
+    public String toChangesOnly() {
+        return DiffReportGenerator.toChangesOnly(this);
+    }
+
     @Override
     public String toString() {
         return toSummary();

@@ -295,12 +295,111 @@ public final class DiffReportGenerator {
         );
     }
 
+    // ==================== Compact Report ====================
+
+    /**
+     * Generates a compact single-line report showing only changes.
+     * Format: Order#1: status: "PENDING" → "SHIPPED", total: 99.99 → 149.99
+     */
+    public static <T> String toCompact(Diff<T> diff) {
+        if (!diff.hasChanges()) {
+            return diff.getObjectIdentifier() + ": ✓ no changes";
+        }
+
+        StringBuilder sb = new StringBuilder();
+        sb.append(diff.getObjectIdentifier()).append(": ");
+
+        List<FieldChange> changed = diff.getChangedFields();
+        for (int i = 0; i < changed.size(); i++) {
+            if (i > 0) sb.append(", ");
+            FieldChange c = changed.get(i);
+            sb.append(c.fieldName()).append(": ");
+            sb.append(formatValueCompact(c.beforeValue()));
+            sb.append(" → ");
+            sb.append(formatValueCompact(c.afterValue()));
+        }
+
+        return sb.toString();
+    }
+
+    /**
+     * Generates assertion code to fix the diff in tests.
+     */
+    public static <T> String toAssertionCode(Diff<T> diff) {
+        if (!diff.hasChanges()) {
+            return "// No changes - no assertion needed";
+        }
+
+        StringBuilder sb = new StringBuilder();
+        String varName = uncapitalize(diff.getType().getSimpleName());
+
+        sb.append("assertEntityWithSnapshot(").append(varName);
+        for (FieldChange c : diff.getChangedFields()) {
+            sb.append(",\n    value(\"").append(c.fieldName()).append("\", ");
+            sb.append(formatValueForCode(c.afterValue())).append(")");
+        }
+        sb.append(");");
+
+        return sb.toString();
+    }
+
+    /**
+     * Generates a changes-only report (no unchanged fields, minimal format).
+     */
+    public static <T> String toChangesOnly(Diff<T> diff) {
+        if (!diff.hasChanges()) {
+            return diff.getObjectIdentifier() + ": no changes";
+        }
+
+        StringBuilder sb = new StringBuilder();
+        sb.append(diff.getObjectIdentifier()).append(" [").append(diff.changeCount()).append(" changes]\n");
+
+        for (FieldChange c : diff.getChangedFields()) {
+            sb.append("  ").append(c.fieldName()).append(": ");
+            switch (c.changeType()) {
+                case SET -> sb.append("null → ").append(formatValueCompact(c.afterValue()));
+                case CLEARED -> sb.append(formatValueCompact(c.beforeValue())).append(" → null");
+                case MODIFIED -> sb.append(formatValueCompact(c.beforeValue()))
+                                   .append(" → ").append(formatValueCompact(c.afterValue()));
+                default -> {}
+            }
+            sb.append("\n");
+        }
+
+        return sb.toString().trim();
+    }
+
     // ==================== Utilities ====================
 
     private static String formatValue(Object value) {
         if (value == null) return "null";
         if (value instanceof String) return "\"" + value + "\"";
         return String.valueOf(value);
+    }
+
+    private static String formatValueCompact(Object value) {
+        if (value == null) return "null";
+        if (value instanceof String) return "\"" + value + "\"";
+        String str = String.valueOf(value);
+        // Truncate long values
+        if (str.length() > 30) {
+            return str.substring(0, 27) + "...";
+        }
+        return str;
+    }
+
+    private static String formatValueForCode(Object value) {
+        if (value == null) return "null";
+        if (value instanceof String) return "\"" + value + "\"";
+        if (value instanceof Long) return value + "L";
+        if (value instanceof Float) return value + "f";
+        if (value instanceof Double) return value + "d";
+        return String.valueOf(value);
+    }
+
+    private static String uncapitalize(String s) {
+        if (s == null || s.isEmpty()) return s;
+        return Character.toLowerCase(s.charAt(0)) + s.substring(1);
     }
 
     private static String truncate(String s, int maxLen) {

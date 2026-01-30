@@ -175,6 +175,124 @@ class DiffTest {
         assertTrue(report.contains("Order #42 (Customer: John)"));
     }
 
+    // ==================== Compact Report Tests ====================
+
+    @Test
+    void compactReportShowsOnlyChanges() {
+        AssertableEntity before = createEntity(1L, "Before", 10, "Desc", 5);
+        AssertableEntity after = createEntity(1L, "After", 20, "Desc", 5);
+
+        Diff<AssertableEntity> diff = AssertableEntityDiff.compare(before, after);
+        String compact = diff.toCompactReport();
+
+        System.out.println("Compact: " + compact);
+        assertTrue(compact.contains("name:"));
+        assertTrue(compact.contains("\"Before\" → \"After\""));
+        assertTrue(compact.contains("count:"));
+        assertFalse(compact.contains("description")); // unchanged, should not appear
+        assertFalse(compact.contains("score")); // unchanged, should not appear
+    }
+
+    @Test
+    void changesOnlyReportFormat() {
+        AssertableEntity before = createEntity(1L, "Before", 10, null, 5);
+        AssertableEntity after = createEntity(1L, "After", 10, "New Desc", null);
+
+        Diff<AssertableEntity> diff = AssertableEntityDiff.compare(before, after);
+        String report = diff.toChangesOnly();
+
+        System.out.println("Changes only:\n" + report);
+        assertTrue(report.contains("name:"));
+        assertTrue(report.contains("description:")); // SET
+        assertTrue(report.contains("score:")); // CLEARED
+        assertTrue(report.contains("→"));
+    }
+
+    @Test
+    void assertionCodeGeneration() {
+        AssertableEntity before = createEntity(1L, "Before", 10, "Desc", 5);
+        AssertableEntity after = createEntity(1L, "After", 20, "Desc", 5);
+
+        Diff<AssertableEntity> diff = AssertableEntityDiff.compare(before, after);
+        String code = diff.toAssertionCode();
+
+        System.out.println("Assertion code:\n" + code);
+        assertTrue(code.contains("assertEntityWithSnapshot("));
+        assertTrue(code.contains("value(\"name\""));
+        assertTrue(code.contains("value(\"count\""));
+    }
+
+    // ==================== Batch Report Tests ====================
+
+    @Test
+    void batchReportWithMultipleEntities() {
+        BatchDiffReport batch = new BatchDiffReport();
+
+        // Add multiple entity diffs
+        batch.add(AssertableEntityDiff.compare(
+                createEntity(1L, "Before1", 10, "Desc", 5),
+                createEntity(1L, "After1", 10, "Desc", 5)));
+        batch.add(AssertableEntityDiff.compare(
+                createEntity(2L, "Before2", 20, "Desc", 10),
+                createEntity(2L, "After2", 30, "Desc", 10)));
+        batch.add(AssertableEntityDiff.compare(
+                createEntity(3L, "Same", 30, "Desc", 15),
+                createEntity(3L, "Same", 30, "Desc", 15))); // No changes
+
+        assertEquals(2, batch.changedEntityCount());
+        assertTrue(batch.hasChanges());
+
+        String report = batch.toCompactReport();
+        System.out.println("Batch compact report:\n" + report);
+        assertTrue(report.contains("2 entities changed"));
+    }
+
+    @Test
+    void batchReportAssertionCode() {
+        BatchDiffReport batch = new BatchDiffReport();
+
+        batch.add(AssertableEntityDiff.compare(
+                createEntity(1L, "Before", 10, "Desc", 5),
+                createEntity(1L, "After", 20, "Desc", 5)));
+        batch.add(AssertableEntityDiff.compare(
+                createEntity(2L, "Old", 100, "Desc", 50),
+                createEntity(2L, "New", 100, "Desc", 50)));
+
+        String code = batch.toAssertionCode();
+        System.out.println("Batch assertion code:\n" + code);
+        assertTrue(code.contains("assertEntityWithSnapshot"));
+        assertTrue(code.contains("// === 2 entities need assertions ==="));
+    }
+
+    @Test
+    void batchReportOneLiner() {
+        BatchDiffReport batch = new BatchDiffReport();
+
+        batch.add(AssertableEntityDiff.compare(
+                createEntity(1L, "A", 10, "D", 5),
+                createEntity(1L, "B", 10, "D", 5)));
+        batch.add(AssertableEntityDiff.compare(
+                createEntity(2L, "X", 20, "D", 10),
+                createEntity(2L, "Y", 30, "D", 10)));
+
+        String oneLiner = batch.toOneLiner();
+        System.out.println("One-liner: " + oneLiner);
+        assertTrue(oneLiner.startsWith("2 changes:"));
+    }
+
+    @Test
+    void batchReportNoChanges() {
+        BatchDiffReport batch = new BatchDiffReport();
+
+        batch.add(AssertableEntityDiff.compare(
+                createEntity(1L, "Same", 10, "Desc", 5),
+                createEntity(1L, "Same", 10, "Desc", 5)));
+
+        assertFalse(batch.hasChanges());
+        assertEquals(0, batch.changedEntityCount());
+        assertTrue(batch.toCompactReport().contains("No changes"));
+    }
+
     // Helper method
     private AssertableEntity createEntity(Long id, String name, int count, String desc, Integer score) {
         AssertableEntity entity = new AssertableEntity();
