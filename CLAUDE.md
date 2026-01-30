@@ -8,6 +8,8 @@ Type-safe assertion library with generated builders and database snapshot testin
 |------|-------------|
 | **Never commit without explicit request** | Do NOT run `git commit` unless the user explicitly asks. Prepare changes, run tests, but wait for explicit "commit" instruction. |
 | Never use `--no-verify` | Git commits must always run hooks |
+| **Run `mvn install` before commit** | Before every commit, run `mvn install` to ensure the build passes and artifacts are installed locally |
+| **Increment version before deploy** | Before running `mvn deploy`, increment the version in `pom.xml` (patch version for fixes, minor for features) |
 
 ## Build Commands
 
