@@ -226,17 +226,20 @@ Migrate a project from Fabut 4.x to 5.0. Follow [MIGRATION.md](MIGRATION.md) ins
 
 ### `/assess`
 
-Pre-commit assessment. Run before committing to check:
+Pre-commit assessment with JaCoCo coverage analysis. Run before committing to check:
 
-1. **Documentation freshness**: If core files changed (Fabut.java, AssertableProcessor.java, Assertable.java), verify README.md and CLAUDE.md are updated
-2. **Test coverage**: For each changed source file in `src/main/java`, verify corresponding test exists in `src/test/java`
-3. **Run tests**: Execute `mvn test` and verify all pass
+1. **Test coverage**: Run `mvn test` with JaCoCo, parse `target/site/jacoco/jacoco.csv`
+2. **Documentation freshness**: If core files changed (Fabut.java, AssertableProcessor.java, Assertable.java), verify README.md and CLAUDE.md are updated
+3. **Test file mapping**: Verify test files exist for changed source files
 4. **Public API check**: Identify new public methods that may need documentation
 
 Output format:
 ```
 📚 Documentation: ✓ or ⚠️ (list files needing update)
-🧪 Test Coverage: ✓ or ⚠️ (list untested files)
+🧪 Test Coverage:
+   Lines: XX.X% (covered/total)
+   Branches: XX.X% (covered/total)
+   ⚠️ Low coverage: ClassName (XX%) - if any class < 70%
 🏃 Tests: ✓ PASSED (206 tests) or ✗ FAILED
 📋 New Public APIs: ✓ or ℹ️ (list new methods)
 ```
