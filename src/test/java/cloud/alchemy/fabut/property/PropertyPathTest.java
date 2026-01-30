@@ -164,4 +164,47 @@ public class PropertyPathTest extends Fabut {
             assertEquals(properties[i].getPath(), multi.getProperties().get(i).getPath());
         }
     }
+
+    // ==================== Edge Case Tests ====================
+
+    @Test
+    public void testPropertyPathConstructorNullThrows() {
+        assertThrows(NullPointerException.class, () -> new PropertyPath<>(null));
+    }
+
+    @Test
+    public void testPropertyPathChainNullThrows() {
+        PropertyPath<String> path = new PropertyPath<>("test");
+        assertThrows(NullPointerException.class, () -> path.chain(null));
+    }
+
+    @Test
+    public void testPropertyPathAppendNullThrows() {
+        PropertyPath<String> path = new PropertyPath<>("test");
+        assertThrows(NullPointerException.class, () -> path.append(null));
+    }
+
+    @Test
+    public void testPropertyPathAppendEmptyThrows() {
+        PropertyPath<String> path = new PropertyPath<>("test");
+        assertThrows(IllegalArgumentException.class, () -> path.append(""));
+    }
+
+    @Test
+    public void testPropertyPathEqualsSameInstance() {
+        PropertyPath<String> path = new PropertyPath<>("test");
+        assertEquals(path, path);
+    }
+
+    @Test
+    public void testPropertyPathEqualsNull() {
+        PropertyPath<String> path = new PropertyPath<>("test");
+        assertNotEquals(path, null);
+    }
+
+    @Test
+    public void testPropertyPathEqualsDifferentType() {
+        PropertyPath<String> path = new PropertyPath<>("test");
+        assertNotEquals(path, "test");
+    }
 }
