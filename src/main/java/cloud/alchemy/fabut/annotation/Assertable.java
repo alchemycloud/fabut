@@ -42,4 +42,44 @@ public @interface Assertable {
      * Fields to always ignore in assertions (e.g., "version", "lastModified").
      */
     String[] ignoredFields() default {};
+
+    /**
+     * Field groups for assertCreate methods (newly created objects).
+     * Each group generates an assertCreate{Name}(object, field1, field2, ...) method.
+     *
+     * <p>Example:</p>
+     * <pre>
+     * {@literal @}Assertable(
+     *     create = {
+     *         {@literal @}AssertGroup(name = "Key", fields = {"id", "name"}),
+     *         {@literal @}AssertGroup(name = "Full", fields = {"id", "name", "status"})
+     *     }
+     * )
+     * public class Order { ... }
+     *
+     * // Usage:
+     * OrderAssert.assertCreateKey(order, 1L, "name").verify();
+     * </pre>
+     */
+    AssertGroup[] create() default {};
+
+    /**
+     * Field groups for assertUpdate methods (updated entities against snapshot).
+     * Each group generates an assertUpdate{Name}(entity, field1, field2, ...) method.
+     *
+     * <p>Example:</p>
+     * <pre>
+     * {@literal @}Assertable(
+     *     update = {
+     *         {@literal @}AssertGroup(name = "Status", fields = {"status"}),
+     *         {@literal @}AssertGroup(name = "Audit", fields = {"updatedAt", "updatedBy"})
+     *     }
+     * )
+     * public class Order { ... }
+     *
+     * // Usage:
+     * OrderAssert.assertUpdateStatus(order, "SHIPPED").verify();
+     * </pre>
+     */
+    AssertGroup[] update() default {};
 }

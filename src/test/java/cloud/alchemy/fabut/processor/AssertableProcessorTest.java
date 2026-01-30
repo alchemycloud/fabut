@@ -68,22 +68,29 @@ public class AssertableProcessorTest extends Fabut {
 
     @Test
     public void testAssertBuilderHasStaticFactoryMethods() throws NoSuchMethodException {
-        // assertThat(object) - uses ThreadLocal
-        Method assertThat = AssertableEntityAssert.class.getMethod("assertThat", AssertableEntity.class);
-        assertTrue(Modifier.isStatic(assertThat.getModifiers()));
-        assertTrue(Modifier.isPublic(assertThat.getModifiers()));
-        assertEquals(AssertableEntityAssert.class, assertThat.getReturnType());
+        // assertCreate(object) - uses ThreadLocal
+        Method assertCreate = AssertableEntityAssert.class.getMethod("assertCreate", AssertableEntity.class);
+        assertTrue(Modifier.isStatic(assertCreate.getModifiers()));
+        assertTrue(Modifier.isPublic(assertCreate.getModifiers()));
+        assertEquals(AssertableEntityAssert.class, assertCreate.getReturnType());
 
-        // assertThat(fabut, object) - explicit Fabut
-        Method assertThatWithFabut = AssertableEntityAssert.class.getMethod("assertThat", Fabut.class, AssertableEntity.class);
-        assertTrue(Modifier.isStatic(assertThatWithFabut.getModifiers()));
+        // assertCreate(fabut, object) - explicit Fabut
+        Method assertCreateWithFabut = AssertableEntityAssert.class.getMethod("assertCreate", Fabut.class, AssertableEntity.class);
+        assertTrue(Modifier.isStatic(assertCreateWithFabut.getModifiers()));
 
-        // assertSnapshot methods
-        Method assertSnapshot = AssertableEntityAssert.class.getMethod("assertSnapshot", AssertableEntity.class);
-        assertTrue(Modifier.isStatic(assertSnapshot.getModifiers()));
+        // assertUpdate methods
+        Method assertUpdate = AssertableEntityAssert.class.getMethod("assertUpdate", AssertableEntity.class);
+        assertTrue(Modifier.isStatic(assertUpdate.getModifiers()));
 
-        Method assertSnapshotWithFabut = AssertableEntityAssert.class.getMethod("assertSnapshot", Fabut.class, AssertableEntity.class);
-        assertTrue(Modifier.isStatic(assertSnapshotWithFabut.getModifiers()));
+        Method assertUpdateWithFabut = AssertableEntityAssert.class.getMethod("assertUpdate", Fabut.class, AssertableEntity.class);
+        assertTrue(Modifier.isStatic(assertUpdateWithFabut.getModifiers()));
+
+        // assertDelete methods
+        Method assertDelete = AssertableEntityAssert.class.getMethod("assertDelete", AssertableEntity.class);
+        assertTrue(Modifier.isStatic(assertDelete.getModifiers()));
+
+        Method assertDeleteWithFabut = AssertableEntityAssert.class.getMethod("assertDelete", Fabut.class, AssertableEntity.class);
+        assertTrue(Modifier.isStatic(assertDeleteWithFabut.getModifiers()));
     }
 
     @Test
@@ -169,7 +176,7 @@ public class AssertableProcessorTest extends Fabut {
         AssertableEntity entity = new AssertableEntity(1L, "test", 42, Optional.of("desc"), Optional.of(100));
 
         // This should work without throwing
-        AssertableEntityAssert.assertThat(this, entity)
+        AssertableEntityAssert.assertCreate(this, entity)
                 .idIs(1L)
                 .nameIs("test")
                 .countIs(42)

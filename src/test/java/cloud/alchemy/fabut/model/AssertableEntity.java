@@ -1,5 +1,6 @@
 package cloud.alchemy.fabut.model;
 
+import cloud.alchemy.fabut.annotation.AssertGroup;
 import cloud.alchemy.fabut.annotation.Assertable;
 
 import java.util.Optional;
@@ -7,7 +8,17 @@ import java.util.Optional;
 /**
  * Test entity annotated with @Assertable to test annotation processor.
  */
-@Assertable(ignoredFields = {"version"})
+@Assertable(
+    ignoredFields = {"version"},
+    create = {
+        @AssertGroup(name = "Key", fields = {"id", "name"}),
+        @AssertGroup(name = "Stats", fields = {"count", "score"})
+    },
+    update = {
+        @AssertGroup(name = "Name", fields = {"name"}),
+        @AssertGroup(name = "Stats", fields = {"count", "score"})
+    }
+)
 public class AssertableEntity {
 
     private Long id;

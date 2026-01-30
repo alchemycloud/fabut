@@ -1,5 +1,6 @@
 package cloud.alchemy.fabut.processor;
 
+import cloud.alchemy.fabut.annotation.AssertGroup;
 import cloud.alchemy.fabut.annotation.Assertable;
 
 import javax.annotation.processing.*;
@@ -65,9 +66,11 @@ public class AssertableProcessor extends AbstractProcessor {
         String qualifiedBuilderName = packageName.isEmpty() ? builderClassName : packageName + "." + builderClassName;
         String qualifiedDiffName = packageName.isEmpty() ? diffClassName : packageName + "." + diffClassName;
 
-        // Get ignored fields from annotation
+        // Get ignored fields and assert groups from annotation
         Assertable annotation = typeElement.getAnnotation(Assertable.class);
         Set<String> ignoredFields = new HashSet<>(Arrays.asList(annotation.ignoredFields()));
+        AssertGroup[] create = annotation.create();
+        AssertGroup[] update = annotation.update();
 
         // Collect fields with getters
         List<FieldInfo> fields = collectFields(typeElement, ignoredFields);
@@ -75,7 +78,7 @@ public class AssertableProcessor extends AbstractProcessor {
         // Generate the builder class
         JavaFileObject builderFile = filer.createSourceFile(qualifiedBuilderName, typeElement);
         try (PrintWriter out = new PrintWriter(builderFile.openWriter())) {
-            generateBuilderClass(out, packageName, className, builderClassName, fields, ignoredFields);
+            generateBuilderClass(out, packageName, className, builderClassName, fields, ignoredFields, create, update);
         }
 
         // Generate the diff class (compile-time comparison, zero reflection)
@@ -175,7 +178,8 @@ public class AssertableProcessor extends AbstractProcessor {
     }
 
     private void generateBuilderClass(PrintWriter out, String packageName, String className,
-                                       String builderClassName, List<FieldInfo> fields, Set<String> ignoredFields) {
+                                       String builderClassName, List<FieldInfo> fields, Set<String> ignoredFields,
+                                       AssertGroup[] create, AssertGroup[] update) {
         // Package
         if (!packageName.isEmpty()) {
             out.println("package " + packageName + ";");
@@ -203,14 +207,21 @@ public class AssertableProcessor extends AbstractProcessor {
         out.println("    private final Fabut fabut;");
         out.println("    private final " + className + " object;");
         out.println("    private final boolean isSnapshot;");
+        out.println("    private final boolean isDelete;");
         out.println("    private final List<IProperty> properties = new ArrayList<>();");
         out.println();
 
         // Constructor - auto-adds ignored() for fields specified in @Assertable(ignoredFields)
         out.println("    private " + builderClassName + "(Fabut fabut, " + className + " object, boolean isSnapshot) {");
+        out.println("        this(fabut, object, isSnapshot, false);");
+        out.println("    }");
+        out.println();
+
+        out.println("    private " + builderClassName + "(Fabut fabut, " + className + " object, boolean isSnapshot, boolean isDelete) {");
         out.println("        this.fabut = fabut;");
         out.println("        this.object = object;");
         out.println("        this.isSnapshot = isSnapshot;");
+        out.println("        this.isDelete = isDelete;");
         // Auto-add ignored for fields specified in annotation
         for (String ignoredField : ignoredFields) {
             out.println("        properties.add(fabut.ignored(\"" + ignoredField + "\"));");
@@ -220,39 +231,142 @@ public class AssertableProcessor extends AbstractProcessor {
 
         // Static factory methods - simplified (uses ThreadLocal)
         out.println("    /**");
-        out.println("     * Start asserting the given object.");
+        out.println("     * Assert a newly created object. Use this after creating an entity.");
         out.println("     * Uses the current Fabut instance from ThreadLocal (set automatically in @BeforeEach).");
         out.println("     */");
-        out.println("    public static " + builderClassName + " assertThat(" + className + " object) {");
+        out.println("    public static " + builderClassName + " assertCreate(" + className + " object) {");
         out.println("        return new " + builderClassName + "(Fabut.current(), object, false);");
         out.println("    }");
         out.println();
 
         out.println("    /**");
-        out.println("     * Start asserting the given entity against its snapshot.");
+        out.println("     * Assert an updated entity against its snapshot. Use this after modifying an entity.");
         out.println("     * Uses the current Fabut instance from ThreadLocal (set automatically in @BeforeEach).");
         out.println("     */");
-        out.println("    public static " + builderClassName + " assertSnapshot(" + className + " entity) {");
+        out.println("    public static " + builderClassName + " assertUpdate(" + className + " entity) {");
         out.println("        return new " + builderClassName + "(Fabut.current(), entity, true);");
+        out.println("    }");
+        out.println();
+
+        out.println("    /**");
+        out.println("     * Assert that an entity was deleted. Call verify() to execute the assertion.");
+        out.println("     * Uses the current Fabut instance from ThreadLocal (set automatically in @BeforeEach).");
+        out.println("     */");
+        out.println("    public static " + builderClassName + " assertDelete(" + className + " entity) {");
+        out.println("        return new " + builderClassName + "(Fabut.current(), entity, false, true);");
         out.println("    }");
         out.println();
 
         // Overloads with explicit Fabut (for advanced use cases)
         out.println("    /**");
-        out.println("     * Start asserting the given object with explicit Fabut instance.");
+        out.println("     * Assert a newly created object with explicit Fabut instance.");
         out.println("     */");
-        out.println("    public static " + builderClassName + " assertThat(Fabut fabut, " + className + " object) {");
+        out.println("    public static " + builderClassName + " assertCreate(Fabut fabut, " + className + " object) {");
         out.println("        return new " + builderClassName + "(fabut, object, false);");
         out.println("    }");
         out.println();
 
         out.println("    /**");
-        out.println("     * Start asserting the given entity against its snapshot with explicit Fabut instance.");
+        out.println("     * Assert an updated entity against its snapshot with explicit Fabut instance.");
         out.println("     */");
-        out.println("    public static " + builderClassName + " assertSnapshot(Fabut fabut, " + className + " entity) {");
+        out.println("    public static " + builderClassName + " assertUpdate(Fabut fabut, " + className + " entity) {");
         out.println("        return new " + builderClassName + "(fabut, entity, true);");
         out.println("    }");
         out.println();
+
+        out.println("    /**");
+        out.println("     * Assert that an entity was deleted with explicit Fabut instance.");
+        out.println("     */");
+        out.println("    public static " + builderClassName + " assertDelete(Fabut fabut, " + className + " entity) {");
+        out.println("        return new " + builderClassName + "(fabut, entity, false, true);");
+        out.println("    }");
+        out.println();
+
+        // Generate assertCreate with all mandatory fields as parameters
+        List<FieldInfo> mandatoryFields = fields.stream()
+                .filter(f -> !f.isOptional)
+                .toList();
+
+        if (!mandatoryFields.isEmpty()) {
+            // Build parameter list
+            StringBuilder params = new StringBuilder(className + " object");
+            for (FieldInfo field : mandatoryFields) {
+                params.append(", ").append(field.type).append(" ").append(field.name);
+            }
+
+            out.println("    /**");
+            out.println("     * Assert a newly created object with all mandatory (non-Optional) field values.");
+            out.println("     * Optional fields can still be asserted using the fluent builder methods.");
+            out.println("     */");
+            out.println("    public static " + builderClassName + " assertCreate(" + params + ") {");
+            out.println("        " + builderClassName + " builder = new " + builderClassName + "(Fabut.current(), object, false);");
+            for (FieldInfo field : mandatoryFields) {
+                out.println("        builder.properties.add(builder.fabut.value(\"" + field.name + "\", " + field.name + "));");
+            }
+            out.println("        return builder;");
+            out.println("    }");
+            out.println();
+
+            // Also with explicit Fabut
+            StringBuilder paramsWithFabut = new StringBuilder("Fabut fabut, " + className + " object");
+            for (FieldInfo field : mandatoryFields) {
+                paramsWithFabut.append(", ").append(field.type).append(" ").append(field.name);
+            }
+
+            out.println("    /**");
+            out.println("     * Assert a newly created object with all mandatory (non-Optional) field values and explicit Fabut instance.");
+            out.println("     */");
+            out.println("    public static " + builderClassName + " assertCreate(" + paramsWithFabut + ") {");
+            out.println("        " + builderClassName + " builder = new " + builderClassName + "(fabut, object, false);");
+            for (FieldInfo field : mandatoryFields) {
+                out.println("        builder.properties.add(builder.fabut.value(\"" + field.name + "\", " + field.name + "));");
+            }
+            out.println("        return builder;");
+            out.println("    }");
+            out.println();
+
+            // assertUpdate with mandatory fields
+            out.println("    /**");
+            out.println("     * Assert an updated entity with specified field values against its snapshot.");
+            out.println("     * Only specify fields that have changed.");
+            out.println("     */");
+            out.println("    public static " + builderClassName + " assertUpdate(" + params.toString().replace("object", "entity") + ") {");
+            out.println("        " + builderClassName + " builder = new " + builderClassName + "(Fabut.current(), entity, true);");
+            for (FieldInfo field : mandatoryFields) {
+                out.println("        builder.properties.add(builder.fabut.value(\"" + field.name + "\", " + field.name + "));");
+            }
+            out.println("        return builder;");
+            out.println("    }");
+            out.println();
+
+            out.println("    /**");
+            out.println("     * Assert an updated entity with specified field values against its snapshot with explicit Fabut instance.");
+            out.println("     */");
+            out.println("    public static " + builderClassName + " assertUpdate(" + paramsWithFabut.toString().replace("object", "entity") + ") {");
+            out.println("        " + builderClassName + " builder = new " + builderClassName + "(fabut, entity, true);");
+            for (FieldInfo field : mandatoryFields) {
+                out.println("        builder.properties.add(builder.fabut.value(\"" + field.name + "\", " + field.name + "));");
+            }
+            out.println("        return builder;");
+            out.println("    }");
+            out.println();
+        }
+
+        // Build field map for group lookups
+        Map<String, FieldInfo> fieldMap = new HashMap<>();
+        for (FieldInfo field : fields) {
+            fieldMap.put(field.name, field);
+        }
+
+        // Generate assertCreate methods for each newGroup
+        for (AssertGroup group : create) {
+            generateGroupMethods(out, className, builderClassName, group, fieldMap, "assertCreate", "object", false);
+        }
+
+        // Generate assertUpdate methods for each updateGroup
+        for (AssertGroup group : update) {
+            generateGroupMethods(out, className, builderClassName, group, fieldMap, "assertUpdate", "entity", true);
+        }
 
         // Generate methods for each field
         for (FieldInfo field : fields) {
@@ -264,6 +378,10 @@ public class AssertableProcessor extends AbstractProcessor {
         out.println("     * Execute the assertion.");
         out.println("     */");
         out.println("    public " + className + " verify() {");
+        out.println("        if (isDelete) {");
+        out.println("            fabut.assertEntityAsDeleted(object);");
+        out.println("            return object;");
+        out.println("        }");
         out.println("        IProperty[] props = properties.toArray(new IProperty[0]);");
         out.println("        if (isSnapshot) {");
         out.println("            return fabut.assertEntityWithSnapshot(object, props);");
@@ -332,6 +450,80 @@ public class AssertableProcessor extends AbstractProcessor {
             out.println("    public " + builderClassName + " " + field.name + "HasValue(" + field.innerType + " expected) {");
             out.println("        properties.add(fabut.value(" + fieldPath + ", Optional.of(expected)));");
             out.println("        return this;");
+            out.println("    }");
+            out.println();
+        }
+    }
+
+    private void generateGroupMethods(PrintWriter out, String className, String builderClassName,
+                                       AssertGroup group, Map<String, FieldInfo> fieldMap,
+                                       String methodPrefix, String paramName, boolean isSnapshot) {
+        String groupName = group.name();
+        String[] groupFields = group.fields();
+
+        // Build parameter list for this group
+        StringBuilder groupParams = new StringBuilder(className + " " + paramName);
+        List<FieldInfo> groupFieldInfos = new ArrayList<>();
+
+        for (String fieldName : groupFields) {
+            FieldInfo fieldInfo = fieldMap.get(fieldName);
+            if (fieldInfo != null) {
+                groupFieldInfos.add(fieldInfo);
+                // Use inner type for Optional fields
+                String paramType = fieldInfo.isOptional ? fieldInfo.innerType : fieldInfo.type;
+                groupParams.append(", ").append(paramType).append(" ").append(fieldName);
+            }
+        }
+
+        if (!groupFieldInfos.isEmpty()) {
+            // Generate method without Fabut
+            String description = isSnapshot
+                    ? "Assert an updated entity with the '" + groupName + "' field group against its snapshot."
+                    : "Assert a newly created object with the '" + groupName + "' field group.";
+            out.println("    /**");
+            out.println("     * " + description);
+            out.println("     * Fields: " + String.join(", ", groupFields));
+            out.println("     */");
+            out.println("    public static " + builderClassName + " " + methodPrefix + groupName + "(" + groupParams + ") {");
+            out.println("        " + builderClassName + " builder = new " + builderClassName + "(Fabut.current(), " + paramName + ", " + isSnapshot + ");");
+            for (int i = 0; i < groupFieldInfos.size(); i++) {
+                FieldInfo fieldInfo = groupFieldInfos.get(i);
+                String fieldName = groupFields[i];
+                if (fieldInfo.isOptional) {
+                    out.println("        builder.properties.add(builder.fabut.value(\"" + fieldName + "\", Optional.ofNullable(" + fieldName + ")));");
+                } else {
+                    out.println("        builder.properties.add(builder.fabut.value(\"" + fieldName + "\", " + fieldName + "));");
+                }
+            }
+            out.println("        return builder;");
+            out.println("    }");
+            out.println();
+
+            // Generate method with explicit Fabut
+            StringBuilder groupParamsWithFabut = new StringBuilder("Fabut fabut, " + className + " " + paramName);
+            for (String fieldName : groupFields) {
+                FieldInfo fieldInfo = fieldMap.get(fieldName);
+                if (fieldInfo != null) {
+                    String paramType = fieldInfo.isOptional ? fieldInfo.innerType : fieldInfo.type;
+                    groupParamsWithFabut.append(", ").append(paramType).append(" ").append(fieldName);
+                }
+            }
+
+            out.println("    /**");
+            out.println("     * " + description.replace(".", " with explicit Fabut instance."));
+            out.println("     */");
+            out.println("    public static " + builderClassName + " " + methodPrefix + groupName + "(" + groupParamsWithFabut + ") {");
+            out.println("        " + builderClassName + " builder = new " + builderClassName + "(fabut, " + paramName + ", " + isSnapshot + ");");
+            for (int i = 0; i < groupFieldInfos.size(); i++) {
+                FieldInfo fieldInfo = groupFieldInfos.get(i);
+                String fieldName = groupFields[i];
+                if (fieldInfo.isOptional) {
+                    out.println("        builder.properties.add(builder.fabut.value(\"" + fieldName + "\", Optional.ofNullable(" + fieldName + ")));");
+                } else {
+                    out.println("        builder.properties.add(builder.fabut.value(\"" + fieldName + "\", " + fieldName + "));");
+                }
+            }
+            out.println("        return builder;");
             out.println("    }");
             out.println();
         }
