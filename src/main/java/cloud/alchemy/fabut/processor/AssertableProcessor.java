@@ -61,7 +61,9 @@ public class AssertableProcessor extends AbstractProcessor {
         String className = typeElement.getSimpleName().toString();
         String packageName = getPackageName(typeElement);
         String builderClassName = className + "Assert";
+        String diffClassName = className + "Diff";
         String qualifiedBuilderName = packageName.isEmpty() ? builderClassName : packageName + "." + builderClassName;
+        String qualifiedDiffName = packageName.isEmpty() ? diffClassName : packageName + "." + diffClassName;
 
         // Get ignored fields from annotation
         Assertable annotation = typeElement.getAnnotation(Assertable.class);
@@ -74,6 +76,12 @@ public class AssertableProcessor extends AbstractProcessor {
         JavaFileObject builderFile = filer.createSourceFile(qualifiedBuilderName, typeElement);
         try (PrintWriter out = new PrintWriter(builderFile.openWriter())) {
             generateBuilderClass(out, packageName, className, builderClassName, fields, ignoredFields);
+        }
+
+        // Generate the diff class (compile-time comparison, zero reflection)
+        JavaFileObject diffFile = filer.createSourceFile(qualifiedDiffName, typeElement);
+        try (PrintWriter out = new PrintWriter(diffFile.openWriter())) {
+            generateDiffClass(out, packageName, className, diffClassName, fields, ignoredFields);
         }
     }
 
@@ -332,6 +340,118 @@ public class AssertableProcessor extends AbstractProcessor {
     private String capitalize(String s) {
         if (s == null || s.isEmpty()) return s;
         return Character.toUpperCase(s.charAt(0)) + s.substring(1);
+    }
+
+    // ==================== Diff Class Generation ====================
+
+    private void generateDiffClass(PrintWriter out, String packageName, String className,
+                                    String diffClassName, List<FieldInfo> fields, Set<String> ignoredFields) {
+        // Package
+        if (!packageName.isEmpty()) {
+            out.println("package " + packageName + ";");
+            out.println();
+        }
+
+        // Imports
+        out.println("import cloud.alchemy.fabut.diff.Diff;");
+        out.println("import java.util.Objects;");
+        out.println();
+
+        // Class javadoc
+        out.println("/**");
+        out.println(" * Generated compile-time diff comparator for {@link " + className + "}.");
+        out.println(" * Zero reflection - all comparisons are statically generated.");
+        out.println(" *");
+        out.println(" * <p>Usage:");
+        out.println(" * <pre>{@code");
+        out.println(" * " + className + " before = ...;");
+        out.println(" * " + className + " after = ...;");
+        out.println(" * Diff<" + className + "> diff = " + diffClassName + ".compare(before, after);");
+        out.println(" * if (diff.hasChanges()) {");
+        out.println(" *     System.out.println(diff.toConsoleReport());");
+        out.println(" * }");
+        out.println(" * }</pre>");
+        out.println(" */");
+        out.println("@javax.annotation.processing.Generated(\"cloud.alchemy.fabut.processor.AssertableProcessor\")");
+        out.println("public final class " + diffClassName + " {");
+        out.println();
+
+        // Private constructor
+        out.println("    private " + diffClassName + "() {}");
+        out.println();
+
+        // Static compare method
+        out.println("    /**");
+        out.println("     * Compare two " + className + " instances and return a detailed diff.");
+        out.println("     * Uses compile-time generated comparisons - no reflection.");
+        out.println("     *");
+        out.println("     * @param before the state before the change");
+        out.println("     * @param after the state after the change");
+        out.println("     * @return Diff containing all field comparisons");
+        out.println("     */");
+        out.println("    public static Diff<" + className + "> compare(" + className + " before, " + className + " after) {");
+        out.println("        String identifier = \"" + className + "\" + getIdentifier(after);");
+        out.println("        Diff<" + className + "> diff = new Diff<>(" + className + ".class, identifier);");
+        out.println();
+
+        // Generate comparison for each field
+        for (FieldInfo field : fields) {
+            String getter = "get" + capitalize(field.name) + "()";
+            if (field.type.equals("boolean")) {
+                getter = "is" + capitalize(field.name) + "()";
+            }
+            out.println("        diff.field(\"" + field.name + "\", ");
+            out.println("            before == null ? null : before." + getter + ",");
+            out.println("            after == null ? null : after." + getter + ");");
+        }
+
+        out.println();
+        out.println("        return diff;");
+        out.println("    }");
+        out.println();
+
+        // Static compare method with custom identifier
+        out.println("    /**");
+        out.println("     * Compare two " + className + " instances with a custom identifier.");
+        out.println("     *");
+        out.println("     * @param before the state before the change");
+        out.println("     * @param after the state after the change");
+        out.println("     * @param identifier custom identifier for the diff report");
+        out.println("     * @return Diff containing all field comparisons");
+        out.println("     */");
+        out.println("    public static Diff<" + className + "> compare(" + className + " before, " + className + " after, String identifier) {");
+        out.println("        Diff<" + className + "> diff = new Diff<>(" + className + ".class, identifier);");
+        out.println();
+
+        // Generate comparison for each field (again)
+        for (FieldInfo field : fields) {
+            String getter = "get" + capitalize(field.name) + "()";
+            if (field.type.equals("boolean")) {
+                getter = "is" + capitalize(field.name) + "()";
+            }
+            out.println("        diff.field(\"" + field.name + "\", ");
+            out.println("            before == null ? null : before." + getter + ",");
+            out.println("            after == null ? null : after." + getter + ");");
+        }
+
+        out.println();
+        out.println("        return diff;");
+        out.println("    }");
+        out.println();
+
+        // Helper method to get identifier (tries getId())
+        out.println("    private static String getIdentifier(" + className + " obj) {");
+        out.println("        if (obj == null) return \"[null]\";");
+        out.println("        try {");
+        out.println("            var idMethod = obj.getClass().getMethod(\"getId\");");
+        out.println("            var id = idMethod.invoke(obj);");
+        out.println("            return id != null ? \"#\" + id : \"[new]\";");
+        out.println("        } catch (Exception e) {");
+        out.println("            return \"@\" + Integer.toHexString(System.identityHashCode(obj));");
+        out.println("        }");
+        out.println("    }");
+
+        out.println("}");
     }
 
     private record FieldInfo(String name, String type, String innerType, boolean isOptional) {}
