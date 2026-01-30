@@ -210,9 +210,28 @@ public class AssertableProcessor extends AbstractProcessor {
         out.println("    }");
         out.println();
 
-        // Static factory methods
+        // Static factory methods - simplified (uses ThreadLocal)
         out.println("    /**");
         out.println("     * Start asserting the given object.");
+        out.println("     * Uses the current Fabut instance from ThreadLocal (set automatically in @BeforeEach).");
+        out.println("     */");
+        out.println("    public static " + builderClassName + " assertThat(" + className + " object) {");
+        out.println("        return new " + builderClassName + "(Fabut.current(), object, false);");
+        out.println("    }");
+        out.println();
+
+        out.println("    /**");
+        out.println("     * Start asserting the given entity against its snapshot.");
+        out.println("     * Uses the current Fabut instance from ThreadLocal (set automatically in @BeforeEach).");
+        out.println("     */");
+        out.println("    public static " + builderClassName + " assertSnapshot(" + className + " entity) {");
+        out.println("        return new " + builderClassName + "(Fabut.current(), entity, true);");
+        out.println("    }");
+        out.println();
+
+        // Overloads with explicit Fabut (for advanced use cases)
+        out.println("    /**");
+        out.println("     * Start asserting the given object with explicit Fabut instance.");
         out.println("     */");
         out.println("    public static " + builderClassName + " assertThat(Fabut fabut, " + className + " object) {");
         out.println("        return new " + builderClassName + "(fabut, object, false);");
@@ -220,7 +239,7 @@ public class AssertableProcessor extends AbstractProcessor {
         out.println();
 
         out.println("    /**");
-        out.println("     * Start asserting the given entity against its snapshot.");
+        out.println("     * Start asserting the given entity against its snapshot with explicit Fabut instance.");
         out.println("     */");
         out.println("    public static " + builderClassName + " assertSnapshot(Fabut fabut, " + className + " entity) {");
         out.println("        return new " + builderClassName + "(fabut, entity, true);");

@@ -27,7 +27,7 @@ void testCreateOrder() {
 void testCreateOrder() {
     Order order = orderService.create(customer, items);
 
-    OrderAssert.assertThat(this, order)
+    OrderAssert.assertThat(order)
         .idIsNotNull()
         .statusIs("PENDING")
         .customerIdIs(customer.getId())
@@ -41,6 +41,7 @@ void testCreateOrder() {
 
 - **Compile-time safety** - Typos in field names? Impossible.
 - **Complete coverage** - Fabut fails if you forget to assert a field
+- **Minimal boilerplate** - Just `assertThat(object)` - no need to pass `this`
 - **Optional support** - First-class support for `Optional<T>` fields
 - **Auto-ignore fields** - Mark audit fields as ignored once, never think about them again
 - **Snapshot testing** - Track database changes automatically
@@ -101,7 +102,7 @@ class OrderServiceTest extends Fabut {
     void createOrder_withValidData_createsOrder() {
         Order order = orderService.create(customerId, items);
 
-        OrderAssert.assertThat(this, order)
+        OrderAssert.assertThat(order)
             .idIsNotNull()
             .statusIs("PENDING")
             .customerIdIs(customerId)
@@ -127,7 +128,7 @@ void updateOrder_changesStatusAndAddsNote() {
     orderService.ship(order.getId(), "Shipped via FedEx");
 
     // Assert - only specify what changed
-    OrderAssert.assertSnapshot(this, order)
+    OrderAssert.assertSnapshot(order)
         .statusIs("SHIPPED")
         .notesHasValue("Shipped via FedEx")
         .verify();
@@ -160,7 +161,7 @@ public class UserProfile {
 void createProfile_withoutOptionalFields() {
     UserProfile profile = profileService.create("john_doe");
 
-    UserProfileAssert.assertThat(this, profile)
+    UserProfileAssert.assertThat(profile)
         .idIsNotNull()
         .usernameIs("john_doe")
         .bioIsEmpty()           // Optional.empty()
@@ -175,7 +176,7 @@ void updateProfile_addsBio() {
 
     profileService.updateBio(profile.getId(), "Hello, world!");
 
-    UserProfileAssert.assertSnapshot(this, profile)
+    UserProfileAssert.assertSnapshot(profile)
         .bioHasValue("Hello, world!")  // Unwraps Optional for you
         .verify();
 }
@@ -201,7 +202,7 @@ public class Invoice {
 void generateInvoice_calculatesCorrectTotals() {
     Invoice invoice = invoiceService.generate(orderId);
 
-    InvoiceAssert.assertThat(this, invoice)
+    InvoiceAssert.assertThat(invoice)
         .idIsNotNull()
         .invoiceNumberIsNotNull()
         .statusIs(InvoiceStatus.DRAFT)
@@ -235,7 +236,7 @@ void createProduct_setsNameAndPrice() {
     Product product = productService.create("Widget", new BigDecimal("29.99"));
 
     // No need to handle id, version, or audit fields!
-    ProductAssert.assertThat(this, product)
+    ProductAssert.assertThat(product)
         .nameIs("Widget")
         .priceIs(new BigDecimal("29.99"))
         .verify();

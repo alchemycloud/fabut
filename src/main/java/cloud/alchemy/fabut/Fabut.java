@@ -27,6 +27,27 @@ public abstract class Fabut extends Assertions {
 
     private static final String DOT = ".";
 
+    /**
+     * ThreadLocal holding the current Fabut instance for the test thread.
+     * This allows generated assertion builders to access Fabut without requiring
+     * explicit passing of 'this'.
+     */
+    private static final ThreadLocal<Fabut> CURRENT = new ThreadLocal<>();
+
+    /**
+     * Get the current Fabut instance for this thread.
+     * @return the current Fabut instance
+     * @throws IllegalStateException if no Fabut instance is set (test not properly initialized)
+     */
+    public static Fabut current() {
+        Fabut instance = CURRENT.get();
+        if (instance == null) {
+            throw new IllegalStateException(
+                "No Fabut instance available. Ensure your test class extends Fabut and @BeforeEach has run.");
+        }
+        return instance;
+    }
+
     protected final Queue<Class<?>> entityTypes = new ConcurrentLinkedQueue<>();
     protected final Queue<Class<?>> complexTypes = new ConcurrentLinkedQueue<>();
     protected final Queue<Class<?>> ignoredTypes = new ConcurrentLinkedQueue<>();
@@ -120,6 +141,7 @@ public abstract class Fabut extends Assertions {
 
     @BeforeEach
     public void before() {
+        CURRENT.set(this);
         parameterSnapshot.clear();
         dbSnapshot.clear();
         for (final Class<?> entityType : entityTypes) {
@@ -130,16 +152,20 @@ public abstract class Fabut extends Assertions {
 
     @AfterEach
     public void after() {
-        final FabutReport report = new FabutReport(() -> "After test assert");
+        try {
+            final FabutReport report = new FabutReport(() -> "After test assert");
 
-        final FabutReport paremeterReport = report.getSubReport(() -> "Parameter snapshot test report");
-        assertParameterSnapshot(paremeterReport);
+            final FabutReport paremeterReport = report.getSubReport(() -> "Parameter snapshot test report");
+            assertParameterSnapshot(paremeterReport);
 
-        final FabutReport snapshotReport = report.getSubReport(() -> "Repository snapshot assert");
-        assertDbSnapshot(snapshotReport);
+            final FabutReport snapshotReport = report.getSubReport(() -> "Repository snapshot assert");
+            assertDbSnapshot(snapshotReport);
 
-        if (!report.isSuccess()) {
-            throw new AssertionFailedError(report.getMessage());
+            if (!report.isSuccess()) {
+                throw new AssertionFailedError(report.getMessage());
+            }
+        } finally {
+            CURRENT.remove();
         }
     }
 
