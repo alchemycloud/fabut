@@ -237,7 +237,7 @@ Output format:
 ```
 📚 Documentation: ✓ or ⚠️ (list files needing update)
 🧪 Test Coverage: ✓ or ⚠️ (list untested files)
-🏃 Tests: ✓ PASSED (210 tests) or ✗ FAILED
+🏃 Tests: ✓ PASSED (206 tests) or ✗ FAILED
 📋 New Public APIs: ✓ or ℹ️ (list new methods)
 ```
 
