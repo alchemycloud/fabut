@@ -290,7 +290,7 @@ public abstract class Fabut extends Assertions {
      * Assert multiple fields are not null (varargs).
      */
     public MultiProperties notNull(final String... paths) {
-        final List<ISingleProperty> properties = new ArrayList<>();
+        final List<ISingleProperty> properties = new ArrayList<>(paths.length);
         for (String path : paths) {
             properties.add(notNull(path));
         }
@@ -301,7 +301,7 @@ public abstract class Fabut extends Assertions {
      * Assert multiple fields are null (varargs).
      */
     public MultiProperties isNull(final String... paths) {
-        final List<ISingleProperty> properties = new ArrayList<>();
+        final List<ISingleProperty> properties = new ArrayList<>(paths.length);
         for (String path : paths) {
             properties.add(isNull(path));
         }
@@ -312,7 +312,7 @@ public abstract class Fabut extends Assertions {
      * Ignore multiple fields (varargs).
      */
     public MultiProperties ignored(final String... paths) {
-        final List<ISingleProperty> properties = new ArrayList<>();
+        final List<ISingleProperty> properties = new ArrayList<>(paths.length);
         for (String path : paths) {
             properties.add(ignored(path));
         }
@@ -450,11 +450,13 @@ public abstract class Fabut extends Assertions {
 
     List<ISingleProperty> extractPropertiesWithMatchingParent(final String parent, final List<ISingleProperty> properties) {
 
+        final String parentPrefix = parent + DOT;
         final List<ISingleProperty> extracts = new ArrayList<>();
         final Iterator<ISingleProperty> iterator = properties.iterator();
         while (iterator.hasNext()) {
             final ISingleProperty property = iterator.next();
-            if (property.getPath().startsWith(parent + DOT) || property.getPath().equalsIgnoreCase(parent)) {
+            final String path = property.getPath();
+            if (path.startsWith(parentPrefix) || path.equalsIgnoreCase(parent)) {
                 extracts.add(property);
                 iterator.remove();
             }
@@ -464,8 +466,9 @@ public abstract class Fabut extends Assertions {
 
     boolean hasInnerProperties(final String parent, final List<ISingleProperty> properties) {
 
+        final String parentPrefix = parent + DOT;
         for (final ISingleProperty property : properties) {
-            if (property.getPath().startsWith(parent + DOT)) {
+            if (property.getPath().startsWith(parentPrefix)) {
                 return true;
             }
         }
@@ -695,6 +698,8 @@ public abstract class Fabut extends Assertions {
         }
 
         final List<Method> methods = getGetMethods(actual);
+        // Reusable empty list and NodesList to avoid repeated allocations
+        final List<ObjectMethod> emptyParents = Collections.emptyList();
 
         for (final Method method : methods) {
 
@@ -704,17 +709,19 @@ public abstract class Fabut extends Assertions {
             final ISingleProperty property = getPropertyFromList(fieldName, expectedProperties);
             try {
                 if (property != null) {
-                    assertProperty(report, new ArrayList<>(), fieldName, property, method.invoke(actual), expectedProperties, new NodesList());
+                    // Cache the invocation result - avoid calling invoke() multiple times
+                    final Object fieldValue = method.invoke(actual);
+                    assertProperty(report, emptyParents, fieldName, property, fieldValue, expectedProperties, new NodesList());
 
                     if (expectedProperties.contains(property)) {
                         final FabutReport optimisationReport = new FabutReport();
                         assertProperty(
                                 optimisationReport,
-                                new ArrayList<>(),
+                                emptyParents,
                                 fieldName,
-                                value(fieldName, method.invoke(actual)),
-                                method.invoke(actual),
-                                new ArrayList<>(),
+                                value(fieldName, fieldValue),
+                                fieldValue,
+                                Collections.emptyList(),
                                 new NodesList());
 
                         if (optimisationReport.isSuccess() && !(property instanceof IgnoredProperty)) {
@@ -860,7 +867,7 @@ public abstract class Fabut extends Assertions {
             final String fieldName = ReflectionUtil.getFieldNameOfGet(expectedMethod);
             if (!isIgnoredField(expected.getClass(), fieldName)) {
                 try {
-
+                    // Cache invocation results - avoid calling invoke() multiple times
                     final Object expectedValue = expectedMethod.invoke(expected);
                     final Method actualMethod = findGetMethod(actual, expectedMethod.getName());
                     final Object actualValue = actualMethod.invoke(actual);
@@ -883,23 +890,24 @@ public abstract class Fabut extends Assertions {
                     }
 
                     if (!isSnapshotContext || !valuesEqual) {
-                        final Object invoke = refreshIfProxy(expectedValue);
+                        // Cache refreshed value for code generation
+                        final Object refreshedValue = refreshIfProxy(expectedValue);
                         report.addCode(
                                 () -> {
                                     final String propertyPath = chainPrefix + className + "." + upperUnderscored(fieldName) + chainPostfix;
                                     final String code;
-                                    if (invoke == null) {
+                                    if (refreshedValue == null) {
                                         code = ",\nisNull(" + propertyPath + ")";
-                                    } else if (invoke.getClass().isAssignableFrom(String.class)) {
-                                        code = ",\nvalue(" + propertyPath + ", " + "\"" + invoke + "\"" + ")";
-                                    } else if (invoke.getClass().isEnum()) {
-                                        code = ",\nvalue(" + propertyPath + ", " + invoke.getClass().getSimpleName() + "." + invoke + ")";
-                                    } else if (invoke.getClass().isAssignableFrom(Optional.class) && ((Optional<?>) invoke).isEmpty()) {
+                                    } else if (refreshedValue.getClass().isAssignableFrom(String.class)) {
+                                        code = ",\nvalue(" + propertyPath + ", " + "\"" + refreshedValue + "\"" + ")";
+                                    } else if (refreshedValue.getClass().isEnum()) {
+                                        code = ",\nvalue(" + propertyPath + ", " + refreshedValue.getClass().getSimpleName() + "." + refreshedValue + ")";
+                                    } else if (refreshedValue.getClass().isAssignableFrom(Optional.class) && ((Optional<?>) refreshedValue).isEmpty()) {
                                         code = ",\nisEmpty(" + propertyPath + ")";
-                                    } else if (isEntityType(invoke.getClass())) {
-                                        code = ",\nvalue(" + propertyPath + ", " + entityPath(invoke) + ")";
+                                    } else if (isEntityType(refreshedValue.getClass())) {
+                                        code = ",\nvalue(" + propertyPath + ", " + entityPath(refreshedValue) + ")";
                                     } else {
-                                        code = ",\nvalue(" + propertyPath + ", " + invoke + ")";
+                                        code = ",\nvalue(" + propertyPath + ", " + refreshedValue + ")";
                                     }
                                     return code;
                                 });
@@ -916,7 +924,7 @@ public abstract class Fabut extends Assertions {
                                 fieldName,
                                 value(fieldName, expectedValue),
                                 actualValue,
-                                new ArrayList<>(),
+                                Collections.emptyList(),
                                 new NodesList());
 
                         if (optimisationReport.isSuccess() && !(property instanceof IgnoredProperty)) {
@@ -1024,18 +1032,23 @@ public abstract class Fabut extends Assertions {
             final List<ISingleProperty> properties,
             final NodesList nodesList) {
 
-        final Set<?> expectedKeys = new HashSet<>(expected.keySet());
-        final Set<?> actualKeys = new HashSet<>(actual.keySet());
-        final Set<?> expectedKeysCopy = new HashSet<>(expectedKeys);
+        final Set<?> actualKeySet = actual.keySet();
+        final Set<?> expectedKeySet = expected.keySet();
 
-        expectedKeysCopy.retainAll(actualKeys);
-
-        for (final Object key : expectedKeysCopy) {
-            report.assertingMapKey(key);
-            assertPair(report, parents, expected.get(key), actual.get(key), properties, nodesList);
+        // First pass: assert common keys
+        for (final Object key : expectedKeySet) {
+            if (actualKeySet.contains(key)) {
+                report.assertingMapKey(key);
+                assertPair(report, parents, expected.get(key), actual.get(key), properties, nodesList);
+            }
         }
-        assertExcessExpected(parents, report, expected, expectedKeysCopy, actualKeys);
-        assertExcessActual(parents, report, actual, expectedKeysCopy, actualKeys);
+
+        // Report excess actual keys (in actual but not expected)
+        for (final Object key : actualKeySet) {
+            if (!expectedKeySet.contains(key)) {
+                report.excessActualMap(key);
+            }
+        }
     }
 
     void assertOptional(
@@ -1065,29 +1078,6 @@ public abstract class Fabut extends Assertions {
         assertPair(report, parents, expectedValue, actualValue, properties, nodesList);
     }
 
-    void assertExcessExpected(
-            final List<ObjectMethod> parents, final FabutReport report, final Map<?, ?> expected, final Set<?> expectedKeys, final Set<?> actualKeys) {
-
-        final Set<?> expectedKeysCopy = new HashSet<>(expectedKeys);
-        expectedKeysCopy.removeAll(actualKeys);
-        if (!expectedKeysCopy.isEmpty()) {
-            for (final Object key : expectedKeysCopy) {
-                report.excessExpectedMap(key);
-            }
-        }
-    }
-
-    void assertExcessActual(
-            final List<ObjectMethod> parents, final FabutReport report, final Map<?, ?> actual, final Set<?> expectedKeys, final Set<?> actualKeys) {
-
-        final Set<?> actualKeysCopy = new HashSet<>(actualKeys);
-        actualKeysCopy.removeAll(expectedKeys);
-        if (!actualKeysCopy.isEmpty()) {
-            for (final Object key : actualKeysCopy) {
-                report.excessActualMap(key);
-            }
-        }
-    }
 
     // SNAPSHOT
     void takeSnapshott(final FabutReport report, final Object... parameters) {

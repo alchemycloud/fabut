@@ -36,6 +36,9 @@ public class ReflectionUtil {
     private static final Map<Class<?>, Class<?>> realClassCache = new ConcurrentHashMap<>();
     // Cache for fields that have been made accessible
     private static final Set<Field> accessibleFields = ConcurrentHashMap.newKeySet();
+    // Separate caches for getter and setter field name extraction
+    private static final Map<String, String> getterFieldNameCache = new ConcurrentHashMap<>();
+    private static final Map<String, String> setterFieldNameCache = new ConcurrentHashMap<>();
 
     /**
      * Private constructor to prevent instantiation of utility class.
@@ -155,29 +158,41 @@ public class ReflectionUtil {
 
     /**
      * Extracts the field name from a getter method.
+     * Results are cached for O(1) subsequent lookups.
      *
      * @param method The getter method
      * @return The field name corresponding to the getter
      */
     static String getFieldNameOfGet(final Method method) {
-        String fieldName;
-        if (method.getName().startsWith(IS_METHOD_PREFIX)) {
-            fieldName = StringUtils.removeStart(method.getName(), IS_METHOD_PREFIX);
-        } else {
-            fieldName = StringUtils.removeStart(method.getName(), GET_METHOD_PREFIX);
-        }
-        return StringUtils.uncapitalize(fieldName);
+        return getterFieldNameCache.computeIfAbsent(method.getName(), name -> {
+            String fieldName;
+            if (name.startsWith(IS_METHOD_PREFIX)) {
+                fieldName = name.substring(IS_METHOD_PREFIX.length());
+            } else if (name.startsWith(GET_METHOD_PREFIX)) {
+                fieldName = name.substring(GET_METHOD_PREFIX.length());
+            } else {
+                // Not a getter method, return as-is (will fail field lookup)
+                fieldName = name;
+            }
+            return StringUtils.uncapitalize(fieldName);
+        });
     }
 
     /**
      * Extracts the field name from a setter method.
+     * Results are cached for O(1) subsequent lookups.
      *
      * @param method The setter method
      * @return The field name corresponding to the setter
      */
     static String getFieldNameOfSet(final Method method) {
-        String fieldName = StringUtils.removeStart(method.getName(), SET_METHOD_PREFIX);
-        return StringUtils.uncapitalize(fieldName);
+        return setterFieldNameCache.computeIfAbsent(method.getName(), name -> {
+            if (name.startsWith(SET_METHOD_PREFIX)) {
+                return StringUtils.uncapitalize(name.substring(SET_METHOD_PREFIX.length()));
+            }
+            // Not a setter method, return as-is (will fail field lookup)
+            return StringUtils.uncapitalize(name);
+        });
     }
 
     /**
