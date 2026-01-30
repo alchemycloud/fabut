@@ -209,3 +209,37 @@ src/main/java/cloud/alchemy/fabut/
 - JUnit 6 (Jupiter)
 - Maven
 - Apache Commons Lang3
+
+## Commands
+
+### `/assess`
+
+Pre-commit assessment. Run before committing to check:
+
+1. **Documentation freshness**: If core files changed (Fabut.java, AssertableProcessor.java, Assertable.java), verify README.md and CLAUDE.md are updated
+2. **Test coverage**: For each changed source file in `src/main/java`, verify corresponding test exists in `src/test/java`
+3. **Run tests**: Execute `mvn test` and verify all pass
+4. **Public API check**: Identify new public methods that may need documentation
+
+Output format:
+```
+📚 Documentation: ✓ or ⚠️ (list files needing update)
+🧪 Test Coverage: ✓ or ⚠️ (list untested files)
+🏃 Tests: ✓ PASSED (210 tests) or ✗ FAILED
+📋 New Public APIs: ✓ or ℹ️ (list new methods)
+```
+
+### `/commit`
+
+Run `/assess` first, then if passed:
+1. Show `git status` and `git diff --stat`
+2. Generate commit message based on changes
+3. Stage and commit with Co-Authored-By
+
+### `/assess` Checklist
+
+| Check | Core Files | Action |
+|-------|-----------|--------|
+| Docs | `Fabut.java`, `AssertableProcessor.java`, `Assertable.java` | Update README.md, CLAUDE.md |
+| Tests | Any `src/main/java/**/*.java` | Ensure `src/test/java/**/*Test.java` exists |
+| Build | Any `.java` | Run `mvn test` |
