@@ -319,6 +319,127 @@ public abstract class Fabut extends Assertions {
         return new MultiProperties(properties);
     }
 
+    // ==================== PropertyPath-based methods (v4 backward compatibility) ====================
+
+    /**
+     * Assert field equals expected value.
+     * @deprecated Use {@link #value(String, Object)} instead
+     */
+    @Deprecated
+    public <T> Property<T> value(final PropertyPath<T> path, final T expectedValue) {
+        return new Property<>(path.getPath(), expectedValue);
+    }
+
+    /**
+     * Ignore field in assertion.
+     * @deprecated Use {@link #ignored(String)} instead
+     */
+    @Deprecated
+    public IgnoredProperty ignored(final PropertyPath<?> path) {
+        return new IgnoredProperty(path.getPath());
+    }
+
+    /**
+     * Ignore multiple fields.
+     * @deprecated Use {@link #ignored(String...)} instead
+     */
+    @Deprecated
+    public MultiProperties ignored(final PropertyPath<?>... paths) {
+        final List<ISingleProperty> properties = new ArrayList<>(paths.length);
+        for (final PropertyPath<?> path : paths) {
+            properties.add(ignored(path));
+        }
+        return new MultiProperties(properties);
+    }
+
+    /**
+     * Assert field is not null.
+     * @deprecated Use {@link #notNull(String)} instead
+     */
+    @Deprecated
+    public NotNullProperty notNull(final PropertyPath<?> path) {
+        return new NotNullProperty(path.getPath());
+    }
+
+    /**
+     * Assert multiple fields are not null.
+     * @deprecated Use {@link #notNull(String...)} instead
+     */
+    @Deprecated
+    public MultiProperties notNull(final PropertyPath<?>... paths) {
+        final List<ISingleProperty> properties = new ArrayList<>(paths.length);
+        for (final PropertyPath<?> path : paths) {
+            properties.add(notNull(path));
+        }
+        return new MultiProperties(properties);
+    }
+
+    /**
+     * Assert field is null.
+     * @deprecated Use {@link #isNull(String)} instead
+     */
+    @Deprecated
+    public NullProperty isNull(final PropertyPath<?> path) {
+        return new NullProperty(path.getPath());
+    }
+
+    /**
+     * Assert multiple fields are null.
+     * @deprecated Use {@link #isNull(String...)} instead
+     */
+    @Deprecated
+    public MultiProperties isNull(final PropertyPath<?>... paths) {
+        final List<ISingleProperty> properties = new ArrayList<>(paths.length);
+        for (final PropertyPath<?> path : paths) {
+            properties.add(isNull(path));
+        }
+        return new MultiProperties(properties);
+    }
+
+    /**
+     * Assert Optional field is not empty.
+     * @deprecated Use {@link #notEmpty(String)} instead
+     */
+    @Deprecated
+    public NotEmptyProperty notEmpty(final PropertyPath<?> path) {
+        return new NotEmptyProperty(path.getPath());
+    }
+
+    /**
+     * Assert multiple Optional fields are not empty.
+     * @deprecated Use String-based API instead
+     */
+    @Deprecated
+    public MultiProperties notEmpty(final PropertyPath<?>... paths) {
+        final List<ISingleProperty> properties = new ArrayList<>(paths.length);
+        for (final PropertyPath<?> path : paths) {
+            properties.add(notEmpty(path));
+        }
+        return new MultiProperties(properties);
+    }
+
+    /**
+     * Assert Optional field is empty.
+     * @deprecated Use {@link #isEmpty(String)} instead
+     */
+    @Deprecated
+    public EmptyProperty isEmpty(final PropertyPath<?> path) {
+        return new EmptyProperty(path.getPath());
+    }
+
+    /**
+     * Assert multiple Optional fields are empty.
+     * @deprecated Use String-based API instead
+     */
+    @Deprecated
+    public MultiProperties isEmpty(final PropertyPath<?>... paths) {
+        final List<ISingleProperty> properties = new ArrayList<>(paths.length);
+        for (final PropertyPath<?> path : paths) {
+            properties.add(isEmpty(path));
+        }
+        return new MultiProperties(properties);
+    }
+
     // TYPE METHODS
     private void checkIfEntity(final Object entity) {
         if (entity == null) {

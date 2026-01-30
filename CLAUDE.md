@@ -2,6 +2,13 @@
 
 Type-safe assertion library with generated builders and database snapshot testing.
 
+## Rules for Claude
+
+| Rule | Description |
+|------|-------------|
+| **Never commit without explicit request** | Do NOT run `git commit` unless the user explicitly asks. Prepare changes, run tests, but wait for explicit "commit" instruction. |
+| Never use `--no-verify` | Git commits must always run hooks |
+
 ## Build Commands
 
 ```bash
