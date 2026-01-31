@@ -94,6 +94,11 @@ public class AssertableProcessor extends AbstractProcessor {
     }
 
     private List<FieldInfo> collectFields(TypeElement typeElement, Set<String> ignoredFields) {
+        Set<String> seenFieldNames = new HashSet<>();
+        return collectFieldsRecursive(typeElement, ignoredFields, seenFieldNames);
+    }
+
+    private List<FieldInfo> collectFieldsRecursive(TypeElement typeElement, Set<String> ignoredFields, Set<String> seenFieldNames) {
         List<FieldInfo> fields = new ArrayList<>();
 
         // Get all methods (including inherited)
@@ -106,13 +111,15 @@ public class AssertableProcessor extends AbstractProcessor {
                 if (isGetter(method)) {
                     String fieldName = extractFieldName(methodName);
 
-                    if (!ignoredFields.contains(fieldName)) {
+                    // Skip if already seen (subclass takes precedence) or if ignored
+                    if (!ignoredFields.contains(fieldName) && !seenFieldNames.contains(fieldName)) {
                         TypeMirror returnType = method.getReturnType();
                         boolean isOptional = isOptionalType(returnType);
                         String typeString = getTypeString(returnType);
                         String innerTypeString = isOptional ? getOptionalInnerType(returnType) : typeString;
 
                         fields.add(new FieldInfo(fieldName, typeString, innerTypeString, isOptional));
+                        seenFieldNames.add(fieldName);
                     }
                 }
             }
@@ -124,7 +131,7 @@ public class AssertableProcessor extends AbstractProcessor {
             Element superElement = typeUtils.asElement(superclass);
             if (superElement instanceof TypeElement superTypeElement) {
                 if (!superTypeElement.getQualifiedName().toString().equals("java.lang.Object")) {
-                    fields.addAll(collectFields(superTypeElement, ignoredFields));
+                    fields.addAll(collectFieldsRecursive(superTypeElement, ignoredFields, seenFieldNames));
                 }
             }
         }
