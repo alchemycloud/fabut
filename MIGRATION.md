@@ -1,14 +1,17 @@
-# Fabut Migration Guide: 4.x → 5.0
+# Fabut Migration Guide: 4.x → 5.1
 
-AI-actionable instructions for migrating from Fabut 4.x to 5.0.
+AI-actionable instructions for migrating from Fabut 4.x to 5.1.
 
 ## Breaking Changes Summary
 
-| 4.x | 5.0 | Action |
+| 4.x | 5.1 | Action |
 |-----|-----|--------|
 | `PropertyPath<T>` | Removed | Use String literals |
 | `value(Entity.PROPERTY, x)` | `value("property", x)` | Replace constant with string |
-| `assertThat(this, obj)` | `assertThat(obj)` | Remove `this` parameter |
+| `assertThat(this, obj)` | `created(obj)` | Use new factory methods |
+| `assertSnapshot(this, obj)` | `updated(obj)` | Use new factory methods |
+| `.fieldIs(value)` | `.field_is(value)` | Snake_case field methods |
+| `.fieldHasValue(value)` | `.field_is(value)` | Overloaded convenience method |
 | String constants in models | Removed | Delete constants, use `@Assertable` |
 
 ## Step-by-Step Migration
@@ -20,7 +23,7 @@ AI-actionable instructions for migrating from Fabut 4.x to 5.0.
 <version>4.x.x</version>
 
 <!-- New -->
-<version>5.0.0-RELEASE</version>
+<version>5.1.0-RELEASE</version>
 ```
 
 ### Step 2: Remove PropertyPath Imports
@@ -81,26 +84,27 @@ public class Order {
 Then use generated builder:
 ```java
 // OLD
-assertObject(order, 
+assertObject(order,
     value("id", 1L),
     value("status", "PENDING"),
     ignored("createdAt"));
 
 // NEW (with generated builder)
-OrderAssert.assertThat(order)
-    .idIs(1L)
-    .statusIs("PENDING")
+OrderAssert.created(order)
+    .id_is(1L)
+    .status_is("PENDING")
     .verify();  // createdAt auto-ignored via annotation
 ```
 
-### Step 6: Simplify assertThat Calls
+### Step 6: Rename Factory Methods
 
 ```java
 // OLD
 OrderAssert.assertThat(this, order)
+OrderAssert.assertThat(order)
 
 // NEW
-OrderAssert.assertThat(order)
+OrderAssert.created(order)
 ```
 
 ### Step 7: Update Snapshot Assertions
@@ -108,9 +112,28 @@ OrderAssert.assertThat(order)
 ```java
 // OLD
 OrderAssert.assertSnapshot(this, order)
+OrderAssert.assertSnapshot(order)
 
 // NEW
-OrderAssert.assertSnapshot(order)
+OrderAssert.updated(order)
+```
+
+### Step 8: Rename Field Methods to snake_case
+
+```java
+// OLD
+.statusIs("PENDING")
+.idIsNotNull()
+.notesIsEmpty()
+.notesHasValue("text")
+.fieldIgnored()
+
+// NEW
+.status_is("PENDING")
+.id_is_not_null()
+.notes_is_empty()
+.notes_is("text")
+.field_is_ignored()
 ```
 
 ## Regex Patterns for Bulk Migration
@@ -129,16 +152,40 @@ Find:    import cloud\.alchemy\.fabut\.property\.PropertyPath;\n
 Replace: (empty)
 ```
 
-### Remove this from assertThat
+### Replace assertThat with created
 ```regex
-Find:    \.assertThat\(this,\s*
-Replace: .assertThat(
+Find:    \.assertThat\((this,\s*)?
+Replace: .created(
 ```
 
-### Remove this from assertSnapshot
+### Replace assertSnapshot with updated
 ```regex
-Find:    \.assertSnapshot\(this,\s*
-Replace: .assertSnapshot(
+Find:    \.assertSnapshot\((this,\s*)?
+Replace: .updated(
+```
+
+### Convert camelCase field methods to snake_case
+```regex
+Find:    \.(\w+)Is\(
+Replace: .$1_is(
+
+Find:    \.(\w+)IsNull\(\)
+Replace: .$1_is_null()
+
+Find:    \.(\w+)IsNotNull\(\)
+Replace: .$1_is_not_null()
+
+Find:    \.(\w+)Ignored\(\)
+Replace: .$1_is_ignored()
+
+Find:    \.(\w+)IsEmpty\(\)
+Replace: .$1_is_empty()
+
+Find:    \.(\w+)IsNotEmpty\(\)
+Replace: .$1_is_not_empty()
+
+Find:    \.(\w+)HasValue\(
+Replace: .$1_is(
 ```
 
 ## Common Patterns
@@ -159,15 +206,15 @@ void testCreateUser() {
         ignored(User.VERSION));
 }
 
-// NEW (5.0)
+// NEW (5.1)
 @Test
 void testCreateUser() {
     User user = userService.create("john@example.com");
-    
-    UserAssert.assertThat(user)
-        .idIsNotNull()
-        .emailIs("john@example.com")
-        .statusIs(UserStatus.ACTIVE)
+
+    UserAssert.created(user)
+        .id_is_not_null()
+        .email_is("john@example.com")
+        .status_is(UserStatus.ACTIVE)
         .verify();
 }
 ```
@@ -187,26 +234,27 @@ void testUpdateUser() {
         value(User.STATUS, UserStatus.INACTIVE));
 }
 
-// NEW (5.0)
+// NEW (5.1)
 @Test
 void testUpdateUser() {
     User user = createTestUser();
     takeSnapshot();
-    
+
     userService.deactivate(user.getId());
-    
-    UserAssert.assertSnapshot(user)
-        .statusIs(UserStatus.INACTIVE)
+
+    UserAssert.updated(user)
+        .status_is(UserStatus.INACTIVE)
         .verify();
 }
 ```
 
 ## Checklist
 
-- [ ] Update pom.xml dependency to 5.0.0-RELEASE
+- [ ] Update pom.xml dependency to 5.1.0-RELEASE
 - [ ] Delete `PropertyPath` imports from all files
 - [ ] Replace `Entity.CONSTANT` with `"camelCase"` strings in test assertions
-- [ ] Remove `this` parameter from `assertThat()` and `assertSnapshot()` calls
+- [ ] Replace `assertThat()` with `created()`, `assertSnapshot()` with `updated()`
+- [ ] Convert camelCase field methods to snake_case (e.g. `statusIs` → `status_is`)
 - [ ] Delete PropertyPath constant declarations from model classes
 - [ ] Add `@Assertable` annotation to domain classes (optional)
 - [ ] Replace manual assertions with generated builders (optional)

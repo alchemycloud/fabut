@@ -27,12 +27,12 @@ void testCreateOrder() {
 void testCreateOrder() {
     Order order = orderService.create(customer, items);
 
-    OrderAssert.assertThat(order)
-        .idIsNotNull()
-        .statusIs("PENDING")
-        .customerIdIs(customer.getId())
-        .totalIs(new BigDecimal("99.99"))
-        .createdAtIsNotNull()
+    OrderAssert.created(order)
+        .id_is_not_null()
+        .status_is("PENDING")
+        .customerId_is(customer.getId())
+        .total_is(new BigDecimal("99.99"))
+        .createdAt_is_not_null()
         .verify();  // Fails if any field is not covered ✓
 }
 ```
@@ -41,7 +41,7 @@ void testCreateOrder() {
 
 - **Compile-time safety** - Typos in field names? Impossible.
 - **Complete coverage** - Fabut fails if you forget to assert a field
-- **Minimal boilerplate** - Just `assertThat(object)` - no need to pass `this`
+- **Minimal boilerplate** - Just `created(object)` - no need to pass `this`
 - **Optional support** - First-class support for `Optional<T>` fields
 - **Auto-ignore fields** - Mark audit fields as ignored once, never think about them again
 - **Snapshot testing** - Track database changes automatically
@@ -55,7 +55,7 @@ void testCreateOrder() {
 <dependency>
     <groupId>cloud.alchemy</groupId>
     <artifactId>fabut</artifactId>
-    <version>5.0.0-RELEASE</version>
+    <version>5.1.0-RELEASE</version>
     <scope>test</scope>
 </dependency>
 ```
@@ -102,12 +102,12 @@ class OrderServiceTest extends Fabut {
     void createOrder_withValidData_createsOrder() {
         Order order = orderService.create(customerId, items);
 
-        OrderAssert.assertThat(order)
-            .idIsNotNull()
-            .statusIs("PENDING")
-            .customerIdIs(customerId)
-            .totalIs(new BigDecimal("149.99"))
-            .notesIsEmpty()
+        OrderAssert.created(order)
+            .id_is_not_null()
+            .status_is("PENDING")
+            .customerId_is(customerId)
+            .total_is(new BigDecimal("149.99"))
+            .notes_is_empty()
             .verify();
     }
 }
@@ -128,9 +128,9 @@ void updateOrder_changesStatusAndAddsNote() {
     orderService.ship(order.getId(), "Shipped via FedEx");
 
     // Assert - only specify what changed
-    OrderAssert.assertSnapshot(order)
-        .statusIs("SHIPPED")
-        .notesHasValue("Shipped via FedEx")
+    OrderAssert.updated(order)
+        .status_is("SHIPPED")
+        .notes_is("Shipped via FedEx")
         .verify();
 }
 
@@ -141,7 +141,7 @@ void cancelOrder_deletesOrder() {
 
     orderService.cancel(order.getId());
 
-    assertEntityAsDeleted(order);
+    OrderAssert.deleted(order).verify();
 }
 ```
 
@@ -161,11 +161,11 @@ public class UserProfile {
 void createProfile_withoutOptionalFields() {
     UserProfile profile = profileService.create("john_doe");
 
-    UserProfileAssert.assertThat(profile)
-        .idIsNotNull()
-        .usernameIs("john_doe")
-        .bioIsEmpty()           // Optional.empty()
-        .avatarUrlIsEmpty()
+    UserProfileAssert.created(profile)
+        .id_is_not_null()
+        .username_is("john_doe")
+        .bio_is_empty()           // Optional.empty()
+        .avatarUrl_is_empty()
         .verify();
 }
 
@@ -176,8 +176,8 @@ void updateProfile_addsBio() {
 
     profileService.updateBio(profile.getId(), "Hello, world!");
 
-    UserProfileAssert.assertSnapshot(profile)
-        .bioHasValue("Hello, world!")  // Unwraps Optional for you
+    UserProfileAssert.updated(profile)
+        .bio_is("Hello, world!")  // Unwraps Optional for you
         .verify();
 }
 ```
@@ -202,14 +202,14 @@ public class Invoice {
 void generateInvoice_calculatesCorrectTotals() {
     Invoice invoice = invoiceService.generate(orderId);
 
-    InvoiceAssert.assertThat(invoice)
-        .idIsNotNull()
-        .invoiceNumberIsNotNull()
-        .statusIs(InvoiceStatus.DRAFT)
-        .subtotalIs(new BigDecimal("100.00"))
-        .taxIs(new BigDecimal("10.00"))
-        .totalIs(new BigDecimal("110.00"))
-        .dueDateIsEmpty()
+    InvoiceAssert.created(invoice)
+        .id_is_not_null()
+        .invoiceNumber_is_not_null()
+        .status_is(InvoiceStatus.DRAFT)
+        .subtotal_is(new BigDecimal("100.00"))
+        .tax_is(new BigDecimal("10.00"))
+        .total_is(new BigDecimal("110.00"))
+        .dueDate_is_empty()
         .verify();
 }
 ```
@@ -236,9 +236,9 @@ void createProduct_setsNameAndPrice() {
     Product product = productService.create("Widget", new BigDecimal("29.99"));
 
     // No need to handle id, version, or audit fields!
-    ProductAssert.assertThat(product)
-        .nameIs("Widget")
-        .priceIs(new BigDecimal("29.99"))
+    ProductAssert.created(product)
+        .name_is("Widget")
+        .price_is(new BigDecimal("29.99"))
         .verify();
 }
 ```
@@ -249,8 +249,16 @@ For each field, Fabut generates intuitive assertion methods:
 
 | Field Type | Methods |
 |------------|---------|
-| `T field` | `fieldIs(T)`, `fieldIsNull()`, `fieldIsNotNull()`, `fieldIgnored()` |
-| `Optional<T> field` | All above + `fieldIsEmpty()`, `fieldIsNotEmpty()`, `fieldHasValue(T)` |
+| `T field` | `field_is(T)`, `field_is_null()`, `field_is_not_null()`, `field_is_ignored()` |
+| `Optional<T> field` | All above + `field_is_empty()`, `field_is_not_empty()`, `field_is(InnerT)` |
+
+### Static Factory Methods
+
+| Method | Purpose |
+|--------|---------|
+| `XxxAssert.created(obj)` | Assert a newly created object (all fields must be covered) |
+| `XxxAssert.updated(entity)` | Assert changed fields against snapshot |
+| `XxxAssert.deleted(entity)` | Assert entity was deleted |
 
 ## Configuration
 
