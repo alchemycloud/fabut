@@ -34,6 +34,8 @@ public abstract class Fabut extends Assertions {
      */
     private static final ThreadLocal<Fabut> CURRENT = new ThreadLocal<>();
 
+    private final Set<Object> pendingBuilders = Collections.newSetFromMap(new IdentityHashMap<>());
+
     /**
      * Get the current Fabut instance for this thread.
      * @return the current Fabut instance
@@ -46,6 +48,14 @@ public abstract class Fabut extends Assertions {
                 "No Fabut instance available. Ensure your test class extends Fabut and @BeforeEach has run.");
         }
         return instance;
+    }
+
+    public void registerPendingVerification(Object builder) {
+        pendingBuilders.add(builder);
+    }
+
+    public void markVerified(Object builder) {
+        pendingBuilders.remove(builder);
     }
 
     protected final Queue<Class<?>> entityTypes = new ConcurrentLinkedQueue<>();
@@ -142,6 +152,7 @@ public abstract class Fabut extends Assertions {
     @BeforeEach
     public void before() {
         CURRENT.set(this);
+        pendingBuilders.clear();
         parameterSnapshot.clear();
         dbSnapshot.clear();
         for (final Class<?> entityType : entityTypes) {
@@ -154,6 +165,14 @@ public abstract class Fabut extends Assertions {
     public void after() {
         try {
             final FabutReport report = new FabutReport(() -> "After test assert");
+
+            if (!pendingBuilders.isEmpty()) {
+                int count = pendingBuilders.size();
+                pendingBuilders.clear();
+                throw new AssertionFailedError(
+                        "UNVERIFIED BUILDER: created " + count
+                        + " assertion builder(s) without calling verify()");
+            }
 
             final FabutReport paremeterReport = report.getSubReport(() -> "Parameter snapshot test report");
             assertParameterSnapshot(paremeterReport);

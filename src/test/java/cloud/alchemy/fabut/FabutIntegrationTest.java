@@ -406,12 +406,12 @@ public class FabutIntegrationTest extends AbstractFabutTest {
                     Optional.of("A test product"), Optional.of(50));
 
             // Use generated builder for assertion
-            AssertableEntityAssert.assertCreate(FabutIntegrationTest.this, entity)
-                    .idIs(1L)
-                    .nameIs("TestProduct")
-                    .countIs(100)
-                    .descriptionHasValue("A test product")
-                    .scoreHasValue(50)
+            AssertableEntityAssert.created(FabutIntegrationTest.this, entity)
+                    .id_is(1L)
+                    .name_is("TestProduct")
+                    .count_is(100)
+                    .description_is("A test product")
+                    .score_is(50)
                     .verify();
         }
 
@@ -424,10 +424,10 @@ public class FabutIntegrationTest extends AbstractFabutTest {
                     Optional.of("Desc"), Optional.of(75));
 
             // Use group assertion - Key group (id, name)
-            AssertableEntityAssert.assertCreateKey(FabutIntegrationTest.this, entity, 1L, "Product")
-                    .countIs(25)
-                    .descriptionHasValue("Desc")
-                    .scoreHasValue(75)
+            AssertableEntityAssert.createdKey(FabutIntegrationTest.this, entity, 1L, "Product")
+                    .count_is(25)
+                    .description_is("Desc")
+                    .score_is(75)
                     .verify();
         }
 
@@ -439,12 +439,12 @@ public class FabutIntegrationTest extends AbstractFabutTest {
             AssertableEntity entity = new AssertableEntity(1L, "MinimalProduct", 10,
                     Optional.empty(), Optional.empty());
 
-            AssertableEntityAssert.assertCreate(FabutIntegrationTest.this, entity)
-                    .idIs(1L)
-                    .nameIs("MinimalProduct")
-                    .countIs(10)
-                    .descriptionIsEmpty()
-                    .scoreIsEmpty()
+            AssertableEntityAssert.created(FabutIntegrationTest.this, entity)
+                    .id_is(1L)
+                    .name_is("MinimalProduct")
+                    .count_is(10)
+                    .description_is_empty()
+                    .score_is_empty()
                     .verify();
         }
     }

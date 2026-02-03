@@ -33,27 +33,30 @@ mvn package -DskipTests        # Build JAR
 
 ```java
 // Assert new/created object - must cover ALL fields
-OrderAssert.assertThat(order)
-    .idIsNotNull()
-    .statusIs("PENDING")
-    .customerIdIs(customerId)
-    .totalIs(new BigDecimal("99.99"))
-    .notesIsEmpty()          // Optional.empty()
+OrderAssert.created(order)
+    .id_is_not_null()
+    .status_is("PENDING")
+    .customerId_is(customerId)
+    .total_is(new BigDecimal("99.99"))
+    .notes_is_empty()          // Optional.empty()
     .verify();
 
 // Assert entity changes against snapshot - only specify CHANGED fields
-OrderAssert.assertSnapshot(order)
-    .statusIs("SHIPPED")
-    .notesHasValue("Tracking: 123")
+OrderAssert.updated(order)
+    .status_is("SHIPPED")
+    .notes_is("Tracking: 123")   // Optional<String> convenience overload
     .verify();
+
+// Assert entity was deleted
+OrderAssert.deleted(order).verify();
 ```
 
 ## Generated Methods Per Field
 
 | Field Type | Methods |
 |------------|---------|
-| `T field` | `fieldIs(T)`, `fieldIsNull()`, `fieldIsNotNull()`, `fieldIgnored()` |
-| `Optional<T>` | Above + `fieldIsEmpty()`, `fieldIsNotEmpty()`, `fieldHasValue(T)` |
+| `T field` | `field_is(T)`, `field_is_null()`, `field_is_not_null()`, `field_is_ignored()` |
+| `Optional<T>` | Above + `field_is_empty()`, `field_is_not_empty()`, `field_is(InnerT)` |
 
 ## Test Class Setup
 
@@ -89,9 +92,9 @@ void createOrder_success() {
 
     Order order = orderService.create(customerId, items);
 
-    OrderAssert.assertThat(order)
-        .idIsNotNull()
-        .statusIs("PENDING")
+    OrderAssert.created(order)
+        .id_is_not_null()
+        .status_is("PENDING")
         .verify();
 }
 ```
@@ -105,8 +108,8 @@ void shipOrder_updatesStatus() {
 
     orderService.ship(order.getId());
 
-    OrderAssert.assertSnapshot(order)
-        .statusIs("SHIPPED")  // Only changed fields
+    OrderAssert.updated(order)
+        .status_is("SHIPPED")  // Only changed fields
         .verify();
 }
 ```
@@ -178,7 +181,7 @@ public class Order {
 |------|-------------|
 | `takeSnapshot()` | Always AFTER setup, BEFORE action |
 | `assertEntityWithSnapshot()` | Must have ≥1 changed field |
-| `assertThat().verify()` | Must cover ALL non-ignored fields |
+| `created().verify()` | Must cover ALL non-ignored fields; forgotten verify() caught automatically |
 | Extends `Fabut` | Test class must extend Fabut |
 | Getters required | All fields need getter methods |
 
@@ -192,13 +195,13 @@ takeSnapshot();  // Too late!
 // WRONG - empty snapshot assertion
 assertEntityWithSnapshot(order);  // No changes specified
 
-// WRONG - missing verify()
-OrderAssert.assertThat(order).statusIs("PENDING");  // Never executed!
+// WRONG - missing verify() (now caught automatically in @AfterEach)
+OrderAssert.created(order).status_is("PENDING");  // Fails with UNVERIFIED BUILDER error!
 
 // CORRECT
 takeSnapshot();
 Order order = orderService.create(customerId);
-OrderAssert.assertThat(order).statusIs("PENDING").verify();
+OrderAssert.created(order).status_is("PENDING").verify();
 ```
 
 ## Project Structure

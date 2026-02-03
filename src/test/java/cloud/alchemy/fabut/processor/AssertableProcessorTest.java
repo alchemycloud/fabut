@@ -68,29 +68,29 @@ public class AssertableProcessorTest extends Fabut {
 
     @Test
     public void testAssertBuilderHasStaticFactoryMethods() throws NoSuchMethodException {
-        // assertCreate(object) - uses ThreadLocal
-        Method assertCreate = AssertableEntityAssert.class.getMethod("assertCreate", AssertableEntity.class);
-        assertTrue(Modifier.isStatic(assertCreate.getModifiers()));
-        assertTrue(Modifier.isPublic(assertCreate.getModifiers()));
-        assertEquals(AssertableEntityAssert.class, assertCreate.getReturnType());
+        // created(object) - uses ThreadLocal
+        Method created = AssertableEntityAssert.class.getMethod("created", AssertableEntity.class);
+        assertTrue(Modifier.isStatic(created.getModifiers()));
+        assertTrue(Modifier.isPublic(created.getModifiers()));
+        assertEquals(AssertableEntityAssert.class, created.getReturnType());
 
-        // assertCreate(fabut, object) - explicit Fabut
-        Method assertCreateWithFabut = AssertableEntityAssert.class.getMethod("assertCreate", Fabut.class, AssertableEntity.class);
-        assertTrue(Modifier.isStatic(assertCreateWithFabut.getModifiers()));
+        // created(fabut, object) - explicit Fabut
+        Method createdWithFabut = AssertableEntityAssert.class.getMethod("created", Fabut.class, AssertableEntity.class);
+        assertTrue(Modifier.isStatic(createdWithFabut.getModifiers()));
 
-        // assertUpdate methods
-        Method assertUpdate = AssertableEntityAssert.class.getMethod("assertUpdate", AssertableEntity.class);
-        assertTrue(Modifier.isStatic(assertUpdate.getModifiers()));
+        // updated methods
+        Method updated = AssertableEntityAssert.class.getMethod("updated", AssertableEntity.class);
+        assertTrue(Modifier.isStatic(updated.getModifiers()));
 
-        Method assertUpdateWithFabut = AssertableEntityAssert.class.getMethod("assertUpdate", Fabut.class, AssertableEntity.class);
-        assertTrue(Modifier.isStatic(assertUpdateWithFabut.getModifiers()));
+        Method updatedWithFabut = AssertableEntityAssert.class.getMethod("updated", Fabut.class, AssertableEntity.class);
+        assertTrue(Modifier.isStatic(updatedWithFabut.getModifiers()));
 
-        // assertDelete methods
-        Method assertDelete = AssertableEntityAssert.class.getMethod("assertDelete", AssertableEntity.class);
-        assertTrue(Modifier.isStatic(assertDelete.getModifiers()));
+        // deleted methods
+        Method deleted = AssertableEntityAssert.class.getMethod("deleted", AssertableEntity.class);
+        assertTrue(Modifier.isStatic(deleted.getModifiers()));
 
-        Method assertDeleteWithFabut = AssertableEntityAssert.class.getMethod("assertDelete", Fabut.class, AssertableEntity.class);
-        assertTrue(Modifier.isStatic(assertDeleteWithFabut.getModifiers()));
+        Method deletedWithFabut = AssertableEntityAssert.class.getMethod("deleted", Fabut.class, AssertableEntity.class);
+        assertTrue(Modifier.isStatic(deletedWithFabut.getModifiers()));
     }
 
     @Test
@@ -106,17 +106,16 @@ public class AssertableProcessorTest extends Fabut {
                 .map(Method::getName)
                 .collect(Collectors.toSet());
 
-        // For regular field 'name': nameIs, nameIsNull, nameIsNotNull, nameIgnored
-        assertTrue(methodNames.contains("nameIs"), "Should have nameIs method");
-        assertTrue(methodNames.contains("nameIsNull"), "Should have nameIsNull method");
-        assertTrue(methodNames.contains("nameIsNotNull"), "Should have nameIsNotNull method");
-        assertTrue(methodNames.contains("nameIgnored"), "Should have nameIgnored method");
+        // For regular field 'name': name_is, name_is_null, name_is_not_null, name_ignored
+        assertTrue(methodNames.contains("name_is"), "Should have name_is method");
+        assertTrue(methodNames.contains("name_is_null"), "Should have name_is_null method");
+        assertTrue(methodNames.contains("name_is_not_null"), "Should have name_is_not_null method");
+        assertTrue(methodNames.contains("name_is_ignored"), "Should have name_is_ignored method");
 
-        // For Optional field 'description': additional isEmpty, isNotEmpty, hasValue
-        assertTrue(methodNames.contains("descriptionIs"), "Should have descriptionIs method");
-        assertTrue(methodNames.contains("descriptionIsEmpty"), "Should have descriptionIsEmpty method");
-        assertTrue(methodNames.contains("descriptionIsNotEmpty"), "Should have descriptionIsNotEmpty method");
-        assertTrue(methodNames.contains("descriptionHasValue"), "Should have descriptionHasValue method");
+        // For Optional field 'description': additional is_empty, is_not_empty, and overloaded _is(InnerType)
+        assertTrue(methodNames.contains("description_is"), "Should have description_is method");
+        assertTrue(methodNames.contains("description_is_empty"), "Should have description_is_empty method");
+        assertTrue(methodNames.contains("description_is_not_empty"), "Should have description_is_not_empty method");
     }
 
     @Test
@@ -127,21 +126,21 @@ public class AssertableProcessorTest extends Fabut {
                 .map(Method::getName)
                 .collect(Collectors.toSet());
 
-        assertFalse(methodNames.contains("versionIs"), "version field should not have generated methods");
-        assertFalse(methodNames.contains("versionIsNull"), "version field should not have generated methods");
-        assertFalse(methodNames.contains("versionIsNotNull"), "version field should not have generated methods");
+        assertFalse(methodNames.contains("version_is"), "version field should not have generated methods");
+        assertFalse(methodNames.contains("version_is_null"), "version field should not have generated methods");
+        assertFalse(methodNames.contains("version_is_not_null"), "version field should not have generated methods");
     }
 
     @Test
     public void testFieldMethodsReturnBuilder() throws NoSuchMethodException {
         // All field methods should return the builder for fluent chaining
-        Method nameIs = AssertableEntityAssert.class.getMethod("nameIs", String.class);
+        Method nameIs = AssertableEntityAssert.class.getMethod("name_is", String.class);
         assertEquals(AssertableEntityAssert.class, nameIs.getReturnType());
 
-        Method idIsNotNull = AssertableEntityAssert.class.getMethod("idIsNotNull");
+        Method idIsNotNull = AssertableEntityAssert.class.getMethod("id_is_not_null");
         assertEquals(AssertableEntityAssert.class, idIsNotNull.getReturnType());
 
-        Method descriptionIsEmpty = AssertableEntityAssert.class.getMethod("descriptionIsEmpty");
+        Method descriptionIsEmpty = AssertableEntityAssert.class.getMethod("description_is_empty");
         assertEquals(AssertableEntityAssert.class, descriptionIsEmpty.getReturnType());
     }
 
@@ -176,12 +175,12 @@ public class AssertableProcessorTest extends Fabut {
         AssertableEntity entity = new AssertableEntity(1L, "test", 42, Optional.of("desc"), Optional.of(100));
 
         // This should work without throwing
-        AssertableEntityAssert.assertCreate(this, entity)
-                .idIs(1L)
-                .nameIs("test")
-                .countIs(42)
-                .descriptionHasValue("desc")
-                .scoreHasValue(100)
+        AssertableEntityAssert.created(this, entity)
+                .id_is(1L)
+                .name_is("test")
+                .count_is(42)
+                .description_is("desc")
+                .score_is(100)
                 .verify();
     }
 
@@ -272,12 +271,12 @@ public class AssertableProcessorTest extends Fabut {
 
         // Expected fields: id, name, count, description, score
         // NOT expected: version (ignored)
-        assertTrue(methodNames.contains("idIs"));
-        assertTrue(methodNames.contains("nameIs"));
-        assertTrue(methodNames.contains("countIs"));
-        assertTrue(methodNames.contains("descriptionIs"));
-        assertTrue(methodNames.contains("scoreIs"));
-        assertFalse(methodNames.contains("versionIs"));
+        assertTrue(methodNames.contains("id_is"));
+        assertTrue(methodNames.contains("name_is"));
+        assertTrue(methodNames.contains("count_is"));
+        assertTrue(methodNames.contains("description_is"));
+        assertTrue(methodNames.contains("score_is"));
+        assertFalse(methodNames.contains("version_is"));
     }
 
     @Test
@@ -286,44 +285,44 @@ public class AssertableProcessorTest extends Fabut {
                 .map(Method::getName)
                 .collect(Collectors.toSet());
 
-        // Optional fields (description, score) should have IsEmpty/IsNotEmpty/HasValue
-        assertTrue(methodNames.contains("descriptionIsEmpty"));
-        assertTrue(methodNames.contains("descriptionIsNotEmpty"));
-        assertTrue(methodNames.contains("descriptionHasValue"));
-        assertTrue(methodNames.contains("scoreIsEmpty"));
-        assertTrue(methodNames.contains("scoreIsNotEmpty"));
-        assertTrue(methodNames.contains("scoreHasValue"));
+        // Optional fields (description, score) should have _is_empty/_is_not_empty and overloaded _is(InnerType)
+        assertTrue(methodNames.contains("description_is_empty"));
+        assertTrue(methodNames.contains("description_is_not_empty"));
+        assertTrue(methodNames.contains("description_is"));
+        assertTrue(methodNames.contains("score_is_empty"));
+        assertTrue(methodNames.contains("score_is_not_empty"));
+        assertTrue(methodNames.contains("score_is"));
 
         // Non-Optional fields (id, name, count) should NOT have these methods
-        assertFalse(methodNames.contains("idIsEmpty"));
-        assertFalse(methodNames.contains("nameIsEmpty"));
-        assertFalse(methodNames.contains("countIsEmpty"));
+        assertFalse(methodNames.contains("id_is_empty"));
+        assertFalse(methodNames.contains("name_is_empty"));
+        assertFalse(methodNames.contains("count_is_empty"));
     }
 
     @Test
     public void testProcessorGeneratesCorrectParameterTypes() throws NoSuchMethodException {
         // id is Long
-        Method idIs = AssertableEntityAssert.class.getMethod("idIs", Long.class);
+        Method idIs = AssertableEntityAssert.class.getMethod("id_is", Long.class);
         assertNotNull(idIs);
 
         // name is String
-        Method nameIs = AssertableEntityAssert.class.getMethod("nameIs", String.class);
+        Method nameIs = AssertableEntityAssert.class.getMethod("name_is", String.class);
         assertNotNull(nameIs);
 
         // count is Integer
-        Method countIs = AssertableEntityAssert.class.getMethod("countIs", Integer.class);
+        Method countIs = AssertableEntityAssert.class.getMethod("count_is", Integer.class);
         assertNotNull(countIs);
 
-        // description is Optional<String>, so descriptionIs takes Optional
-        Method descriptionIs = AssertableEntityAssert.class.getMethod("descriptionIs", Optional.class);
-        assertNotNull(descriptionIs);
+        // description is Optional<String>, so description_is(Optional) takes Optional
+        Method descriptionIsOptional = AssertableEntityAssert.class.getMethod("description_is", Optional.class);
+        assertNotNull(descriptionIsOptional);
 
-        // descriptionHasValue takes the inner type (String)
-        Method descriptionHasValue = AssertableEntityAssert.class.getMethod("descriptionHasValue", String.class);
-        assertNotNull(descriptionHasValue);
+        // description_is(String) is the overloaded convenience method taking the inner type
+        Method descriptionIsString = AssertableEntityAssert.class.getMethod("description_is", String.class);
+        assertNotNull(descriptionIsString);
 
-        // scoreHasValue takes Integer (inner type of Optional<Integer>)
-        Method scoreHasValue = AssertableEntityAssert.class.getMethod("scoreHasValue", Integer.class);
-        assertNotNull(scoreHasValue);
+        // score_is(Integer) is the overloaded convenience method (inner type of Optional<Integer>)
+        Method scoreIsInteger = AssertableEntityAssert.class.getMethod("score_is", Integer.class);
+        assertNotNull(scoreIsInteger);
     }
 }

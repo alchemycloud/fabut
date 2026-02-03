@@ -27,12 +27,12 @@ public class GeneratedAssertBuilderTest extends AbstractFabutTest {
     public void testGeneratedBuilder_AllFieldsMatch_Success() {
         AssertableEntity entity = new AssertableEntity(1L, "test", 42, Optional.of("desc"), Optional.of(100));
 
-        AssertableEntityAssert.assertCreate(this, entity)
-                .idIs(1L)
-                .nameIs("test")
-                .countIs(42)
-                .descriptionHasValue("desc")
-                .scoreHasValue(100)
+        AssertableEntityAssert.created(this, entity)
+                .id_is(1L)
+                .name_is("test")
+                .count_is(42)
+                .description_is("desc")
+                .score_is(100)
                 .verify();
     }
 
@@ -40,12 +40,12 @@ public class GeneratedAssertBuilderTest extends AbstractFabutTest {
     public void testGeneratedBuilder_OptionalEmpty_Success() {
         AssertableEntity entity = new AssertableEntity(1L, "test", 42, Optional.empty(), Optional.empty());
 
-        AssertableEntityAssert.assertCreate(this, entity)
-                .idIs(1L)
-                .nameIs("test")
-                .countIs(42)
-                .descriptionIsEmpty()
-                .scoreIsEmpty()
+        AssertableEntityAssert.created(this, entity)
+                .id_is(1L)
+                .name_is("test")
+                .count_is(42)
+                .description_is_empty()
+                .score_is_empty()
                 .verify();
     }
 
@@ -53,12 +53,12 @@ public class GeneratedAssertBuilderTest extends AbstractFabutTest {
     public void testGeneratedBuilder_NullFields_Success() {
         AssertableEntity entity = new AssertableEntity(null, null, null, Optional.empty(), Optional.empty());
 
-        AssertableEntityAssert.assertCreate(this, entity)
-                .idIsNull()
-                .nameIsNull()
-                .countIsNull()
-                .descriptionIsEmpty()
-                .scoreIsEmpty()
+        AssertableEntityAssert.created(this, entity)
+                .id_is_null()
+                .name_is_null()
+                .count_is_null()
+                .description_is_empty()
+                .score_is_empty()
                 .verify();
     }
 
@@ -66,12 +66,12 @@ public class GeneratedAssertBuilderTest extends AbstractFabutTest {
     public void testGeneratedBuilder_NotNullAssertions_Success() {
         AssertableEntity entity = new AssertableEntity(1L, "test", 42, Optional.empty(), Optional.empty());
 
-        AssertableEntityAssert.assertCreate(this, entity)
-                .idIsNotNull()
-                .nameIsNotNull()
-                .countIsNotNull()
-                .descriptionIsEmpty()
-                .scoreIsEmpty()
+        AssertableEntityAssert.created(this, entity)
+                .id_is_not_null()
+                .name_is_not_null()
+                .count_is_not_null()
+                .description_is_empty()
+                .score_is_empty()
                 .verify();
     }
 
@@ -79,12 +79,12 @@ public class GeneratedAssertBuilderTest extends AbstractFabutTest {
     public void testGeneratedBuilder_IgnoredFields_Success() {
         AssertableEntity entity = new AssertableEntity(1L, "test", 42, Optional.empty(), Optional.empty());
 
-        AssertableEntityAssert.assertCreate(this, entity)
-                .idIgnored()
-                .nameIgnored()
-                .countIgnored()
-                .descriptionIgnored()
-                .scoreIgnored()
+        AssertableEntityAssert.created(this, entity)
+                .id_is_ignored()
+                .name_is_ignored()
+                .count_is_ignored()
+                .description_is_ignored()
+                .score_is_ignored()
                 .verify();
     }
 
@@ -92,12 +92,12 @@ public class GeneratedAssertBuilderTest extends AbstractFabutTest {
     public void testGeneratedBuilder_NotEmptyOptional_Success() {
         AssertableEntity entity = new AssertableEntity(1L, "test", 42, Optional.of("desc"), Optional.of(100));
 
-        AssertableEntityAssert.assertCreate(this, entity)
-                .idIs(1L)
-                .nameIs("test")
-                .countIs(42)
-                .descriptionIsNotEmpty()
-                .scoreIsNotEmpty()
+        AssertableEntityAssert.created(this, entity)
+                .id_is(1L)
+                .name_is("test")
+                .count_is(42)
+                .description_is_not_empty()
+                .score_is_not_empty()
                 .verify();
     }
 
@@ -108,12 +108,12 @@ public class GeneratedAssertBuilderTest extends AbstractFabutTest {
         AssertableEntity entity = new AssertableEntity(1L, "actual", 42, Optional.empty(), Optional.empty());
 
         assertThrows(AssertionFailedError.class, () ->
-                AssertableEntityAssert.assertCreate(this, entity)
-                        .idIs(1L)
-                        .nameIs("expected")  // mismatch
-                        .countIs(42)
-                        .descriptionIsEmpty()
-                        .scoreIsEmpty()
+                AssertableEntityAssert.created(this, entity)
+                        .id_is(1L)
+                        .name_is("expected")  // mismatch
+                        .count_is(42)
+                        .description_is_empty()
+                        .score_is_empty()
                         .verify()
         );
     }
@@ -123,12 +123,12 @@ public class GeneratedAssertBuilderTest extends AbstractFabutTest {
         AssertableEntity entity = new AssertableEntity(1L, "test", 42, Optional.of("value"), Optional.empty());
 
         assertThrows(AssertionFailedError.class, () ->
-                AssertableEntityAssert.assertCreate(this, entity)
-                        .idIs(1L)
-                        .nameIs("test")
-                        .countIs(42)
-                        .descriptionIsEmpty()  // has value, should fail
-                        .scoreIsEmpty()
+                AssertableEntityAssert.created(this, entity)
+                        .id_is(1L)
+                        .name_is("test")
+                        .count_is(42)
+                        .description_is_empty()  // has value, should fail
+                        .score_is_empty()
                         .verify()
         );
     }
@@ -138,12 +138,12 @@ public class GeneratedAssertBuilderTest extends AbstractFabutTest {
         AssertableEntity entity = new AssertableEntity(1L, "test", 42, Optional.empty(), Optional.empty());
 
         assertThrows(AssertionFailedError.class, () ->
-                AssertableEntityAssert.assertCreate(this, entity)
-                        .idIs(1L)
-                        .nameIs("test")
-                        .countIs(42)
-                        .descriptionIsNotEmpty()  // empty, should fail
-                        .scoreIsEmpty()
+                AssertableEntityAssert.created(this, entity)
+                        .id_is(1L)
+                        .name_is("test")
+                        .count_is(42)
+                        .description_is_not_empty()  // empty, should fail
+                        .score_is_empty()
                         .verify()
         );
     }
@@ -153,12 +153,12 @@ public class GeneratedAssertBuilderTest extends AbstractFabutTest {
         AssertableEntity entity = new AssertableEntity(1L, "test", 42, Optional.of("actual"), Optional.empty());
 
         assertThrows(AssertionFailedError.class, () ->
-                AssertableEntityAssert.assertCreate(this, entity)
-                        .idIs(1L)
-                        .nameIs("test")
-                        .countIs(42)
-                        .descriptionHasValue("expected")  // mismatch
-                        .scoreIsEmpty()
+                AssertableEntityAssert.created(this, entity)
+                        .id_is(1L)
+                        .name_is("test")
+                        .count_is(42)
+                        .description_is("expected")  // mismatch
+                        .score_is_empty()
                         .verify()
         );
     }
@@ -169,12 +169,12 @@ public class GeneratedAssertBuilderTest extends AbstractFabutTest {
     public void testGeneratedBuilder_MixedAssertions_Success() {
         AssertableEntity entity = new AssertableEntity(1L, "test", 42, Optional.of("desc"), Optional.empty());
 
-        AssertableEntityAssert.assertCreate(this, entity)
-                .idIsNotNull()           // notNull check
-                .nameIs("test")          // exact value
-                .countIgnored()          // ignored
-                .descriptionHasValue("desc")  // Optional with value
-                .scoreIsEmpty()          // Optional empty
+        AssertableEntityAssert.created(this, entity)
+                .id_is_not_null()           // notNull check
+                .name_is("test")          // exact value
+                .count_is_ignored()          // ignored
+                .description_is("desc")  // Optional with value
+                .score_is_empty()          // Optional empty
                 .verify();
     }
 
@@ -184,12 +184,12 @@ public class GeneratedAssertBuilderTest extends AbstractFabutTest {
     public void testGeneratedBuilder_ReturnsObject() {
         AssertableEntity entity = new AssertableEntity(1L, "test", 42, Optional.empty(), Optional.empty());
 
-        AssertableEntity result = AssertableEntityAssert.assertCreate(this, entity)
-                .idIs(1L)
-                .nameIs("test")
-                .countIs(42)
-                .descriptionIsEmpty()
-                .scoreIsEmpty()
+        AssertableEntity result = AssertableEntityAssert.created(this, entity)
+                .id_is(1L)
+                .name_is("test")
+                .count_is(42)
+                .description_is_empty()
+                .score_is_empty()
                 .verify();
 
         assertSame(entity, result, "verify() should return the asserted object");
@@ -202,9 +202,9 @@ public class GeneratedAssertBuilderTest extends AbstractFabutTest {
         AssertableEntity entity = new AssertableEntity(1L, "test", 42, Optional.of("desc"), Optional.of(100));
 
         // Use assertCreate with all mandatory fields as parameters
-        AssertableEntityAssert.assertCreate(entity, 1L, "test", 42)
-                .descriptionHasValue("desc")
-                .scoreHasValue(100)
+        AssertableEntityAssert.created(entity, 1L, "test", 42)
+                .description_is("desc")
+                .score_is(100)
                 .verify();
     }
 
@@ -212,10 +212,10 @@ public class GeneratedAssertBuilderTest extends AbstractFabutTest {
     public void testGeneratedBuilder_AssertNewWithMandatoryFieldsAndFabut_Success() {
         AssertableEntity entity = new AssertableEntity(1L, "test", 42, Optional.empty(), Optional.empty());
 
-        // Use assertCreate with explicit Fabut and all mandatory fields
-        AssertableEntityAssert.assertCreate(this, entity, 1L, "test", 42)
-                .descriptionIsEmpty()
-                .scoreIsEmpty()
+        // Use created with explicit Fabut and all mandatory fields
+        AssertableEntityAssert.created(this, entity, 1L, "test", 42)
+                .description_is_empty()
+                .score_is_empty()
                 .verify();
     }
 
@@ -224,9 +224,9 @@ public class GeneratedAssertBuilderTest extends AbstractFabutTest {
         AssertableEntity entity = new AssertableEntity(1L, "test", 42, Optional.of("desc"), Optional.of(100));
 
         // Mandatory fields are set, optional fields can be ignored
-        AssertableEntityAssert.assertCreate(entity, 1L, "test", 42)
-                .descriptionIgnored()
-                .scoreIgnored()
+        AssertableEntityAssert.created(entity, 1L, "test", 42)
+                .description_is_ignored()
+                .score_is_ignored()
                 .verify();
     }
 
@@ -236,9 +236,9 @@ public class GeneratedAssertBuilderTest extends AbstractFabutTest {
 
         // Mismatch in mandatory field should fail
         assertThrows(AssertionFailedError.class, () ->
-                AssertableEntityAssert.assertCreate(entity, 1L, "expected", 42)
-                        .descriptionIsEmpty()
-                        .scoreIsEmpty()
+                AssertableEntityAssert.created(entity, 1L, "expected", 42)
+                        .description_is_empty()
+                        .score_is_empty()
                         .verify()
         );
     }
@@ -250,10 +250,10 @@ public class GeneratedAssertBuilderTest extends AbstractFabutTest {
         AssertableEntity entity = new AssertableEntity(1L, "test", 42, Optional.of("desc"), Optional.of(100));
 
         // Use assertCreateKey - only asserts id and name
-        AssertableEntityAssert.assertCreateKey(entity, 1L, "test")
-                .countIs(42)
-                .descriptionHasValue("desc")
-                .scoreHasValue(100)
+        AssertableEntityAssert.createdKey(entity, 1L, "test")
+                .count_is(42)
+                .description_is("desc")
+                .score_is(100)
                 .verify();
     }
 
@@ -261,10 +261,10 @@ public class GeneratedAssertBuilderTest extends AbstractFabutTest {
     public void testGeneratedBuilder_AssertNewKey_WithFabut_Success() {
         AssertableEntity entity = new AssertableEntity(1L, "test", 42, Optional.empty(), Optional.empty());
 
-        AssertableEntityAssert.assertCreateKey(this, entity, 1L, "test")
-                .countIs(42)
-                .descriptionIsEmpty()
-                .scoreIsEmpty()
+        AssertableEntityAssert.createdKey(this, entity, 1L, "test")
+                .count_is(42)
+                .description_is_empty()
+                .score_is_empty()
                 .verify();
     }
 
@@ -273,10 +273,10 @@ public class GeneratedAssertBuilderTest extends AbstractFabutTest {
         AssertableEntity entity = new AssertableEntity(1L, "test", 42, Optional.of("desc"), Optional.of(100));
 
         // Use assertCreateStats - asserts count and score
-        AssertableEntityAssert.assertCreateStats(entity, 42, 100)
-                .idIs(1L)
-                .nameIs("test")
-                .descriptionHasValue("desc")
+        AssertableEntityAssert.createdStats(entity, 42, 100)
+                .id_is(1L)
+                .name_is("test")
+                .description_is("desc")
                 .verify();
     }
 
@@ -285,10 +285,10 @@ public class GeneratedAssertBuilderTest extends AbstractFabutTest {
         AssertableEntity entity = new AssertableEntity(1L, "test", 42, Optional.empty(), Optional.empty());
 
         // assertCreateStats with null for Optional score
-        AssertableEntityAssert.assertCreateStats(entity, 42, null)
-                .idIs(1L)
-                .nameIs("test")
-                .descriptionIsEmpty()
+        AssertableEntityAssert.createdStats(entity, 42, null)
+                .id_is(1L)
+                .name_is("test")
+                .description_is_empty()
                 .verify();
     }
 
@@ -297,10 +297,10 @@ public class GeneratedAssertBuilderTest extends AbstractFabutTest {
         AssertableEntity entity = new AssertableEntity(1L, "actual", 42, Optional.empty(), Optional.empty());
 
         assertThrows(AssertionFailedError.class, () ->
-                AssertableEntityAssert.assertCreateKey(entity, 1L, "expected")
-                        .countIs(42)
-                        .descriptionIsEmpty()
-                        .scoreIsEmpty()
+                AssertableEntityAssert.createdKey(entity, 1L, "expected")
+                        .count_is(42)
+                        .description_is_empty()
+                        .score_is_empty()
                         .verify()
         );
     }
@@ -315,13 +315,36 @@ public class GeneratedAssertBuilderTest extends AbstractFabutTest {
         AssertableEntity entity = new AssertableEntity(1L, "test", 42, Optional.empty(), Optional.empty());
         entity.setVersion(999L);  // Set version, but we don't need to assert it
 
-        AssertableEntityAssert.assertCreate(this, entity)
-                .idIs(1L)
-                .nameIs("test")
-                .countIs(42)
-                .descriptionIsEmpty()
-                .scoreIsEmpty()
+        AssertableEntityAssert.created(this, entity)
+                .id_is(1L)
+                .name_is("test")
+                .count_is(42)
+                .description_is_empty()
+                .score_is_empty()
                 .verify();
         // No versionIs() call needed - field is ignored
+    }
+
+    // ==================== Auto-Verify ====================
+
+    @Test
+    public void testGeneratedBuilder_ForgottenVerify_FailsInAfterEach() {
+        AssertableEntity entity = new AssertableEntity(1L, "test", 42, Optional.empty(), Optional.empty());
+
+        // Create builder but intentionally skip verify()
+        AssertableEntityAssert.created(this, entity)
+                .id_is(1L)
+                .name_is("test")
+                .count_is(42)
+                .description_is_empty()
+                .score_is_empty();
+        // no .verify()
+
+        // Simulate @AfterEach — should detect unverified builder
+        AssertionFailedError error = assertThrows(AssertionFailedError.class, () -> after());
+        assertTrue(error.getMessage().contains("UNVERIFIED BUILDER"));
+
+        // Re-run before() to reset state so the real @AfterEach doesn't fail
+        before();
     }
 }

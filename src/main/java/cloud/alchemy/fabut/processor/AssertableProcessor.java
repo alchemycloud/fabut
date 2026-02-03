@@ -229,6 +229,7 @@ public class AssertableProcessor extends AbstractProcessor {
         out.println("        this.object = object;");
         out.println("        this.isSnapshot = isSnapshot;");
         out.println("        this.isDelete = isDelete;");
+        out.println("        fabut.registerPendingVerification(this);");
         // Auto-add ignored for fields specified in annotation
         for (String ignoredField : ignoredFields) {
             out.println("        properties.add(fabut.ignored(\"" + ignoredField + "\"));");
@@ -241,7 +242,7 @@ public class AssertableProcessor extends AbstractProcessor {
         out.println("     * Assert a newly created object. Use this after creating an entity.");
         out.println("     * Uses the current Fabut instance from ThreadLocal (set automatically in @BeforeEach).");
         out.println("     */");
-        out.println("    public static " + builderClassName + " assertCreate(" + className + " object) {");
+        out.println("    public static " + builderClassName + " created(" + className + " object) {");
         out.println("        return new " + builderClassName + "(Fabut.current(), object, false);");
         out.println("    }");
         out.println();
@@ -250,7 +251,7 @@ public class AssertableProcessor extends AbstractProcessor {
         out.println("     * Assert an updated entity against its snapshot. Use this after modifying an entity.");
         out.println("     * Uses the current Fabut instance from ThreadLocal (set automatically in @BeforeEach).");
         out.println("     */");
-        out.println("    public static " + builderClassName + " assertUpdate(" + className + " entity) {");
+        out.println("    public static " + builderClassName + " updated(" + className + " entity) {");
         out.println("        return new " + builderClassName + "(Fabut.current(), entity, true);");
         out.println("    }");
         out.println();
@@ -259,7 +260,7 @@ public class AssertableProcessor extends AbstractProcessor {
         out.println("     * Assert that an entity was deleted. Call verify() to execute the assertion.");
         out.println("     * Uses the current Fabut instance from ThreadLocal (set automatically in @BeforeEach).");
         out.println("     */");
-        out.println("    public static " + builderClassName + " assertDelete(" + className + " entity) {");
+        out.println("    public static " + builderClassName + " deleted(" + className + " entity) {");
         out.println("        return new " + builderClassName + "(Fabut.current(), entity, false, true);");
         out.println("    }");
         out.println();
@@ -268,7 +269,7 @@ public class AssertableProcessor extends AbstractProcessor {
         out.println("    /**");
         out.println("     * Assert a newly created object with explicit Fabut instance.");
         out.println("     */");
-        out.println("    public static " + builderClassName + " assertCreate(Fabut fabut, " + className + " object) {");
+        out.println("    public static " + builderClassName + " created(Fabut fabut, " + className + " object) {");
         out.println("        return new " + builderClassName + "(fabut, object, false);");
         out.println("    }");
         out.println();
@@ -276,7 +277,7 @@ public class AssertableProcessor extends AbstractProcessor {
         out.println("    /**");
         out.println("     * Assert an updated entity against its snapshot with explicit Fabut instance.");
         out.println("     */");
-        out.println("    public static " + builderClassName + " assertUpdate(Fabut fabut, " + className + " entity) {");
+        out.println("    public static " + builderClassName + " updated(Fabut fabut, " + className + " entity) {");
         out.println("        return new " + builderClassName + "(fabut, entity, true);");
         out.println("    }");
         out.println();
@@ -284,7 +285,7 @@ public class AssertableProcessor extends AbstractProcessor {
         out.println("    /**");
         out.println("     * Assert that an entity was deleted with explicit Fabut instance.");
         out.println("     */");
-        out.println("    public static " + builderClassName + " assertDelete(Fabut fabut, " + className + " entity) {");
+        out.println("    public static " + builderClassName + " deleted(Fabut fabut, " + className + " entity) {");
         out.println("        return new " + builderClassName + "(fabut, entity, false, true);");
         out.println("    }");
         out.println();
@@ -305,7 +306,7 @@ public class AssertableProcessor extends AbstractProcessor {
             out.println("     * Assert a newly created object with all mandatory (non-Optional) field values.");
             out.println("     * Optional fields can still be asserted using the fluent builder methods.");
             out.println("     */");
-            out.println("    public static " + builderClassName + " assertCreate(" + params + ") {");
+            out.println("    public static " + builderClassName + " created(" + params + ") {");
             out.println("        " + builderClassName + " builder = new " + builderClassName + "(Fabut.current(), object, false);");
             for (FieldInfo field : mandatoryFields) {
                 out.println("        builder.properties.add(builder.fabut.value(\"" + field.name + "\", " + field.name + "));");
@@ -323,7 +324,7 @@ public class AssertableProcessor extends AbstractProcessor {
             out.println("    /**");
             out.println("     * Assert a newly created object with all mandatory (non-Optional) field values and explicit Fabut instance.");
             out.println("     */");
-            out.println("    public static " + builderClassName + " assertCreate(" + paramsWithFabut + ") {");
+            out.println("    public static " + builderClassName + " created(" + paramsWithFabut + ") {");
             out.println("        " + builderClassName + " builder = new " + builderClassName + "(fabut, object, false);");
             for (FieldInfo field : mandatoryFields) {
                 out.println("        builder.properties.add(builder.fabut.value(\"" + field.name + "\", " + field.name + "));");
@@ -332,12 +333,12 @@ public class AssertableProcessor extends AbstractProcessor {
             out.println("    }");
             out.println();
 
-            // assertUpdate with mandatory fields
+            // updated with mandatory fields
             out.println("    /**");
             out.println("     * Assert an updated entity with specified field values against its snapshot.");
             out.println("     * Only specify fields that have changed.");
             out.println("     */");
-            out.println("    public static " + builderClassName + " assertUpdate(" + params.toString().replace("object", "entity") + ") {");
+            out.println("    public static " + builderClassName + " updated(" + params.toString().replace("object", "entity") + ") {");
             out.println("        " + builderClassName + " builder = new " + builderClassName + "(Fabut.current(), entity, true);");
             for (FieldInfo field : mandatoryFields) {
                 out.println("        builder.properties.add(builder.fabut.value(\"" + field.name + "\", " + field.name + "));");
@@ -349,7 +350,7 @@ public class AssertableProcessor extends AbstractProcessor {
             out.println("    /**");
             out.println("     * Assert an updated entity with specified field values against its snapshot with explicit Fabut instance.");
             out.println("     */");
-            out.println("    public static " + builderClassName + " assertUpdate(" + paramsWithFabut.toString().replace("object", "entity") + ") {");
+            out.println("    public static " + builderClassName + " updated(" + paramsWithFabut.toString().replace("object", "entity") + ") {");
             out.println("        " + builderClassName + " builder = new " + builderClassName + "(fabut, entity, true);");
             for (FieldInfo field : mandatoryFields) {
                 out.println("        builder.properties.add(builder.fabut.value(\"" + field.name + "\", " + field.name + "));");
@@ -365,14 +366,14 @@ public class AssertableProcessor extends AbstractProcessor {
             fieldMap.put(field.name, field);
         }
 
-        // Generate assertCreate methods for each newGroup
+        // Generate created methods for each newGroup
         for (AssertGroup group : create) {
-            generateGroupMethods(out, className, builderClassName, group, fieldMap, "assertCreate", "object", false);
+            generateGroupMethods(out, className, builderClassName, group, fieldMap, "created", "object", false);
         }
 
-        // Generate assertUpdate methods for each updateGroup
+        // Generate updated methods for each updateGroup
         for (AssertGroup group : update) {
-            generateGroupMethods(out, className, builderClassName, group, fieldMap, "assertUpdate", "entity", true);
+            generateGroupMethods(out, className, builderClassName, group, fieldMap, "updated", "entity", true);
         }
 
         // Generate methods for each field
@@ -385,6 +386,7 @@ public class AssertableProcessor extends AbstractProcessor {
         out.println("     * Execute the assertion.");
         out.println("     */");
         out.println("    public " + className + " verify() {");
+        out.println("        fabut.markVerified(this);");
         out.println("        if (isDelete) {");
         out.println("            fabut.assertEntityAsDeleted(object);");
         out.println("            return object;");
@@ -404,57 +406,57 @@ public class AssertableProcessor extends AbstractProcessor {
     private void generateFieldMethods(PrintWriter out, String builderClassName, FieldInfo field) {
         String fieldPath = "\"" + field.name + "\"";
 
-        // fieldIs(value) - exact value match
+        // field_is(value) - exact value match
         out.println("    /** Assert " + field.name + " equals the expected value. */");
-        out.println("    public " + builderClassName + " " + field.name + "Is(" + field.type + " expected) {");
+        out.println("    public " + builderClassName + " " + field.name + "_is(" + field.type + " expected) {");
         out.println("        properties.add(fabut.value(" + fieldPath + ", expected));");
         out.println("        return this;");
         out.println("    }");
         out.println();
 
-        // fieldIsNull()
+        // field_is_null()
         out.println("    /** Assert " + field.name + " is null. */");
-        out.println("    public " + builderClassName + " " + field.name + "IsNull() {");
+        out.println("    public " + builderClassName + " " + field.name + "_is_null() {");
         out.println("        properties.add(fabut.isNull(" + fieldPath + "));");
         out.println("        return this;");
         out.println("    }");
         out.println();
 
-        // fieldIsNotNull()
+        // field_is_not_null()
         out.println("    /** Assert " + field.name + " is not null. */");
-        out.println("    public " + builderClassName + " " + field.name + "IsNotNull() {");
+        out.println("    public " + builderClassName + " " + field.name + "_is_not_null() {");
         out.println("        properties.add(fabut.notNull(" + fieldPath + "));");
         out.println("        return this;");
         out.println("    }");
         out.println();
 
-        // fieldIgnored()
+        // field_is_ignored()
         out.println("    /** Ignore " + field.name + " in this assertion. */");
-        out.println("    public " + builderClassName + " " + field.name + "Ignored() {");
+        out.println("    public " + builderClassName + " " + field.name + "_is_ignored() {");
         out.println("        properties.add(fabut.ignored(" + fieldPath + "));");
         out.println("        return this;");
         out.println("    }");
         out.println();
 
-        // For Optional fields, add isEmpty/isNotEmpty
+        // For Optional fields, add is_empty/is_not_empty
         if (field.isOptional) {
             out.println("    /** Assert " + field.name + " is empty (Optional.empty()). */");
-            out.println("    public " + builderClassName + " " + field.name + "IsEmpty() {");
+            out.println("    public " + builderClassName + " " + field.name + "_is_empty() {");
             out.println("        properties.add(fabut.isEmpty(" + fieldPath + "));");
             out.println("        return this;");
             out.println("    }");
             out.println();
 
             out.println("    /** Assert " + field.name + " is not empty (Optional has value). */");
-            out.println("    public " + builderClassName + " " + field.name + "IsNotEmpty() {");
+            out.println("    public " + builderClassName + " " + field.name + "_is_not_empty() {");
             out.println("        properties.add(fabut.notEmpty(" + fieldPath + "));");
             out.println("        return this;");
             out.println("    }");
             out.println();
 
-            // Convenience method to assert Optional contains specific value
-            out.println("    /** Assert " + field.name + " contains the expected value. */");
-            out.println("    public " + builderClassName + " " + field.name + "HasValue(" + field.innerType + " expected) {");
+            // Convenience overload: field_is(InnerType) wraps in Optional.of()
+            out.println("    /** Assert " + field.name + " contains the expected value (wraps in Optional.of). */");
+            out.println("    public " + builderClassName + " " + field.name + "_is(" + field.innerType + " expected) {");
             out.println("        properties.add(fabut.value(" + fieldPath + ", Optional.of(expected)));");
             out.println("        return this;");
             out.println("    }");
