@@ -55,7 +55,7 @@ void testCreateOrder() {
 <dependency>
     <groupId>cloud.alchemy</groupId>
     <artifactId>fabut</artifactId>
-    <version>5.1.0-RELEASE</version>
+    <version>5.2.0-RELEASE</version>
     <scope>test</scope>
 </dependency>
 ```
@@ -259,6 +259,8 @@ For each field, Fabut generates intuitive assertion methods:
 | `XxxAssert.created(obj)` | Assert a newly created object (all fields must be covered) |
 | `XxxAssert.updated(entity)` | Assert changed fields against snapshot |
 | `XxxAssert.deleted(entity)` | Assert entity was deleted |
+
+> **Note:** Each factory method also has an overload that takes `Fabut` as the first parameter (e.g., `created(fabut, obj)`). Prefer the simpler form without `Fabut` -- it resolves the instance automatically via `ThreadLocal`. Only use the explicit `Fabut` parameter when the automatic resolution is not available (e.g., assertions outside the test class).
 
 ## Configuration
 

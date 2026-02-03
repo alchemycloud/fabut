@@ -1,6 +1,6 @@
-# Fabut Migration Guide: 4.x → 5.1
+# Fabut Migration Guide: 4.x → 5.2
 
-AI-actionable instructions for migrating from Fabut 4.x to 5.1.
+AI-actionable instructions for migrating from Fabut 4.x to 5.2.
 
 ## Breaking Changes Summary
 
@@ -23,7 +23,7 @@ AI-actionable instructions for migrating from Fabut 4.x to 5.1.
 <version>4.x.x</version>
 
 <!-- New -->
-<version>5.1.0-RELEASE</version>
+<version>5.2.0-RELEASE</version>
 ```
 
 ### Step 2: Remove PropertyPath Imports
@@ -206,7 +206,7 @@ void testCreateUser() {
         ignored(User.VERSION));
 }
 
-// NEW (5.1)
+// NEW (5.2)
 @Test
 void testCreateUser() {
     User user = userService.create("john@example.com");
@@ -234,7 +234,7 @@ void testUpdateUser() {
         value(User.STATUS, UserStatus.INACTIVE));
 }
 
-// NEW (5.1)
+// NEW (5.2)
 @Test
 void testUpdateUser() {
     User user = createTestUser();
@@ -250,7 +250,7 @@ void testUpdateUser() {
 
 ## Checklist
 
-- [ ] Update pom.xml dependency to 5.1.0-RELEASE
+- [ ] Update pom.xml dependency to 5.2.0-RELEASE
 - [ ] Delete `PropertyPath` imports from all files
 - [ ] Replace `Entity.CONSTANT` with `"camelCase"` strings in test assertions
 - [ ] Replace `assertThat()` with `created()`, `assertSnapshot()` with `updated()`

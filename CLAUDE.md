@@ -198,11 +198,16 @@ assertEntityWithSnapshot(order);  // No changes specified
 // WRONG - missing verify() (now caught automatically in @AfterEach)
 OrderAssert.created(order).status_is("PENDING");  // Fails with UNVERIFIED BUILDER error!
 
-// CORRECT
+// AVOID - passing Fabut explicitly when not needed
+OrderAssert.created(this, order).status_is("PENDING").verify();  // Works but verbose
+
+// CORRECT - Fabut is resolved automatically via ThreadLocal
 takeSnapshot();
 Order order = orderService.create(customerId);
 OrderAssert.created(order).status_is("PENDING").verify();
 ```
+
+> **Avoid explicit `Fabut` parameter:** Factory methods like `created(fabut, obj)` exist for edge cases where automatic `ThreadLocal` resolution is unavailable (e.g., assertions outside the test class). In normal tests, always use the simpler `created(obj)` form.
 
 ## Project Structure
 
@@ -226,9 +231,9 @@ src/main/java/cloud/alchemy/fabut/
 
 ### `/migrate`
 
-Migrate a project from Fabut 4.x to 5.1. Follow [MIGRATION.md](MIGRATION.md) instructions:
+Migrate a project from Fabut 4.x to 5.2. Follow [MIGRATION.md](MIGRATION.md) instructions:
 
-1. Update dependency version to 5.1.0-RELEASE
+1. Update dependency version to 5.2.0-RELEASE
 2. Delete `PropertyPath` imports
 3. Replace `Entity.CONSTANT` → `"camelCase"` strings in assertions
 4. Replace `assertThat()` with `created()`, `assertSnapshot()` with `updated()`
