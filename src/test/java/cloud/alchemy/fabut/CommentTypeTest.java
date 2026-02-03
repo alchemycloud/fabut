@@ -25,17 +25,17 @@ public class CommentTypeTest {
 
     @Test
     void getMark_fail_returnsSquare() {
-        assertEquals("■", CommentType.FAIL.getMark());
+        assertEquals("❌", CommentType.FAIL.getMark());
     }
 
     @Test
     void getMark_success_returnsGreaterThan() {
-        assertEquals(">", CommentType.SUCCESS.getMark());
+        assertEquals("✅", CommentType.SUCCESS.getMark());
     }
 
     @Test
     void getMark_collection_returnsHash() {
-        assertEquals("#", CommentType.COLLECTION.getMark());
+        assertEquals("\uD83D\uDCCB", CommentType.COLLECTION.getMark());
     }
 
     // ==================== isFailure() Tests ====================

@@ -821,11 +821,17 @@ public abstract class Fabut extends Assertions {
         final List<Method> methods = getGetMethods(actual);
         // Reusable empty list and NodesList to avoid repeated allocations
         final List<ObjectMethod> emptyParents = Collections.emptyList();
+        // Collect available field names for fuzzy matching on excess properties
+        final List<String> availableFieldNames = new ArrayList<>();
 
         for (final Method method : methods) {
 
             final String fieldName = ReflectionUtil.getFieldNameOfGet(method);
             final boolean ignoredField = isIgnoredField(actual.getClass(), fieldName);
+
+            if (!ignoredField) {
+                availableFieldNames.add(fieldName);
+            }
 
             final ISingleProperty property = getPropertyFromList(fieldName, expectedProperties);
             try {
@@ -846,7 +852,7 @@ public abstract class Fabut extends Assertions {
                                 new NodesList());
 
                         if (optimisationReport.isSuccess() && !(property instanceof IgnoredProperty)) {
-                            report.notNecessaryAssert(fieldName, actual);
+                            report.notNecessaryAssert(fieldName, actual, fieldValue);
                         }
                     }
 
@@ -863,7 +869,7 @@ public abstract class Fabut extends Assertions {
 
         if (!expectedProperties.isEmpty()) {
             for (ISingleProperty singleProperty : expectedProperties) {
-                report.excessExpectedProperty(singleProperty.getPath());
+                report.excessExpectedProperty(singleProperty.getPath(), availableFieldNames);
             }
         }
 
@@ -1049,7 +1055,7 @@ public abstract class Fabut extends Assertions {
                                 new NodesList());
 
                         if (optimisationReport.isSuccess() && !(property instanceof IgnoredProperty)) {
-                            report.notNecessaryAssert(fieldName, actual);
+                            report.notNecessaryAssert(fieldName, actual, actualValue);
                         }
                     }
 
@@ -1103,17 +1109,17 @@ public abstract class Fabut extends Assertions {
             }
             case NullProperty nullProperty -> {
                 if (actual != null) {
-                    report.nullProperty(expected.getPath());
+                    report.nullProperty(expected.getPath(), actual);
                 }
             }
             case NotEmptyProperty notEmptyProperty -> {
                 if (!(actual instanceof Optional && ((Optional<?>) actual).isPresent())) {
-                    report.notEmptyProperty(expected.getPath());
+                    report.notEmptyProperty(expected.getPath(), actual);
                 }
             }
             case EmptyProperty emptyProperty -> {
                 if (!(actual instanceof Optional && ((Optional<?>) actual).isEmpty())) {
-                    report.emptyProperty(expected.getPath());
+                    report.emptyProperty(expected.getPath(), actual);
                 }
             }
             case IgnoredProperty ignoredProperty -> report.reportIgnoreProperty(expected.getPath());

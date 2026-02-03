@@ -5,6 +5,8 @@ import cloud.alchemy.fabut.enums.EntityChangeType;
 import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Method;
+import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -78,10 +80,7 @@ class FabutReportTest {
         report.listDifferentSizeComment("myList", 5, 3);
 
         assertFalse(report.isSuccess());
-        String message = report.getMessage();
-        assertTrue(message.contains("myList"));
-        assertTrue(message.contains("5"));
-        assertTrue(message.contains("3"));
+        assertEquals("❌ LIST SIZE MISMATCH: myList expected size: 5, but was: 3", report.getMessage());
     }
 
     @Test
@@ -90,9 +89,9 @@ class FabutReportTest {
         report.noPropertyForField(new TestEntity(), "fieldName", "fieldValue");
 
         assertFalse(report.isSuccess());
-        String message = report.getMessage();
-        assertTrue(message.contains("fieldName"));
-        assertTrue(message.contains("TestEntity"));
+        assertEquals("""
+                ❌ UNASSERTED FIELD: TestEntity.fieldName = "fieldValue"
+                    Fix: add value("fieldName", ...) or ignored("fieldName")""", report.getMessage());
     }
 
     @Test
@@ -101,34 +100,36 @@ class FabutReportTest {
         report.notNullProperty("myField");
 
         assertFalse(report.isSuccess());
-        assertTrue(report.getMessage().contains("myField"));
+        assertEquals("❌ myField: expected not null, but was null", report.getMessage());
     }
 
     @Test
     void nullProperty_marksFailure() {
         FabutReport report = new FabutReport();
-        report.nullProperty("myField");
+        report.nullProperty("myField", "actualValue");
 
         assertFalse(report.isSuccess());
-        assertTrue(report.getMessage().contains("myField"));
+        assertEquals("""
+                ❌ myField: expected null, but was: "actualValue\"""", report.getMessage());
     }
 
     @Test
     void notEmptyProperty_marksFailure() {
         FabutReport report = new FabutReport();
-        report.notEmptyProperty("myField");
+        report.notEmptyProperty("myField", null);
 
         assertFalse(report.isSuccess());
-        assertTrue(report.getMessage().contains("myField"));
+        assertEquals("❌ myField: expected non-empty Optional, but was: null", report.getMessage());
     }
 
     @Test
     void emptyProperty_marksFailure() {
         FabutReport report = new FabutReport();
-        report.emptyProperty("myField");
+        report.emptyProperty("myField", Optional.of("value"));
 
         assertFalse(report.isSuccess());
-        assertTrue(report.getMessage().contains("myField"));
+        assertEquals("""
+                ❌ myField: expected empty Optional, but was: Optional["value"]""", report.getMessage());
     }
 
     @Test
@@ -145,7 +146,7 @@ class FabutReportTest {
         report.checkByReference("field", new TestEntity());
 
         assertFalse(report.isSuccess());
-        assertTrue(report.getMessage().contains("wrong reference"));
+        assertEquals("❌ Property:  field of class:  TestEntity has wrong reference.", report.getMessage());
     }
 
     @Test
@@ -170,6 +171,11 @@ class FabutReportTest {
         report.noEntityInSnapshot(new TestEntity());
 
         assertFalse(report.isSuccess());
+        assertEquals("""
+                ❌ NOT IN SNAPSHOT: TestEntity
+                    Entity was not present when takeSnapshot() was called.
+                    Fix: call takeSnapshot() after creating this entity, or use assertObject() for new entities""",
+                report.getMessage());
     }
 
     @Test
@@ -178,6 +184,10 @@ class FabutReportTest {
         report.entityInSnapshot(new TestEntity());
 
         assertFalse(report.isSuccess());
+        assertEquals("""
+                ❌ ALREADY IN SNAPSHOT: TestEntity
+                    This entity existed before takeSnapshot(). Use assertEntityWithSnapshot() instead of assertObject()""",
+                report.getMessage());
     }
 
     @Test
@@ -186,6 +196,9 @@ class FabutReportTest {
         report.entityNotAssertedInAfterState(new TestEntity());
 
         assertFalse(report.isSuccess());
+        assertEquals("""
+                ❌ UNASSERTED ENTITY: TestEntity was created after takeSnapshot() but not asserted.
+                    Fix: add assertObject(...) or ignoreEntity(...)""", report.getMessage());
     }
 
     @Test
@@ -195,14 +208,20 @@ class FabutReportTest {
         report.uncallableMethod(method, new TestEntity());
 
         assertFalse(report.isSuccess());
+        assertEquals("❌ There is no method: toString in actual object class: class cloud.alchemy.fabut.FabutReportTest$TestEntity (expected object class was: String).",
+                report.getMessage());
     }
 
     @Test
     void notNecessaryAssert_marksFailure() {
         FabutReport report = new FabutReport();
-        report.notNecessaryAssert("field", "value");
+        report.notNecessaryAssert("field", "ownerObject", "fieldValue");
 
         assertFalse(report.isSuccess());
+        assertEquals("""
+                ❌ UNNECESSARY ASSERT: String.field was not modified (value: "fieldValue")
+                    Fix: remove this assertion, or verify the test action modifies this field""",
+                report.getMessage());
     }
 
     @Test
@@ -211,6 +230,7 @@ class FabutReportTest {
         report.nullReference();
 
         assertFalse(report.isSuccess());
+        assertEquals("❌ Object that was passed to assertObject was null, it must not be null!", report.getMessage());
     }
 
     @Test
@@ -219,10 +239,7 @@ class FabutReportTest {
         report.assertFail("field", "expected", "actual");
 
         assertFalse(report.isSuccess());
-        String message = report.getMessage();
-        assertTrue(message.contains("field"));
-        assertTrue(message.contains("expected"));
-        assertTrue(message.contains("actual"));
+        assertEquals("❌ field: expected: expected but was: actual", report.getMessage());
     }
 
     @Test
@@ -231,9 +248,7 @@ class FabutReportTest {
         report.assertFailFormatted("field", () -> "formatted_expected", () -> "formatted_actual");
 
         assertFalse(report.isSuccess());
-        String message = report.getMessage();
-        assertTrue(message.contains("formatted_expected"));
-        assertTrue(message.contains("formatted_actual"));
+        assertEquals("❌ field: expected: formatted_expected but was: formatted_actual", report.getMessage());
     }
 
     @Test
@@ -242,7 +257,7 @@ class FabutReportTest {
         report.idNull(TestEntity.class);
 
         assertFalse(report.isSuccess());
-        assertTrue(report.getMessage().contains("TestEntity"));
+        assertEquals("❌ Id of TestEntity cannot be null", report.getMessage());
     }
 
     @Test
@@ -251,6 +266,10 @@ class FabutReportTest {
         report.notDeletedInRepository(new TestEntity());
 
         assertFalse(report.isSuccess());
+        assertEquals("""
+                ❌ NOT DELETED: TestEntity still exists in repository
+                    Fix: verify the test action actually deletes this entity""",
+                report.getMessage());
     }
 
     @Test
@@ -259,6 +278,7 @@ class FabutReportTest {
         report.noCopy(new TestEntity());
 
         assertFalse(report.isSuccess());
+        assertEquals("❌ Entity: TestEntity cannot be copied into snapshot", report.getMessage());
     }
 
     @Test
@@ -267,6 +287,7 @@ class FabutReportTest {
         report.excessExpectedMap("key1");
 
         assertFalse(report.isSuccess());
+        assertEquals("❌ No match for expected key: key1", report.getMessage());
     }
 
     @Test
@@ -275,6 +296,7 @@ class FabutReportTest {
         report.excessActualMap("key2");
 
         assertFalse(report.isSuccess());
+        assertEquals("❌ No match for actual key: key2", report.getMessage());
     }
 
     @Test
@@ -283,6 +305,54 @@ class FabutReportTest {
         report.excessExpectedProperty("some.path");
 
         assertFalse(report.isSuccess());
+        assertEquals("""
+                ❌ UNKNOWN PROPERTY: "some.path" does not match any field on the object""",
+                report.getMessage());
+    }
+
+    @Test
+    void excessExpectedProperty_withAvailableFields_suggestsClosestMatch() {
+        FabutReport report = new FabutReport();
+        report.excessExpectedProperty("valuDecimal", List.of("valueDecimal", "valueText", "priority"));
+
+        assertFalse(report.isSuccess());
+        assertEquals("""
+                ❌ UNKNOWN PROPERTY: "valuDecimal" does not match any field
+                    Did you mean: "valueDecimal"?
+                    Available fields: valueDecimal, valueText, priority""",
+                report.getMessage());
+    }
+
+    @Test
+    void excessExpectedProperty_withAvailableFields_noCloseMatch() {
+        FabutReport report = new FabutReport();
+        report.excessExpectedProperty("xyz", List.of("valueDecimal", "valueText", "priority"));
+
+        assertFalse(report.isSuccess());
+        assertEquals("""
+                ❌ UNKNOWN PROPERTY: "xyz" does not match any field
+                    Available fields: valueDecimal, valueText, priority""",
+                report.getMessage());
+    }
+
+    @Test
+    void findClosestMatch_exactMatch_returnsIt() {
+        assertEquals("name", FabutReport.findClosestMatch("name", List.of("name", "age")));
+    }
+
+    @Test
+    void findClosestMatch_typo_suggestsCorrection() {
+        assertEquals("valueDecimal", FabutReport.findClosestMatch("valuDecimal", List.of("valueDecimal", "valueText")));
+    }
+
+    @Test
+    void findClosestMatch_tooFar_returnsNull() {
+        assertNull(FabutReport.findClosestMatch("xyz", List.of("valueDecimal", "valueText")));
+    }
+
+    @Test
+    void findClosestMatch_emptyList_returnsNull() {
+        assertNull(FabutReport.findClosestMatch("name", List.of()));
     }
 
     @Test
@@ -299,6 +369,10 @@ class FabutReportTest {
         report.assertWithSnapshotMustHaveAtLeastOnChange(new TestEntity());
 
         assertFalse(report.isSuccess());
+        assertEquals("""
+                ❌ assertEntityWithSnapshot() called with 0 property assertions on: TestEntity
+                    Fix: specify which fields changed, or use ignoreEntity() if no changes expected""",
+                report.getMessage());
     }
 
     // ==================== Code Methods Tests ====================
@@ -309,9 +383,7 @@ class FabutReportTest {
         report.addCode(() -> "generated code");
         report.markAsFailed();
 
-        String message = report.getMessage();
-        assertTrue(message.contains("CODE"));
-        assertTrue(message.contains("generated code"));
+        assertEquals("\nCODE:generated code", report.getMessage());
     }
 
     @Test
@@ -352,10 +424,14 @@ class FabutReportTest {
     @Test
     void recordEntityChange_withCode_includesCode() {
         FabutReport report = new FabutReport();
-        report.recordEntityChange(EntityChangeType.CREATED, "Entity#1", TestEntity.class, "details", "fix", "generated code");
+        report.recordEntityChange(EntityChangeType.CREATED, "Entity#1", TestEntity.class, "details", "fix", "\nsome code");
 
-        String changes = report.getEntityChangesMessage();
-        assertTrue(changes.contains("generated code"));
+        assertEquals("""
+                SNAPSHOT VIOLATION: 1 created
+                ============================================================
+                CREATED:
+                  Entity#1
+                some code""", report.getEntityChangesMessage());
     }
 
     @Test
@@ -371,12 +447,16 @@ class FabutReportTest {
     }
 
     @Test
-    void getEntityChangesMessage_withChanges_includesChangeType() {
+    void getEntityChangesMessage_withDeletedChange() {
         FabutReport report = new FabutReport();
-        report.recordEntityChange(EntityChangeType.DELETED, "Entity#1", TestEntity.class, "deleted", "remove assertion");
+        report.recordEntityChange(EntityChangeType.DELETED, "Entity#1", TestEntity.class, "deleted", "assertEntityAsDeleted(entity);");
 
-        String message = report.getEntityChangesMessage();
-        assertTrue(message.contains("Entity#1"));
+        assertEquals("""
+                SNAPSHOT VIOLATION: 1 deleted
+                ============================================================
+                DELETED:
+                  Entity#1
+                    -> assertEntityAsDeleted(entity);""", report.getEntityChangesMessage());
     }
 
     // ==================== markAsFailed() Tests ====================
@@ -404,9 +484,9 @@ class FabutReportTest {
         FabutReport child = parent.getSubReport(() -> "Child");
         child.assertFail("field", "exp", "act");
 
-        String message = parent.getMessage();
-        assertTrue(message.contains("Child"));
-        assertTrue(message.contains("field"));
+        assertEquals("""
+                Child
+                --❌ field: expected: exp but was: act""", parent.getMessage());
     }
 
     // Helper class

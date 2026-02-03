@@ -175,13 +175,13 @@ public class FabutRepositoryAssertTest extends AbstractFabutTest {
         // assert - CODE only shows changed properties
         assertFabutReportFailure(report, """
 UPDATED: EntityTierOneType[id=1]
---■>property: expected: test but was: testtest
+--❌ property: expected: test but was: testtest
 CODE:
 assertEntityWithSnapshot(object,
 value(EntityTierOneType.PROPERTY, "test"));
 UPDATED: EntityTierTwoType[id=4]
---■>property: expected: test but was: testtest
---■>property: expected: property but was: propertyproperty
+--❌ property: expected: test but was: testtest
+--❌ property: expected: property but was: propertyproperty
 CODE:
 assertEntityWithSnapshot(object,
 value(EntityTierTwoType.SUB_PROPERTY, EntityTierOneType[id=7]),
@@ -441,6 +441,8 @@ value(EntityTierTwoType.PROPERTY, "property"));""");
 
         // assert
         assertFabutReportFailure(report, """
+SNAPSHOT VIOLATION: 1 deleted
+============================================================
 DELETED:
   EntityTierOneType[id=null]
     -> assertEntityAsDeleted(entityTierOneType);""");
@@ -467,6 +469,8 @@ DELETED:
 
         // assert
         assertFabutReportFailure(report, """
+SNAPSHOT VIOLATION: 1 created
+============================================================
 CREATED:
   EntityTierOneType[id=null]
 CODE:
@@ -496,6 +500,8 @@ isNull(EntityTierOneType.ID));""");
 
         // assert - entity reference should use entityPath format
         assertFabutReportFailure(report, """
+SNAPSHOT VIOLATION: 1 created
+============================================================
 CREATED:
   EntityTierTwoType[id=2]
 CODE:
@@ -599,7 +605,7 @@ value(EntityTierTwoType.ID, 2));""");
         // assert - CODE only shows changed property (not ID which didn't change)
         assertFabutReportFailure(report, """
 UPDATED: EntityTierOneType[id=3]
---■>property: expected: test but was: testtest
+--❌ property: expected: test but was: testtest
 CODE:
 assertEntityWithSnapshot(object,
 value(EntityTierOneType.PROPERTY, "test"));""");
@@ -657,7 +663,8 @@ value(EntityTierOneType.PROPERTY, "test"));""");
         // assert
         assertFabutReportFailure(
                 fabutReport,
-                "■>Property: id is same in expected and actual object, no need for assert\n"
+                "❌ UNNECESSARY ASSERT: EntityTierOneType.id was not modified (value: 1)\n"
+                        + "    Fix: remove this assertion, or verify the test action modifies this field\n"
                         + "CODE:\n"
                         + "assertObject(object,\n"
                         + "value(EntityTierOneType.PROPERTY, \"test\"),\n"
@@ -679,7 +686,9 @@ value(EntityTierOneType.PROPERTY, "test"));""");
         assertEntityWithSnapshot(report, entity, properties);
 
         // assert
-        assertFabutReportFailure(report, "■>Entity EntityTierOneType{id=1, property='testtest'} doesn't exist in DB any more but is not asserted in test.");
+        assertFabutReportFailure(report, "❌ NOT IN SNAPSHOT: EntityTierOneType{id=1, property='testtest'}\n"
+                + "    Entity was not present when takeSnapshot() was called.\n"
+                + "    Fix: call takeSnapshot() after creating this entity, or use assertObject() for new entities");
     }
 
     @Test
@@ -695,7 +704,7 @@ value(EntityTierOneType.PROPERTY, "test"));""");
 
         // assert
         assertFabutReportFailure(report,
-                "■>optionalEntity: expected: Optional.empty but was: Optional[EntityTierOneType[id=123]]\n" +
+                "❌ optionalEntity: expected: Optional.empty but was: Optional[EntityTierOneType[id=123]]\n" +
                 "CODE:\n" +
                 "assertObject(object,\n" +
                 "isEmpty(TypeWithOptionalEntity.OPTIONAL_ENTITY));");
@@ -714,7 +723,7 @@ value(EntityTierOneType.PROPERTY, "test"));""");
 
         // assert
         assertFabutReportFailure(report,
-                "■>optionalEntity: expected: Optional[EntityTierOneType[id=456]] but was: Optional.empty\n" +
+                "❌ optionalEntity: expected: Optional[EntityTierOneType[id=456]] but was: Optional.empty\n" +
                 "CODE:\n" +
                 "assertObject(object,\n" +
                 "value(TypeWithOptionalEntity.OPTIONAL_ENTITY, Optional[EntityTierOneType{id=456, property='test'}]));");

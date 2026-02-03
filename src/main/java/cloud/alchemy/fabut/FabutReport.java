@@ -28,7 +28,7 @@ interface FabutToString {
 class FabutReport {
 
     // Constants for report formatting
-    private static final String ARROW = ">";
+    private static final String ARROW = " ";
     private static final String DASH = "-";
     private static final String NEW_LINE = "\n";
     
@@ -200,48 +200,44 @@ class FabutReport {
         }
     }
 
-    /**
-     * Reports a list size mismatch.
-     *
-     * @param propertyName The name of the list property
-     * @param expectedSize The expected size
-     * @param actualSize The actual size
-     */
     void listDifferentSizeComment(final String propertyName, final int expectedSize, final int actualSize) {
         addLazyComment(
-            () -> "Expected size for list: " + propertyName + " is: " + expectedSize + ", but was: " + actualSize,
+            () -> "LIST SIZE MISMATCH: " + propertyName + " expected size: " + expectedSize + ", but was: " + actualSize,
             CommentType.FAIL
         );
     }
 
-    /**
-     * Reports that no property was found for a field.
-     *
-     * @param fieldOwner The owner of the field
-     * @param fieldName The name of the field
-     * @param field The field value
-     */
     void noPropertyForField(final Object fieldOwner, final String fieldName, final Object field) {
         addLazyComment(
-            () -> "There was no property for field: " + fieldName + " of class: " + fieldOwner.getClass().getSimpleName() + ", with value: " + field,
+            () -> "UNASSERTED FIELD: " + fieldOwner.getClass().getSimpleName() + "." + fieldName + " = " + formatFieldValue(field)
+                + "\n    Fix: add value(\"" + fieldName + "\", ...) or ignored(\"" + fieldName + "\")",
             CommentType.FAIL
         );
     }
 
     void notNullProperty(final String fieldName) {
-        addComment(fieldName + ": expected not null property, but field was null", CommentType.FAIL);
+        addComment(fieldName + ": expected not null, but was null", CommentType.FAIL);
     }
 
-    void nullProperty(final String fieldName) {
-        addComment(fieldName + ": expected null property, but field was not null", CommentType.FAIL);
+    void nullProperty(final String fieldName, final Object actual) {
+        addLazyComment(
+            () -> fieldName + ": expected null, but was: " + formatFieldValue(actual),
+            CommentType.FAIL
+        );
     }
 
-    void notEmptyProperty(final String fieldName) {
-        addComment(fieldName + ": expected not empty property, but field was empty", CommentType.FAIL);
+    void notEmptyProperty(final String fieldName, final Object actual) {
+        addLazyComment(
+            () -> fieldName + ": expected non-empty Optional, but was: " + formatFieldValue(actual),
+            CommentType.FAIL
+        );
     }
 
-    void emptyProperty(final String fieldName) {
-        addComment(fieldName + ": expected empty property, but field was not empty", CommentType.FAIL);
+    void emptyProperty(final String fieldName, final Object actual) {
+        addLazyComment(
+            () -> fieldName + ": expected empty Optional, but was: " + formatFieldValue(actual),
+            CommentType.FAIL
+        );
     }
 
     void reportIgnoreProperty(final String fieldName) {
@@ -261,15 +257,29 @@ class FabutReport {
     }
 
     void noEntityInSnapshot(final Object entity) {
-        addComment("Entity " + entity + " doesn't exist in DB any more but is not asserted in test.", CommentType.FAIL);
+        addLazyComment(
+            () -> "NOT IN SNAPSHOT: " + entity
+                + "\n    Entity was not present when takeSnapshot() was called."
+                + "\n    Fix: call takeSnapshot() after creating this entity, or use assertObject() for new entities",
+            CommentType.FAIL
+        );
     }
 
     void entityInSnapshot(final Object entity) {
-        addComment("Entity " + entity + " exist in DB, user assertWithSnapshot instead..", CommentType.FAIL);
+        addLazyComment(
+            () -> "ALREADY IN SNAPSHOT: " + entity
+                + "\n    This entity existed before takeSnapshot(). Use assertEntityWithSnapshot() instead of assertObject()",
+            CommentType.FAIL
+        );
     }
 
     void entityNotAssertedInAfterState(final Object entity) {
-        addComment("Entity " + entity + " is created in system after last snapshot but hasn't been asserted in test.", CommentType.FAIL);
+        addLazyComment(
+            () -> "UNASSERTED ENTITY: " + entity
+                + " was created after takeSnapshot() but not asserted."
+                + "\n    Fix: add assertObject(...) or ignoreEntity(...)",
+            CommentType.FAIL
+        );
     }
 
     void uncallableMethod(final Method method, final Object actual) {
@@ -277,8 +287,13 @@ class FabutReport {
                    " (expected object class was: " + method.getDeclaringClass().getSimpleName() + ").", CommentType.FAIL);
     }
 
-    void notNecessaryAssert(final String propertyName, final Object actual) {
-        addComment("Property: " + propertyName + " is same in expected and actual object, no need for assert", CommentType.FAIL);
+    void notNecessaryAssert(final String propertyName, final Object actual, final Object fieldValue) {
+        addLazyComment(
+            () -> "UNNECESSARY ASSERT: " + actual.getClass().getSimpleName() + "." + propertyName
+                + " was not modified (value: " + formatFieldValue(fieldValue) + ")"
+                + "\n    Fix: remove this assertion, or verify the test action modifies this field",
+            CommentType.FAIL
+        );
     }
 
     void nullReference() {
@@ -301,7 +316,11 @@ class FabutReport {
     }
 
     void notDeletedInRepository(final Object entity) {
-        addComment("Entity: " + entity + " was not deleted in repository", CommentType.FAIL);
+        addLazyComment(
+            () -> "NOT DELETED: " + entity + " still exists in repository"
+                + "\n    Fix: verify the test action actually deletes this entity",
+            CommentType.FAIL
+        );
     }
 
     void noCopy(final Object entity) {
@@ -317,7 +336,24 @@ class FabutReport {
     }
 
     void excessExpectedProperty(final String path) {
-        addComment("Excess property: " + path, CommentType.FAIL);
+        addComment("UNKNOWN PROPERTY: \"" + path + "\" does not match any field on the object", CommentType.FAIL);
+    }
+
+    void excessExpectedProperty(final String path, final List<String> availableFields) {
+        addLazyComment(
+            () -> {
+                StringBuilder sb = new StringBuilder("UNKNOWN PROPERTY: \"" + path + "\" does not match any field");
+                String closest = findClosestMatch(path, availableFields);
+                if (closest != null) {
+                    sb.append("\n    Did you mean: \"").append(closest).append("\"?");
+                }
+                if (!availableFields.isEmpty()) {
+                    sb.append("\n    Available fields: ").append(String.join(", ", availableFields));
+                }
+                return sb.toString();
+            },
+            CommentType.FAIL
+        );
     }
 
     void assertingMapKey(final Object key) {
@@ -325,7 +361,11 @@ class FabutReport {
     }
 
     <T> void assertWithSnapshotMustHaveAtLeastOnChange(T entity) {
-        addComment("Assert entity with snapshot must be called with at least one property: " + entity, CommentType.FAIL);
+        addLazyComment(
+            () -> "assertEntityWithSnapshot() called with 0 property assertions on: " + entity
+                + "\n    Fix: specify which fields changed, or use ignoreEntity() if no changes expected",
+            CommentType.FAIL
+        );
     }
 
     /**
@@ -419,17 +459,22 @@ class FabutReport {
 
         StringBuilder sb = new StringBuilder();
         String separator = "=".repeat(60);
-        boolean firstGroup = true;
+
+        // Summary header
+        List<String> parts = new ArrayList<>();
+        for (EntityChangeType changeType : EntityChangeType.values()) {
+            List<EntityChange> changes = entityChanges.get(changeType);
+            if (changes != null && !changes.isEmpty()) {
+                parts.add(changes.size() + " " + changeType.getLabel().toLowerCase());
+            }
+        }
+        sb.append("SNAPSHOT VIOLATION: ").append(String.join(", ", parts));
+        sb.append("\n").append(separator);
 
         for (EntityChangeType changeType : EntityChangeType.values()) {
             List<EntityChange> changes = entityChanges.get(changeType);
             if (changes != null && !changes.isEmpty()) {
-                if (!firstGroup) {
-                    sb.append("\n").append(separator).append("\n");
-                }
-                firstGroup = false;
-
-                sb.append(changeType.getLabel()).append(":");
+                sb.append("\n").append(changeType.getLabel()).append(":");
                 for (EntityChange change : changes) {
                     sb.append("\n  ").append(change.entityPath());
                     // Show suggested fix or code for each entity
@@ -447,6 +492,74 @@ class FabutReport {
         }
 
         return sb.toString();
+    }
+
+    // ==================== Helper Methods ====================
+
+    /**
+     * Formats a field value for display in error messages.
+     */
+    private static String formatFieldValue(final Object value) {
+        if (value == null) {
+            return "null";
+        }
+        if (value instanceof Optional<?> opt) {
+            return opt.isEmpty() ? "Optional.empty" : "Optional[" + formatFieldValue(opt.get()) + "]";
+        }
+        if (value instanceof String) {
+            return "\"" + value + "\"";
+        }
+        if (value.getClass().isEnum()) {
+            return value.getClass().getSimpleName() + "." + value;
+        }
+        return String.valueOf(value);
+    }
+
+    /**
+     * Finds the closest matching field name using edit distance.
+     * Returns null if no close match found (distance > 3).
+     */
+    static String findClosestMatch(final String input, final List<String> candidates) {
+        if (candidates == null || candidates.isEmpty()) {
+            return null;
+        }
+        String best = null;
+        int bestDistance = Integer.MAX_VALUE;
+        final String inputLower = input.toLowerCase();
+        for (String candidate : candidates) {
+            int distance = editDistance(inputLower, candidate.toLowerCase());
+            if (distance < bestDistance) {
+                bestDistance = distance;
+                best = candidate;
+            }
+        }
+        // Only suggest if reasonably close (max 3 edits or less than half the length)
+        int threshold = Math.min(3, Math.max(1, input.length() / 2));
+        return bestDistance <= threshold ? best : null;
+    }
+
+    /**
+     * Computes Levenshtein edit distance between two strings.
+     */
+    private static int editDistance(final String a, final String b) {
+        final int lenA = a.length();
+        final int lenB = b.length();
+        int[] prev = new int[lenB + 1];
+        int[] curr = new int[lenB + 1];
+        for (int j = 0; j <= lenB; j++) {
+            prev[j] = j;
+        }
+        for (int i = 1; i <= lenA; i++) {
+            curr[0] = i;
+            for (int j = 1; j <= lenB; j++) {
+                int cost = a.charAt(i - 1) == b.charAt(j - 1) ? 0 : 1;
+                curr[j] = Math.min(Math.min(curr[j - 1] + 1, prev[j] + 1), prev[j - 1] + cost);
+            }
+            int[] temp = prev;
+            prev = curr;
+            curr = temp;
+        }
+        return prev[lenB];
     }
 }
 

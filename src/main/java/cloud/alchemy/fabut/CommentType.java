@@ -20,19 +20,17 @@ public enum CommentType {
      * Indicates a test failure or assertion error.
      * Represented by a solid square marker.  
      */
-    FAIL("■"),
+    FAIL("\u274C"),
 
     /**
      * Indicates a successful test or assertion.
-     * Represented by a greater-than symbol. 
      */
-    SUCCESS(">"),
+    SUCCESS("\u2705"),
 
     /**
      * Indicates a collection element being processed.
-     * Represented by a hash/pound symbol.
      */
-    COLLECTION("#");
+    COLLECTION("\uD83D\uDCCB");
 
     /**
      * The visual marker displayed in the report output for this comment type.
