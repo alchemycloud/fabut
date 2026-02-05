@@ -241,7 +241,7 @@ class FabutReport {
     }
 
     void reportIgnoreProperty(final String fieldName) {
-        addComment(fieldName + ": is ignored field", CommentType.SUCCESS);
+        addComment(fieldName + ": is ignored field", CommentType.IGNORED);
     }
 
     void checkByReference(final String fieldName, final Object object) {
@@ -249,7 +249,7 @@ class FabutReport {
     }
 
     void ignoredType(final Class<?> clazz) {
-        addComment("Type  " + clazz.getSimpleName() + " is ignored type.", CommentType.SUCCESS);
+        addComment("Type  " + clazz.getSimpleName() + " is ignored type.", CommentType.IGNORED);
     }
 
     void assertingListElement(final String listName, final int index) {

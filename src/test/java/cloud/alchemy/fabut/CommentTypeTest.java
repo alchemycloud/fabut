@@ -15,9 +15,10 @@ public class CommentTypeTest {
     void values_containsAllExpectedTypes() {
         CommentType[] types = CommentType.values();
 
-        assertEquals(3, types.length);
+        assertEquals(4, types.length);
         assertNotNull(CommentType.valueOf("FAIL"));
         assertNotNull(CommentType.valueOf("SUCCESS"));
+        assertNotNull(CommentType.valueOf("IGNORED"));
         assertNotNull(CommentType.valueOf("COLLECTION"));
     }
 
@@ -31,6 +32,11 @@ public class CommentTypeTest {
     @Test
     void getMark_success_returnsGreaterThan() {
         assertEquals("✅", CommentType.SUCCESS.getMark());
+    }
+
+    @Test
+    void getMark_ignored_returnsSkipEmoji() {
+        assertEquals("⏭", CommentType.IGNORED.getMark());
     }
 
     @Test
@@ -51,6 +57,11 @@ public class CommentTypeTest {
     }
 
     @Test
+    void isFailure_ignored_returnsFalse() {
+        assertFalse(CommentType.IGNORED.isFailure());
+    }
+
+    @Test
     void isFailure_collection_returnsFalse() {
         assertFalse(CommentType.COLLECTION.isFailure());
     }
@@ -65,6 +76,11 @@ public class CommentTypeTest {
     @Test
     void isSuccess_fail_returnsFalse() {
         assertFalse(CommentType.FAIL.isSuccess());
+    }
+
+    @Test
+    void isSuccess_ignored_returnsFalse() {
+        assertFalse(CommentType.IGNORED.isSuccess());
     }
 
     @Test
@@ -85,8 +101,35 @@ public class CommentTypeTest {
     }
 
     @Test
+    void isCollection_ignored_returnsFalse() {
+        assertFalse(CommentType.IGNORED.isCollection());
+    }
+
+    @Test
     void isCollection_success_returnsFalse() {
         assertFalse(CommentType.SUCCESS.isCollection());
+    }
+
+    // ==================== isIgnored() Tests ====================
+
+    @Test
+    void isIgnored_ignored_returnsTrue() {
+        assertTrue(CommentType.IGNORED.isIgnored());
+    }
+
+    @Test
+    void isIgnored_fail_returnsFalse() {
+        assertFalse(CommentType.FAIL.isIgnored());
+    }
+
+    @Test
+    void isIgnored_success_returnsFalse() {
+        assertFalse(CommentType.SUCCESS.isIgnored());
+    }
+
+    @Test
+    void isIgnored_collection_returnsFalse() {
+        assertFalse(CommentType.COLLECTION.isIgnored());
     }
 
     // ==================== Enum Properties Tests ====================
@@ -95,7 +138,8 @@ public class CommentTypeTest {
     void ordinal_valuesAreCorrect() {
         assertEquals(0, CommentType.FAIL.ordinal());
         assertEquals(1, CommentType.SUCCESS.ordinal());
-        assertEquals(2, CommentType.COLLECTION.ordinal());
+        assertEquals(2, CommentType.IGNORED.ordinal());
+        assertEquals(3, CommentType.COLLECTION.ordinal());
     }
 
     @Test

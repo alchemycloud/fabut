@@ -28,6 +28,11 @@ public enum CommentType {
     SUCCESS("\u2705"),
 
     /**
+     * Indicates a field or type being ignored/skipped.
+     */
+    IGNORED("\u23ED"),
+
+    /**
      * Indicates a collection element being processed.
      */
     COLLECTION("\uD83D\uDCCB");
@@ -81,5 +86,14 @@ public enum CommentType {
      */
     public boolean isCollection() {
         return this == COLLECTION;
+    }
+
+    /**
+     * Returns whether this comment type indicates an ignored field or type.
+     *
+     * @return true if this is an ignored comment type, false otherwise
+     */
+    public boolean isIgnored() {
+        return this == IGNORED;
     }
 }
