@@ -48,6 +48,10 @@ mvn deploy
 - Verify the version in `pom.xml` matches what was deployed
 - Confirm the artifact is available in the remote repository
 
+### 6. Commit (Ask User)
+
+Ask the user if they want to commit the changes. If yes, stage and commit all changed files with an appropriate message.
+
 ## Documentation Checklist
 
 These files MUST be checked on every deploy:
