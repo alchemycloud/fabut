@@ -9,12 +9,12 @@ import java.lang.annotation.Target;
  * Marks a class for assertion builder generation.
  * The annotation processor will generate a type-safe builder class with methods like:
  * <ul>
- *   <li>{@code fieldNameIs(Type value)} - assert exact value</li>
- *   <li>{@code fieldNameIsNull()} - assert null</li>
- *   <li>{@code fieldNameIsNotNull()} - assert not null</li>
- *   <li>{@code fieldNameIsEmpty()} - assert Optional.empty()</li>
- *   <li>{@code fieldNameIsNotEmpty()} - assert Optional has value</li>
- *   <li>{@code fieldNameIgnored()} - ignore field in assertion</li>
+ *   <li>{@code field_name_is(Type value)} - assert exact value</li>
+ *   <li>{@code field_name_is_null()} - assert null</li>
+ *   <li>{@code field_name_is_not_null()} - assert not null</li>
+ *   <li>{@code field_name_is_empty()} - assert Optional.empty()</li>
+ *   <li>{@code field_name_is_not_empty()} - assert Optional has value</li>
+ *   <li>{@code field_name_is_ignored()} - ignore field in assertion</li>
  * </ul>
  *
  * <p>Usage:</p>
@@ -28,9 +28,9 @@ import java.lang.annotation.Target;
  *
  * // Generated: FieldValueAssert.java
  * // Usage in tests:
- * FieldValueAssert.assertThat(fieldValue)
- *     .nameIs("test")
- *     .descriptionIsEmpty()
+ * FieldValueAssert.created(fieldValue)
+ *     .name_is("test")
+ *     .description_is_empty()
  *     .verify();
  * </pre>
  */
@@ -58,7 +58,7 @@ public @interface Assertable {
      * public class Order { ... }
      *
      * // Usage:
-     * OrderAssert.assertCreateKey(order, 1L, "name").verify();
+     * OrderAssert.createdKey(order, 1L, "name").verify();
      * </pre>
      */
     AssertGroup[] create() default {};
@@ -78,7 +78,7 @@ public @interface Assertable {
      * public class Order { ... }
      *
      * // Usage:
-     * OrderAssert.assertUpdateStatus(order, "SHIPPED").verify();
+     * OrderAssert.updatedStatus(order, "SHIPPED").verify();
      * </pre>
      */
     AssertGroup[] update() default {};

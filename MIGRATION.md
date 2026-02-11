@@ -23,7 +23,7 @@ AI-actionable instructions for migrating from Fabut 4.x to 5.2.
 <version>4.x.x</version>
 
 <!-- New -->
-<version>5.2.0-RELEASE</version>
+<version>5.2.2-RELEASE</version>
 ```
 
 ### Step 2: Remove PropertyPath Imports
@@ -250,7 +250,7 @@ void testUpdateUser() {
 
 ## Checklist
 
-- [ ] Update pom.xml dependency to 5.2.0-RELEASE
+- [ ] Update pom.xml dependency to 5.2.2-RELEASE
 - [ ] Delete `PropertyPath` imports from all files
 - [ ] Replace `Entity.CONSTANT` with `"camelCase"` strings in test assertions
 - [ ] Replace `assertThat()` with `created()`, `assertSnapshot()` with `updated()`

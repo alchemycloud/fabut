@@ -55,7 +55,7 @@ void testCreateOrder() {
 <dependency>
     <groupId>cloud.alchemy</groupId>
     <artifactId>fabut</artifactId>
-    <version>5.2.0-RELEASE</version>
+    <version>5.2.2-RELEASE</version>
     <scope>test</scope>
 </dependency>
 ```
@@ -267,22 +267,26 @@ For each field, Fabut generates intuitive assertion methods:
 ```java
 public class BaseTest extends Fabut {
 
-    @Override
-    protected List<Class<?>> getEntityTypes() {
+    public BaseTest() {
         // Classes tracked for database snapshot testing
-        return List.of(Order.class, Customer.class, Product.class);
-    }
+        entityTypes.add(Order.class);
+        entityTypes.add(Customer.class);
+        entityTypes.add(Product.class);
 
-    @Override
-    protected List<Class<?>> getIgnoredTypes() {
         // Types to skip during deep comparison
-        return List.of(Timestamp.class, Instant.class);
+        ignoredTypes.add(Timestamp.class);
+        ignoredTypes.add(Instant.class);
     }
 
     @Override
     protected List<?> findAll(Class<?> entityClass) {
         // Hook into your persistence layer
         return entityManager.createQuery("FROM " + entityClass.getSimpleName()).getResultList();
+    }
+
+    @Override
+    protected Object findById(Class<?> entityClass, Object id) {
+        return entityManager.find(entityClass, id);
     }
 }
 ```

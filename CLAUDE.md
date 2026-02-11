@@ -233,7 +233,7 @@ src/main/java/cloud/alchemy/fabut/
 
 Migrate a project from Fabut 4.x to 5.2. Follow [MIGRATION.md](MIGRATION.md) instructions:
 
-1. Update dependency version to 5.2.0-RELEASE
+1. Update dependency version to 5.2.2-RELEASE
 2. Delete `PropertyPath` imports
 3. Replace `Entity.CONSTANT` → `"camelCase"` strings in assertions
 4. Replace `assertThat()` with `created()`, `assertSnapshot()` with `updated()`
