@@ -56,7 +56,7 @@ void testCreateOrder() {
 <dependency>
     <groupId>cloud.alchemy</groupId>
     <artifactId>fabut</artifactId>
-    <version>5.2.2-RELEASE</version>
+    <version>5.3.0-RELEASE</version>
     <scope>test</scope>
 </dependency>
 ```
