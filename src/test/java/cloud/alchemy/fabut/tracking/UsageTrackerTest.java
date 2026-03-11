@@ -7,6 +7,8 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -251,6 +253,39 @@ class UsageTrackerTest {
     void getTrackedObjects_isUnmodifiable() {
         assertThrows(UnsupportedOperationException.class,
                 () -> tracker.getTrackedObjects().clear());
+    }
+
+    @Test
+    void getFieldNames_excludesIgnoredFields() {
+        tracker.setIgnoredFields(Map.of(TrackedDto.class, List.of("id", "count")));
+
+        Set<String> fields = tracker.getFieldNames(TrackedDto.class);
+
+        assertEquals(Set.of("name", "description"), fields);
+    }
+
+    @Test
+    void register_excludesIgnoredFieldsFromTrackedObject() {
+        tracker.setIgnoredFields(Map.of(TrackedDto.class, List.of("description")));
+        tracker.activate();
+        TrackedDto dto = new TrackedDto(1L, "test", null, 5);
+        tracker.register(dto);
+
+        TrackedObject tracked = tracker.getTrackedObjects().iterator().next();
+        assertEquals(Set.of("id", "name", "count"), tracked.getAllFields());
+    }
+
+    @Test
+    void ignoredFields_notCountedInUsagePercentage() {
+        tracker.setIgnoredFields(Map.of(TrackedDto.class, List.of("id", "description")));
+        tracker.activate();
+        TrackedDto dto = new TrackedDto(1L, "test", null, 5);
+        tracker.register(dto);
+        tracker.recordAccess(dto, "name");
+
+        TrackedObject tracked = tracker.getTrackedObjects().iterator().next();
+        // 1 accessed out of 2 tracked (name, count) = 50%
+        assertEquals(50.0, tracked.getUsagePercentage());
     }
 
     @Test

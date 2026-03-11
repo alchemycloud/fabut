@@ -182,6 +182,7 @@ public abstract class Fabut extends Assertions {
             dbSnapshot.put(entityType, new ConcurrentHashMap<>());
         }
         usageTracker = new UsageTracker();
+        usageTracker.setIgnoredFields(ignoredFields);
         UsageTracker.setCurrent(usageTracker);
     }
 

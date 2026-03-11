@@ -19,6 +19,7 @@ public class UsageTracker {
     private boolean active;
     private final Map<Integer, TrackedObject> trackedObjects = new ConcurrentHashMap<>();
     private final Map<Class<?>, Set<String>> fieldNamesCache = new ConcurrentHashMap<>();
+    private Map<Class<?>, List<String>> ignoredFields = Collections.emptyMap();
 
     /**
      * Sets the current UsageTracker for this thread.
@@ -71,6 +72,10 @@ public class UsageTracker {
     public static boolean isCurrentActive() {
         UsageTracker tracker = CURRENT.get();
         return tracker != null && tracker.active;
+    }
+
+    public void setIgnoredFields(Map<Class<?>, List<String>> ignoredFields) {
+        this.ignoredFields = ignoredFields;
     }
 
     public void activate() {
@@ -149,6 +154,10 @@ public class UsageTracker {
                         fields.add(fieldName);
                     }
                 }
+            }
+            List<String> ignored = ignoredFields.get(c);
+            if (ignored != null) {
+                fields.removeAll(ignored);
             }
             return fields;
         });
