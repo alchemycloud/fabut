@@ -4,6 +4,9 @@ import cloud.alchemy.fabut.enums.ReferenceCheckType;
 import cloud.alchemy.fabut.graph.NodesList;
 import cloud.alchemy.fabut.pair.SnapshotPair;
 import cloud.alchemy.fabut.property.*;
+import cloud.alchemy.fabut.tracking.UsageInstrumentation;
+import cloud.alchemy.fabut.tracking.UsageReport;
+import cloud.alchemy.fabut.tracking.UsageTracker;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
@@ -61,7 +64,26 @@ public abstract class Fabut extends Assertions {
     protected final Queue<Class<?>> entityTypes = new ConcurrentLinkedQueue<>();
     protected final Queue<Class<?>> complexTypes = new ConcurrentLinkedQueue<>();
     protected final Queue<Class<?>> ignoredTypes = new ConcurrentLinkedQueue<>();
+    protected final Queue<Class<?>> trackedTypes = new ConcurrentLinkedQueue<>();
     protected final Map<Class<?>, List<String>> ignoredFields = new ConcurrentHashMap<>();
+
+    /**
+     * Minimum usage threshold percentage (0-100). When set to a value > 0,
+     * tests will fail if any tracked class has average field usage below this threshold.
+     * Default is -1 (disabled, report only).
+     *
+     * Set in constructor: {@code usageThreshold = 50;} to fail if usage drops below 50%.
+     */
+    protected double usageThreshold = -1;
+
+    private UsageTracker usageTracker;
+
+    /**
+     * Returns the current usage tracker instance. Available after @BeforeEach.
+     */
+    protected UsageTracker getUsageTracker() {
+        return usageTracker;
+    }
     private final Map<Class<?>, Map<Object, CopyAssert>> dbSnapshot = Collections.synchronizedMap(new LinkedHashMap<>());
     final List<SnapshotPair> parameterSnapshot = new ArrayList<>();
 
@@ -159,6 +181,8 @@ public abstract class Fabut extends Assertions {
             // Use ConcurrentHashMap for thread-safe parallel snapshot taking
             dbSnapshot.put(entityType, new ConcurrentHashMap<>());
         }
+        usageTracker = new UsageTracker();
+        UsageTracker.setCurrent(usageTracker);
     }
 
     @AfterEach
@@ -184,7 +208,38 @@ public abstract class Fabut extends Assertions {
                 throw new AssertionFailedError(report.getMessage());
             }
         } finally {
-            CURRENT.remove();
+            try {
+                if (usageTracker != null && usageTracker.isActive()) {
+                    UsageReport usageReport = usageTracker.getReport();
+                    if (usageReport.hasTrackedObjects()) {
+                        System.out.println(usageReport.generate());
+
+                        // Enforce threshold if configured
+                        if (usageThreshold > 0) {
+                            var violations = usageReport.getViolations(usageThreshold);
+                            if (!violations.isEmpty()) {
+                                var sb = new StringBuilder();
+                                sb.append("USAGE THRESHOLD VIOLATION: minimum ").append(String.format("%.0f%%", usageThreshold)).append(" required\n");
+                                for (var v : violations) {
+                                    sb.append("  ").append(v.className())
+                                            .append(": ").append(String.format("%.0f%%", v.averageUsagePercent()))
+                                            .append(" avg usage (").append(v.instanceCount())
+                                            .append(v.instanceCount() == 1 ? " instance)" : " instances)");
+                                    if (!v.commonUnusedFields().isEmpty()) {
+                                        sb.append(" — unused: ").append(String.join(", ", v.commonUnusedFields()));
+                                    }
+                                    sb.append("\n");
+                                }
+                                throw new AssertionFailedError(sb.toString().stripTrailing());
+                            }
+                        }
+                    }
+                    usageTracker.deactivate();
+                }
+            } finally {
+                UsageTracker.removeCurrent();
+                CURRENT.remove();
+            }
         }
     }
 
@@ -195,6 +250,33 @@ public abstract class Fabut extends Assertions {
 
         if (!report.isSuccess()) {
             throw new AssertionFailedError(report.getMessage());
+        }
+
+        // Activate usage tracking after snapshot is taken
+        instrumentTrackedTypes();
+        if (usageTracker != null) {
+            usageTracker.activate();
+        }
+    }
+
+    /**
+     * Instruments all registered types for usage tracking via ByteBuddy.
+     * Called once per test when takeSnapshot() is invoked.
+     */
+    private void instrumentTrackedTypes() {
+        if (!UsageInstrumentation.isInstalled()) {
+            if (!UsageInstrumentation.install()) {
+                return; // Agent not available, skip tracking
+            }
+        }
+        for (Class<?> type : entityTypes) {
+            UsageInstrumentation.instrumentClass(type);
+        }
+        for (Class<?> type : complexTypes) {
+            UsageInstrumentation.instrumentClass(type);
+        }
+        for (Class<?> type : trackedTypes) {
+            UsageInstrumentation.instrumentClass(type);
         }
     }
 

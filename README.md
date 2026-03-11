@@ -45,6 +45,7 @@ void testCreateOrder() {
 - **Optional support** - First-class support for `Optional<T>` fields
 - **Auto-ignore fields** - Mark audit fields as ignored once, never think about them again
 - **Snapshot testing** - Track database changes automatically
+- **Usage tracking** - Detect suboptimal data fetching with automatic field-level access analysis
 - **IDE friendly** - Full autocomplete for all assertion methods
 
 ## Quick Start
@@ -268,10 +269,17 @@ For each field, Fabut generates intuitive assertion methods:
 public class BaseTest extends Fabut {
 
     public BaseTest() {
-        // Classes tracked for database snapshot testing
+        // Classes tracked for database snapshot testing + usage tracking
         entityTypes.add(Order.class);
         entityTypes.add(Customer.class);
         entityTypes.add(Product.class);
+
+        // Complex types for deep comparison + usage tracking
+        complexTypes.add(OrderDto.class);
+
+        // Types tracked for usage analysis only (no snapshot/assertion)
+        trackedTypes.add(OrderFindTuple.class);
+        trackedTypes.add(CustomerSearchTuple.class);
 
         // Types to skip during deep comparison
         ignoredTypes.add(Timestamp.class);
@@ -291,10 +299,82 @@ public class BaseTest extends Fabut {
 }
 ```
 
+## Usage Tracking
+
+Fabut automatically tracks which fields of fetched objects are actually used during your tests. This helps detect suboptimal data fetching — for example, loading an entire DTO with 18 fields when only 2 are needed.
+
+### How It Works
+
+When you call `takeSnapshot()`, Fabut activates usage tracking:
+
+1. **ByteBuddy instruments** all registered types (`entityTypes`, `complexTypes`, `trackedTypes`)
+2. **Constructors** are instrumented to register new objects automatically
+3. **Getters** are instrumented to record which fields are accessed
+4. At test end, a **usage report** is printed to stdout
+
+No manual registration is needed. Any object of a registered type created after `takeSnapshot()` is automatically tracked.
+
+### Enforcing Usage Threshold
+
+Set `usageThreshold` to make tests fail when field usage is too low:
+
+```java
+public class BaseTest extends Fabut {
+    public BaseTest() {
+        complexTypes.add(OrderDto.class);
+        trackedTypes.add(OrderTuple.class);
+        usageThreshold = 50; // Fail if any class avg usage < 50%
+    }
+}
+```
+
+When a violation occurs, the test fails with:
+```
+USAGE THRESHOLD VIOLATION: minimum 50% required
+  OrderDto: 25% avg usage (12 instances) — unused: cellId, indexInRow, isEdited, ...
+```
+
+### Example Output
+
+```
+USAGE REPORT:
+  OrderDto: 12 instances fetched
+    Avg usage: 17%
+    Commonly unused: cellId, indexInRow, isEdited, valueBoolean, valueDecimal, ...
+  OrderFindTuple: 5 instances fetched
+    Accessed: all fields ✓
+  Order: 1 instance fetched
+    Avg usage: 0%
+  WARNING: 1 object fetched but never accessed
+```
+
+### Type Registration
+
+| Queue | Purpose | Snapshot | Assertion | Usage Tracked |
+|-------|---------|----------|-----------|---------------|
+| `entityTypes` | JPA entities | Yes | Yes | Yes |
+| `complexTypes` | DTOs, value objects | No | Yes | Yes |
+| `trackedTypes` | Tuples, projections | No | No | Yes |
+
+### Maven Surefire Configuration
+
+ByteBuddy requires dynamic agent loading. Add to your `pom.xml`:
+
+```xml
+<plugin>
+    <groupId>org.apache.maven.plugins</groupId>
+    <artifactId>maven-surefire-plugin</artifactId>
+    <configuration>
+        <argLine>-XX:+EnableDynamicAgentLoading</argLine>
+    </configuration>
+</plugin>
+```
+
 ## Requirements
 
 - Java 25+
 - JUnit 6.0+
+- ByteBuddy 1.17+ (included transitively)
 
 ## License
 

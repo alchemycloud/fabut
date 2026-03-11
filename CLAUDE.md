@@ -26,8 +26,10 @@ mvn package -DskipTests        # Build JAR
 |---------|-------------|
 | `@Assertable` | Annotation on domain classes, generates `XxxAssert` builder |
 | `ignoredFields` | Fields auto-skipped in assertions (audit, version, timestamps) |
-| `takeSnapshot()` | Captures DB state BEFORE action |
+| `takeSnapshot()` | Captures DB state BEFORE action + activates usage tracking |
 | `assertEntityWithSnapshot()` | Asserts only changed fields against snapshot |
+| `trackedTypes` | Additional types to track for usage analysis (entities + complex types are auto-tracked) |
+| Usage Tracking | Automatic field-level usage analysis via ByteBuddy instrumentation |
 
 ## Generated Builder API
 
@@ -64,9 +66,10 @@ OrderAssert.deleted(order).verify();
 class MyServiceTest extends Fabut {
 
     public MyServiceTest() {
-        entityTypes.add(Order.class);      // DB entities for snapshot
+        entityTypes.add(Order.class);      // DB entities for snapshot + usage tracked
         entityTypes.add(Customer.class);
-        complexTypes.add(OrderDto.class);  // Non-entity complex types
+        complexTypes.add(OrderDto.class);  // Non-entity complex types + usage tracked
+        trackedTypes.add(OrderTuple.class); // Usage-tracked only (no snapshot/assertion)
         ignoredTypes.add(AuditInfo.class); // Skip in deep comparison
     }
 
@@ -179,7 +182,8 @@ public class Order {
 
 | Rule | Description |
 |------|-------------|
-| `takeSnapshot()` | Always AFTER setup, BEFORE action |
+| `takeSnapshot()` | Always AFTER setup, BEFORE action; activates usage tracking |
+| `usageThreshold` | Set to 0-100 to fail tests if avg field usage drops below threshold (default: -1, disabled) |
 | `assertEntityWithSnapshot()` | Must have ≥1 changed field |
 | `created().verify()` | Must cover ALL non-ignored fields; forgotten verify() caught automatically |
 | Extends `Fabut` | Test class must extend Fabut |
@@ -209,6 +213,68 @@ OrderAssert.created(order).status_is("PENDING").verify();
 
 > **Avoid explicit `Fabut` parameter:** Factory methods like `created(fabut, obj)` exist for edge cases where automatic `ThreadLocal` resolution is unavailable (e.g., assertions outside the test class). In normal tests, always use the simpler `created(obj)` form.
 
+## Usage Tracking
+
+Fabut automatically tracks which fields of fetched entities, DTOs, and tuples are actually accessed during a test. This helps identify suboptimal data fetching (e.g., loading 18 fields when only 2 are used).
+
+### How It Works
+
+1. `takeSnapshot()` activates tracking and instruments all registered types via ByteBuddy
+2. ByteBuddy adds advice to **constructors** (registers objects) and **getters** (records field access)
+3. Objects created after `takeSnapshot()` are automatically tracked — no manual registration
+4. In `@AfterEach`, a usage report is printed to stdout showing which fields were accessed
+
+### Configuration
+
+Types registered in `entityTypes`, `complexTypes`, and `trackedTypes` are all instrumented:
+
+```java
+entityTypes.add(Order.class);           // Snapshot + usage tracked
+complexTypes.add(OrderDto.class);       // Assertion + usage tracked
+trackedTypes.add(OrderFindTuple.class); // Usage tracked ONLY
+
+// Optional: fail tests if usage drops below threshold
+usageThreshold = 50; // Fail if any class avg usage < 50%
+```
+
+### Report Output
+
+```
+USAGE REPORT:
+  OrderDto: 12 instances fetched
+    Avg usage: 17%
+    Commonly unused: cellId, indexInRow, isEdited, valueBoolean, ...
+  OrderFindTuple: 5 instances fetched
+    Accessed: all fields ✓
+  Order: 1 instance fetched
+    Avg usage: 0%
+  WARNING: 1 object fetched but never accessed
+```
+
+### JVM Configuration
+
+Add to Maven Surefire plugin for ByteBuddy self-attach:
+
+```xml
+<plugin>
+    <groupId>org.apache.maven.plugins</groupId>
+    <artifactId>maven-surefire-plugin</artifactId>
+    <configuration>
+        <argLine>-XX:+EnableDynamicAgentLoading</argLine>
+    </configuration>
+</plugin>
+```
+
+### Tracking Package Structure
+
+```
+src/main/java/cloud/alchemy/fabut/tracking/
+├── UsageTracker.java           # ThreadLocal registry, activate/deactivate
+├── TrackedObject.java          # Per-object: class, all fields, accessed fields
+├── UsageReport.java            # Generates formatted report with class summaries
+└── UsageInstrumentation.java   # ByteBuddy agent installation + class instrumentation
+```
+
 ## Project Structure
 
 ```
@@ -217,6 +283,9 @@ src/main/java/cloud/alchemy/fabut/
 ├── annotation/Assertable   # @Assertable annotation
 ├── processor/              # Annotation processor generates XxxAssert
 ├── property/               # Property types (Property, NullProperty, etc.)
+├── tracking/               # Usage tracking (ByteBuddy instrumentation)
+├── diff/                   # Compile-time diff reporting
+├── graph/                  # Cycle detection in object graphs
 └── enums/                  # AssertType, AssertableType
 ```
 
@@ -226,6 +295,7 @@ src/main/java/cloud/alchemy/fabut/
 - JUnit 6 (Jupiter)
 - Maven
 - Apache Commons Lang3
+- ByteBuddy (usage tracking instrumentation)
 
 ## Commands
 
