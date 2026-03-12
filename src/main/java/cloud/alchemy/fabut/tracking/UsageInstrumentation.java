@@ -2,19 +2,14 @@ package cloud.alchemy.fabut.tracking;
 
 import net.bytebuddy.agent.ByteBuddyAgent;
 import net.bytebuddy.agent.builder.AgentBuilder;
-import net.bytebuddy.agent.builder.ResettableClassFileTransformer;
 import net.bytebuddy.asm.Advice;
 import net.bytebuddy.description.method.MethodDescription;
 import net.bytebuddy.description.type.TypeDescription;
-import net.bytebuddy.dynamic.DynamicType;
 import net.bytebuddy.matcher.ElementMatcher;
-import net.bytebuddy.utility.JavaModule;
 
 import java.lang.instrument.Instrumentation;
 import java.lang.reflect.Method;
-import java.security.ProtectionDomain;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -33,7 +28,7 @@ import static net.bytebuddy.matcher.ElementMatchers.*;
 public class UsageInstrumentation {
 
     private static final Logger LOGGER = Logger.getLogger(UsageInstrumentation.class.getName());
-    private static final Set<Class<?>> instrumentedClasses = ConcurrentHashMap.newKeySet();
+    private static final Set<Class<?>> instrumentedClasses = Collections.synchronizedSet(new HashSet<>());
     private static volatile boolean agentInstalled = false;
     private static Instrumentation instrumentation;
 
@@ -69,15 +64,29 @@ public class UsageInstrumentation {
     }
 
     /**
-     * Instruments a class to track constructor calls and getter access.
-     * Uses retransformation to be compatible with other bytecode agents (JaCoCo, etc.).
-     * Idempotent — already-instrumented classes are skipped.
-     *
-     * @param clazz the class to instrument
-     * @return true if instrumented successfully (or was already instrumented)
+     * Instruments a single class. Delegates to batch method.
      */
     public static boolean instrumentClass(Class<?> clazz) {
-        if (instrumentedClasses.contains(clazz)) {
+        return instrumentClasses(Set.of(clazz));
+    }
+
+    /**
+     * Batch-instruments classes to track constructor calls and getter access.
+     * Uses a single AgentBuilder and a single retransformClasses call for all classes,
+     * avoiding O(n) transformer registrations.
+     * Idempotent — already-instrumented classes are skipped.
+     *
+     * @param classes the classes to instrument
+     * @return true if all classes were instrumented successfully
+     */
+    public static boolean instrumentClasses(Set<Class<?>> classes) {
+        Set<Class<?>> toInstrument = new LinkedHashSet<>();
+        for (Class<?> c : classes) {
+            if (!instrumentedClasses.contains(c)) {
+                toInstrument.add(c);
+            }
+        }
+        if (toInstrument.isEmpty()) {
             return true;
         }
         if (!agentInstalled) {
@@ -86,26 +95,38 @@ public class UsageInstrumentation {
             }
         }
         try {
-            ElementMatcher.Junction<MethodDescription> getterMatcher = buildGetterMatcher(clazz);
+            // Precompute getter matchers per class
+            Map<String, ElementMatcher.Junction<MethodDescription>> matchers = new HashMap<>();
+            for (Class<?> c : toInstrument) {
+                matchers.put(c.getName(), buildGetterMatcher(c));
+            }
+
+            // Single type matcher for all classes
+            ElementMatcher.Junction<TypeDescription> typeMatcher = none();
+            for (Class<?> c : toInstrument) {
+                typeMatcher = typeMatcher.or(is(c));
+            }
 
             new AgentBuilder.Default()
                     .disableClassFormatChanges()
                     .with(AgentBuilder.RedefinitionStrategy.RETRANSFORMATION)
-                    .type(is(clazz))
-                    .transform((builder, typeDescription, classLoader, module, protectionDomain) ->
-                            builder
-                                    .visit(Advice.to(ConstructorAdvice.class).on(isConstructor()))
-                                    .visit(Advice.to(GetterAdvice.class).on(getterMatcher))
-                    )
+                    .type(typeMatcher)
+                    .transform((builder, typeDescription, classLoader, module, protectionDomain) -> {
+                        ElementMatcher.Junction<MethodDescription> getterMatcher = matchers.get(typeDescription.getName());
+                        if (getterMatcher == null) return builder;
+                        return builder
+                                .visit(Advice.to(ConstructorAdvice.class).on(isConstructor()))
+                                .visit(Advice.to(GetterAdvice.class).on(getterMatcher));
+                    })
                     .installOn(instrumentation);
 
-            // Force retransformation of already-loaded class
-            instrumentation.retransformClasses(clazz);
+            // Batch retransform
+            instrumentation.retransformClasses(toInstrument.toArray(new Class[0]));
 
-            instrumentedClasses.add(clazz);
+            instrumentedClasses.addAll(toInstrument);
             return true;
         } catch (Exception e) {
-            LOGGER.log(Level.WARNING, "Failed to instrument class: " + clazz.getName(), e);
+            LOGGER.log(Level.WARNING, "Failed to instrument classes: " + toInstrument, e);
             return false;
         }
     }

@@ -314,6 +314,21 @@ When you call `takeSnapshot()`, Fabut activates usage tracking:
 
 No manual registration is needed. Any object of a registered type created after `takeSnapshot()` is automatically tracked.
 
+### Excluding Fields from Tracking
+
+Exclude audit/framework fields that inflate the "unused" count:
+
+```java
+public class BaseTest extends Fabut {
+    public BaseTest() {
+        complexTypes.add(OrderDto.class);
+        ignoredFields.put(OrderDto.class, List.of("version", "createdAt", "updatedAt"));
+    }
+}
+```
+
+Fields in `ignoredFields` are excluded from both usage percentage calculation and the report.
+
 ### Enforcing Usage Threshold
 
 Set `usageThreshold` to make tests fail when field usage is too low:

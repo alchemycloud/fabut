@@ -233,6 +233,9 @@ entityTypes.add(Order.class);           // Snapshot + usage tracked
 complexTypes.add(OrderDto.class);       // Assertion + usage tracked
 trackedTypes.add(OrderFindTuple.class); // Usage tracked ONLY
 
+// Optional: exclude fields from usage tracking (e.g., audit fields)
+ignoredFields.put(Order.class, List.of("version", "createdAt", "updatedAt"));
+
 // Optional: fail tests if usage drops below threshold
 usageThreshold = 50; // Fail if any class avg usage < 50%
 ```
@@ -301,9 +304,9 @@ src/main/java/cloud/alchemy/fabut/
 
 ### `/migrate`
 
-Migrate a project from Fabut 4.x to 5.2. Follow [MIGRATION.md](MIGRATION.md) instructions:
+Migrate a project from Fabut 4.x to 5.x. Follow [MIGRATION.md](MIGRATION.md) instructions:
 
-1. Update dependency version to 5.2.2-RELEASE
+1. Update dependency version to latest RELEASE
 2. Delete `PropertyPath` imports
 3. Replace `Entity.CONSTANT` → `"camelCase"` strings in assertions
 4. Replace `assertThat()` with `created()`, `assertSnapshot()` with `updated()`

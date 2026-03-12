@@ -265,20 +265,11 @@ public abstract class Fabut extends Assertions {
      * Called once per test when takeSnapshot() is invoked.
      */
     private void instrumentTrackedTypes() {
-        if (!UsageInstrumentation.isInstalled()) {
-            if (!UsageInstrumentation.install()) {
-                return; // Agent not available, skip tracking
-            }
-        }
-        for (Class<?> type : entityTypes) {
-            UsageInstrumentation.instrumentClass(type);
-        }
-        for (Class<?> type : complexTypes) {
-            UsageInstrumentation.instrumentClass(type);
-        }
-        for (Class<?> type : trackedTypes) {
-            UsageInstrumentation.instrumentClass(type);
-        }
+        Set<Class<?>> all = new LinkedHashSet<>();
+        all.addAll(entityTypes);
+        all.addAll(complexTypes);
+        all.addAll(trackedTypes);
+        UsageInstrumentation.instrumentClasses(all);
     }
 
     public void assertObject(final String message, final Object object, final IProperty... properties) {
