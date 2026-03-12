@@ -190,4 +190,54 @@ class FabutUsageTrackingTest extends Fabut {
         assertNotNull(summary.get("TrackedDto"));
         assertNotNull(summary.get("TrackedTuple"));
     }
+
+    @Test
+    void pauseTracking_stopsRecordingFieldAccess() {
+        takeSnapshot();
+
+        TrackedDto dto = new TrackedDto(1L, "test", "desc", 42);
+        dto.getId();
+        dto.getName();
+
+        pauseTracking();
+
+        // Access during pause should NOT be recorded
+        dto.getDescription();
+        dto.getCount();
+
+        UsageReport report = getUsageTracker().getReport();
+        TrackedObject tracked = report.getUnderusedObjects().getFirst();
+        assertEquals(2, tracked.getAccessedFields().size());
+        assertTrue(tracked.getAccessedFields().contains("id"));
+        assertTrue(tracked.getAccessedFields().contains("name"));
+        assertFalse(tracked.getAccessedFields().contains("description"));
+        assertFalse(tracked.getAccessedFields().contains("count"));
+    }
+
+    @Test
+    void pauseTracking_objectsCreatedAfterPauseNotTracked() {
+        takeSnapshot();
+
+        TrackedDto dto1 = new TrackedDto(1L, "before", null, 1);
+
+        pauseTracking();
+
+        TrackedDto dto2 = new TrackedDto(2L, "after", null, 2);
+
+        assertEquals(1, getUsageTracker().getTrackedObjects().size());
+    }
+
+    @Test
+    void pauseTracking_beforeAnySnapshot_noError() {
+        // Should not throw even if no snapshot was taken
+        pauseTracking();
+    }
+
+    @Test
+    void pauseTracking_calledTwice_noError() {
+        takeSnapshot();
+        pauseTracking();
+        pauseTracking();
+        assertFalse(getUsageTracker().isActive());
+    }
 }

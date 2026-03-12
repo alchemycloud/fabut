@@ -326,4 +326,73 @@ class UsageTrackerTest {
         assertFalse(otherThreadSawTracker[0], "Other thread should not see this thread's tracker");
         assertTrue(tracker.hasTrackedObjects(), "Main thread tracker should be unaffected");
     }
+
+    @Test
+    void pause_stopsRecordingAccess() {
+        tracker.activate();
+        TrackedTuple tuple = new TrackedTuple(1L, "test");
+        tracker.register(tuple);
+        UsageTracker.recordAccessIfActive(tuple, "entityId");
+
+        tracker.pause();
+        UsageTracker.recordAccessIfActive(tuple, "label");
+
+        TrackedObject tracked = tracker.getTrackedObjects().iterator().next();
+        assertEquals(Set.of("entityId"), tracked.getAccessedFields());
+    }
+
+    @Test
+    void pause_stopsRegistration() {
+        tracker.activate();
+        tracker.pause();
+
+        TrackedTuple tuple = new TrackedTuple(1L, "test");
+        UsageTracker.registerIfActive(tuple);
+
+        assertFalse(tracker.hasTrackedObjects());
+    }
+
+    @Test
+    void resume_continuesRecordingAccess() {
+        tracker.activate();
+        TrackedTuple tuple = new TrackedTuple(1L, "test");
+        tracker.register(tuple);
+
+        tracker.pause();
+        UsageTracker.recordAccessIfActive(tuple, "entityId");
+
+        tracker.resume();
+        UsageTracker.recordAccessIfActive(tuple, "label");
+
+        TrackedObject tracked = tracker.getTrackedObjects().iterator().next();
+        assertEquals(Set.of("label"), tracked.getAccessedFields());
+    }
+
+    @Test
+    void pause_makesIsActiveFalse() {
+        tracker.activate();
+        tracker.pause();
+        assertFalse(tracker.isActive());
+    }
+
+    @Test
+    void resume_makesIsActiveTrue() {
+        tracker.activate();
+        tracker.pause();
+        tracker.resume();
+        assertTrue(tracker.isActive());
+    }
+
+    @Test
+    void recordAccessIfActive_skipsWhenPaused() {
+        tracker.activate();
+        TrackedTuple tuple = new TrackedTuple(1L, "test");
+        tracker.register(tuple);
+
+        tracker.pause();
+        UsageTracker.recordAccessIfActive(tuple, "entityId");
+
+        TrackedObject tracked = tracker.getTrackedObjects().iterator().next();
+        assertTrue(tracked.getAccessedFields().isEmpty());
+    }
 }

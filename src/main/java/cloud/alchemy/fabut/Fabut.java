@@ -97,6 +97,24 @@ public abstract class Fabut extends Assertions {
     }
 
     /**
+     * Pauses usage tracking. Call after the API under test returns,
+     * so that field access during assertions is not recorded as real usage.
+     *
+     * Example:
+     * <pre>
+     * takeSnapshot();
+     * Order order = orderService.create(customerId, items);
+     * pauseTracking();
+     * OrderAssert.created(order).status_is("PENDING").verify();
+     * </pre>
+     */
+    protected void pauseTracking() {
+        if (usageTracker != null && usageTracker.isActive()) {
+            usageTracker.pause();
+        }
+    }
+
+    /**
      * Determines whether an object should be tracked for usage analysis.
      * Override to filter out objects like uninitialized Hibernate proxies.
      *

@@ -104,6 +104,21 @@ public class UsageTracker {
         this.active = false;
     }
 
+    /**
+     * Temporarily pauses tracking so that getter calls made during assertions
+     * are not recorded as real field access. Call {@link #resume()} to re-enable.
+     */
+    public void pause() {
+        this.active = false;
+    }
+
+    /**
+     * Resumes tracking after a {@link #pause()}.
+     */
+    public void resume() {
+        this.active = true;
+    }
+
     public boolean isActive() {
         return active;
     }

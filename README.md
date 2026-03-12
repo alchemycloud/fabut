@@ -56,7 +56,7 @@ void testCreateOrder() {
 <dependency>
     <groupId>cloud.alchemy</groupId>
     <artifactId>fabut</artifactId>
-    <version>5.4.1-RELEASE</version>
+    <version>5.5.0-RELEASE</version>
     <scope>test</scope>
 </dependency>
 ```
@@ -328,6 +328,38 @@ public class BaseTest extends Fabut {
 ```
 
 Fields in `ignoredFields` are excluded from both usage percentage calculation and the report.
+
+### Disabling Usage Tracking
+
+Set `trackUsage = false` to disable tracking entirely while keeping snapshot assertions:
+
+```java
+public class BaseTest extends Fabut {
+    public BaseTest() {
+        trackUsage = false; // No instrumentation, no usage report
+        entityTypes.add(Order.class);
+    }
+}
+```
+
+### Pausing Tracking During Assertions
+
+Call `pauseTracking()` after your API call returns so that field access during assertions is not recorded as real usage:
+
+```java
+@Test
+void fetchOrder_usesOnlyRequiredFields() {
+    takeSnapshot();
+
+    Order order = orderService.findById(orderId);
+    pauseTracking(); // Access below won't count as usage
+
+    OrderAssert.created(order)
+        .id_is_not_null()
+        .status_is("PENDING")
+        .verify();
+}
+```
 
 ### Enforcing Usage Threshold
 

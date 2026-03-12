@@ -29,6 +29,8 @@ mvn package -DskipTests        # Build JAR
 | `takeSnapshot()` | Captures DB state BEFORE action + activates usage tracking |
 | `assertEntityWithSnapshot()` | Asserts only changed fields against snapshot |
 | `trackedTypes` | Additional types to track for usage analysis (entities + complex types are auto-tracked) |
+| `pauseTracking()` | Stops recording field access after API call, before assertions |
+| `trackUsage` | Set to `false` to disable usage tracking entirely (default: `true`) |
 | Usage Tracking | Automatic field-level usage analysis via ByteBuddy instrumentation |
 
 ## Generated Builder API
@@ -238,6 +240,23 @@ ignoredFields.put(Order.class, List.of("version", "createdAt", "updatedAt"));
 
 // Optional: fail tests if usage drops below threshold
 usageThreshold = 50; // Fail if any class avg usage < 50%
+
+// Optional: disable usage tracking entirely
+trackUsage = false; // No instrumentation, no report
+```
+
+### Pausing Tracking
+
+Call `pauseTracking()` after the API under test returns, so field access during assertions is not recorded:
+
+```java
+@Test
+void fetchOrder_usesOnlyRequiredFields() {
+    takeSnapshot();
+    Order order = orderService.findById(orderId);
+    pauseTracking();
+    OrderAssert.created(order).id_is_not_null().status_is("PENDING").verify();
+}
 ```
 
 ### Report Output
