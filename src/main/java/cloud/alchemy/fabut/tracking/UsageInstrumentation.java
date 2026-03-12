@@ -95,16 +95,39 @@ public class UsageInstrumentation {
             }
         }
         try {
-            // Precompute getter matchers per class
+            // Collect superclasses that declare getter-backed fields.
+            // Inherited getters live in the superclass bytecode, so the superclass
+            // must also be instrumented with getter advice.
+            Set<Class<?>> ancestorsToInstrument = new LinkedHashSet<>();
+            for (Class<?> c : toInstrument) {
+                collectAncestorsWithGetters(c, ancestorsToInstrument);
+            }
+            // Remove already-instrumented ancestors and the primary classes themselves
+            ancestorsToInstrument.removeAll(instrumentedClasses);
+            ancestorsToInstrument.removeAll(toInstrument);
+
+            // Precompute getter matchers per class (primary + ancestors)
             Map<String, ElementMatcher.Junction<MethodDescription>> matchers = new HashMap<>();
             for (Class<?> c : toInstrument) {
+                matchers.put(c.getName(), buildGetterMatcher(c));
+            }
+            for (Class<?> c : ancestorsToInstrument) {
                 matchers.put(c.getName(), buildGetterMatcher(c));
             }
 
             // Single type matcher for all classes
             ElementMatcher.Junction<TypeDescription> typeMatcher = none();
-            for (Class<?> c : toInstrument) {
+            Set<Class<?>> allClasses = new LinkedHashSet<>();
+            allClasses.addAll(toInstrument);
+            allClasses.addAll(ancestorsToInstrument);
+            for (Class<?> c : allClasses) {
                 typeMatcher = typeMatcher.or(is(c));
+            }
+
+            // Track which classes get constructor advice (only primary, not ancestors)
+            Set<String> primaryClassNames = new HashSet<>();
+            for (Class<?> c : toInstrument) {
+                primaryClassNames.add(c.getName());
             }
 
             new AgentBuilder.Default()
@@ -114,16 +137,19 @@ public class UsageInstrumentation {
                     .transform((builder, typeDescription, classLoader, module, protectionDomain) -> {
                         ElementMatcher.Junction<MethodDescription> getterMatcher = matchers.get(typeDescription.getName());
                         if (getterMatcher == null) return builder;
-                        return builder
-                                .visit(Advice.to(ConstructorAdvice.class).on(isConstructor()))
-                                .visit(Advice.to(GetterAdvice.class).on(getterMatcher));
+                        // Constructor advice only on primary tracked classes, not ancestors
+                        if (primaryClassNames.contains(typeDescription.getName())) {
+                            builder = builder.visit(Advice.to(ConstructorAdvice.class).on(isConstructor()));
+                        }
+                        return builder.visit(Advice.to(GetterAdvice.class).on(getterMatcher));
                     })
                     .installOn(instrumentation);
 
             // Batch retransform
-            instrumentation.retransformClasses(toInstrument.toArray(new Class[0]));
+            instrumentation.retransformClasses(allClasses.toArray(new Class[0]));
 
             instrumentedClasses.addAll(toInstrument);
+            instrumentedClasses.addAll(ancestorsToInstrument);
             return true;
         } catch (Exception e) {
             LOGGER.log(Level.WARNING, "Failed to instrument classes: " + toInstrument, e);
@@ -143,6 +169,45 @@ public class UsageInstrumentation {
      */
     static void resetForTesting() {
         instrumentedClasses.clear();
+    }
+
+    /**
+     * Collects superclasses (up to but not including Object) that declare
+     * getter-backed fields. These need getter advice so that inherited
+     * getters are instrumented.
+     */
+    private static void collectAncestorsWithGetters(Class<?> clazz, Set<Class<?>> ancestors) {
+        Class<?> current = clazz.getSuperclass();
+        while (current != null && current != Object.class) {
+            if (!ancestors.contains(current) && hasGetterBackedFields(current)) {
+                ancestors.add(current);
+            }
+            current = current.getSuperclass();
+        }
+    }
+
+    /**
+     * Checks if a class declares any getter methods backed by its own declared fields.
+     */
+    private static boolean hasGetterBackedFields(Class<?> clazz) {
+        for (Method method : clazz.getDeclaredMethods()) {
+            if (method.getParameterCount() != 0) continue;
+            if (method.getReturnType() == void.class) continue;
+            if (!java.lang.reflect.Modifier.isPublic(method.getModifiers())) continue;
+
+            String name = method.getName();
+            String fieldName = null;
+            if (name.startsWith("get") && name.length() > 3) {
+                fieldName = Character.toLowerCase(name.charAt(3)) + name.substring(4);
+            } else if (name.startsWith("is") && name.length() > 2
+                    && (method.getReturnType() == boolean.class || method.getReturnType() == Boolean.class)) {
+                fieldName = Character.toLowerCase(name.charAt(2)) + name.substring(3);
+            }
+            if (fieldName != null && hasField(clazz, fieldName)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
