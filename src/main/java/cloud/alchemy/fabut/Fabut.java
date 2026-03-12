@@ -77,6 +77,16 @@ public abstract class Fabut extends Assertions {
      */
     protected double usageThreshold = -1;
 
+    /**
+     * Controls whether usage tracking is enabled. When set to false,
+     * takeSnapshot() will still work for snapshot assertions but will not
+     * instrument classes or track field access.
+     * Default is true (tracking enabled).
+     *
+     * Set in constructor: {@code trackUsage = false;} to disable tracking.
+     */
+    protected boolean trackUsage = true;
+
     private UsageTracker usageTracker;
 
     /**
@@ -200,10 +210,12 @@ public abstract class Fabut extends Assertions {
             // Use ConcurrentHashMap for thread-safe parallel snapshot taking
             dbSnapshot.put(entityType, new ConcurrentHashMap<>());
         }
-        usageTracker = new UsageTracker();
-        usageTracker.setIgnoredFields(ignoredFields);
-        usageTracker.setTrackingFilter(this::shouldTrackObject);
-        UsageTracker.setCurrent(usageTracker);
+        if (trackUsage) {
+            usageTracker = new UsageTracker();
+            usageTracker.setIgnoredFields(ignoredFields);
+            usageTracker.setTrackingFilter(this::shouldTrackObject);
+            UsageTracker.setCurrent(usageTracker);
+        }
     }
 
     @AfterEach
@@ -288,9 +300,11 @@ public abstract class Fabut extends Assertions {
         }
 
         // Activate usage tracking after snapshot is taken
-        instrumentTrackedTypes();
-        if (usageTracker != null) {
-            usageTracker.activate();
+        if (trackUsage) {
+            instrumentTrackedTypes();
+            if (usageTracker != null) {
+                usageTracker.activate();
+            }
         }
     }
 
