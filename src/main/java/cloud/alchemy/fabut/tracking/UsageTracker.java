@@ -3,6 +3,7 @@ package cloud.alchemy.fabut.tracking;
 import java.lang.reflect.Method;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Predicate;
 
 /**
  * ThreadLocal-based tracker that records which objects are created and which fields
@@ -20,6 +21,7 @@ public class UsageTracker {
     private final Map<Integer, TrackedObject> trackedObjects = new ConcurrentHashMap<>();
     private final Map<Class<?>, Set<String>> fieldNamesCache = new ConcurrentHashMap<>();
     private Map<Class<?>, List<String>> ignoredFields = Collections.emptyMap();
+    private Predicate<Object> trackingFilter = obj -> true;
 
     /**
      * Sets the current UsageTracker for this thread.
@@ -55,6 +57,18 @@ public class UsageTracker {
     }
 
     /**
+     * Removes an object from tracking. Call from repository postSave/createDto
+     * to exclude side-effect objects created during the session.
+     */
+    public static void unregisterIfActive(Object obj) {
+        if (obj == null) return;
+        UsageTracker tracker = CURRENT.get();
+        if (tracker != null && tracker.active) {
+            tracker.unregister(obj);
+        }
+    }
+
+    /**
      * Called from ByteBuddy-instrumented getters.
      * Records the field access if a tracker is active.
      */
@@ -76,6 +90,10 @@ public class UsageTracker {
 
     public void setIgnoredFields(Map<Class<?>, List<String>> ignoredFields) {
         this.ignoredFields = ignoredFields;
+    }
+
+    public void setTrackingFilter(Predicate<Object> filter) {
+        this.trackingFilter = filter;
     }
 
     public void activate() {
@@ -103,8 +121,24 @@ public class UsageTracker {
         if (trackedObjects.containsKey(hash)) {
             return;
         }
+        try {
+            if (!trackingFilter.test(obj)) {
+                return;
+            }
+        } catch (Exception e) {
+            // Filter may fail on partially-constructed objects (e.g., Hibernate proxies
+            // during constructor — Hibernate.isInitialized() can throw ClassCastException)
+            return;
+        }
         Set<String> fields = getFieldNames(obj.getClass());
-        trackedObjects.put(hash, new TrackedObject(hash, obj.getClass(), fields));
+        trackedObjects.put(hash, new TrackedObject(hash, obj.getClass(), fields, obj));
+    }
+
+    /**
+     * Removes an object from tracking.
+     */
+    public void unregister(Object obj) {
+        trackedObjects.remove(System.identityHashCode(obj));
     }
 
     /**

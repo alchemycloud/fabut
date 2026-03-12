@@ -23,6 +23,12 @@ public class UsageReport {
         return trackedObjects.stream().anyMatch(t -> !t.isFullyUsed());
     }
 
+    public List<TrackedObject> getNeverAccessedObjects() {
+        return trackedObjects.stream()
+                .filter(TrackedObject::isNeverAccessed)
+                .toList();
+    }
+
     public List<TrackedObject> getUnderusedObjects() {
         return trackedObjects.stream()
                 .filter(t -> !t.isFullyUsed())
@@ -93,16 +99,6 @@ public class UsageReport {
                             .append("\n");
                 }
             }
-        }
-
-        // Detail section for never-accessed objects
-        var neverAccessed = trackedObjects.stream()
-                .filter(TrackedObject::isNeverAccessed)
-                .toList();
-        if (!neverAccessed.isEmpty()) {
-            sb.append("  WARNING: ").append(neverAccessed.size())
-                    .append(neverAccessed.size() == 1 ? " object" : " objects")
-                    .append(" fetched but never accessed\n");
         }
 
         return sb.toString().stripTrailing();

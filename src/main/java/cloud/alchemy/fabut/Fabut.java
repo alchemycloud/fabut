@@ -4,6 +4,7 @@ import cloud.alchemy.fabut.enums.ReferenceCheckType;
 import cloud.alchemy.fabut.graph.NodesList;
 import cloud.alchemy.fabut.pair.SnapshotPair;
 import cloud.alchemy.fabut.property.*;
+import cloud.alchemy.fabut.tracking.TrackedObject;
 import cloud.alchemy.fabut.tracking.UsageInstrumentation;
 import cloud.alchemy.fabut.tracking.UsageReport;
 import cloud.alchemy.fabut.tracking.UsageTracker;
@@ -83,6 +84,24 @@ public abstract class Fabut extends Assertions {
      */
     protected UsageTracker getUsageTracker() {
         return usageTracker;
+    }
+
+    /**
+     * Determines whether an object should be tracked for usage analysis.
+     * Override to filter out objects like uninitialized Hibernate proxies.
+     *
+     * Example:
+     * <pre>
+     * protected boolean shouldTrackObject(Object obj) {
+     *     return Hibernate.isInitialized(obj);
+     * }
+     * </pre>
+     *
+     * @param obj the object being registered for tracking
+     * @return true if the object should be tracked, false to skip it
+     */
+    protected boolean shouldTrackObject(Object obj) {
+        return true;
     }
     private final Map<Class<?>, Map<Object, CopyAssert>> dbSnapshot = Collections.synchronizedMap(new LinkedHashMap<>());
     final List<SnapshotPair> parameterSnapshot = new ArrayList<>();
@@ -183,6 +202,7 @@ public abstract class Fabut extends Assertions {
         }
         usageTracker = new UsageTracker();
         usageTracker.setIgnoredFields(ignoredFields);
+        usageTracker.setTrackingFilter(this::shouldTrackObject);
         UsageTracker.setCurrent(usageTracker);
     }
 
@@ -214,6 +234,20 @@ public abstract class Fabut extends Assertions {
                     UsageReport usageReport = usageTracker.getReport();
                     if (usageReport.hasTrackedObjects()) {
                         System.out.println(usageReport.generate());
+
+                        // Print never-accessed objects individually for traceability
+                        var neverAccessed = usageReport.getNeverAccessedObjects();
+                        if (!neverAccessed.isEmpty()) {
+                            var naSb = new StringBuilder();
+                            naSb.append("  WARNING: ").append(neverAccessed.size())
+                                    .append(neverAccessed.size() == 1 ? " object" : " objects")
+                                    .append(" fetched but never accessed:\n");
+                            for (var tracked : neverAccessed) {
+                                Object ref = tracked.getObjectRef();
+                                naSb.append("    ").append(ref != null ? entityPath(ref) : tracked.getObjectClass().getSimpleName()).append("\n");
+                            }
+                            System.out.println(naSb.toString().stripTrailing());
+                        }
 
                         // Enforce threshold if configured
                         if (usageThreshold > 0) {

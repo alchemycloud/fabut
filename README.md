@@ -56,7 +56,7 @@ void testCreateOrder() {
 <dependency>
     <groupId>cloud.alchemy</groupId>
     <artifactId>fabut</artifactId>
-    <version>5.3.0-RELEASE</version>
+    <version>5.4.0-RELEASE</version>
     <scope>test</scope>
 </dependency>
 ```
@@ -360,7 +360,34 @@ USAGE REPORT:
     Accessed: all fields ✓
   Order: 1 instance fetched
     Avg usage: 0%
-  WARNING: 1 object fetched but never accessed
+  WARNING: 1 object fetched but never accessed:
+    Order[id=42]
+```
+
+### Excluding Side-Effect Objects
+
+When your service layer creates objects internally (e.g., DTOs built during `postSave` or `createDto`), these pollute the tracking report. Use `UsageTracker.unregisterIfActive()` in your repository to remove them immediately:
+
+```java
+public OrderDto createDto(Order order) {
+    OrderDto dto = new OrderDto(order);
+    UsageTracker.unregisterIfActive(dto); // Not fetched by test, exclude from tracking
+    return dto;
+}
+```
+
+### Filtering Tracked Objects
+
+Override `shouldTrackObject()` to exclude certain objects from tracking (e.g., uninitialized Hibernate proxies):
+
+```java
+@Override
+protected boolean shouldTrackObject(Object obj) {
+    if (obj instanceof HibernateProxy) {
+        return Hibernate.isInitialized(obj);
+    }
+    return true;
+}
 ```
 
 ### Type Registration

@@ -51,7 +51,35 @@ class UsageReportTest {
 
         String output = report.generate();
         assertTrue(output.contains("TrackedDto"));
-        assertTrue(output.contains("never accessed"));
+        assertEquals(1, report.getNeverAccessedObjects().size());
+    }
+
+    @Test
+    void getNeverAccessedObjects_returnsOnlyNeverAccessed() {
+        TrackedObject accessed = new TrackedObject(1, TrackedDto.class, Set.of("id", "name"));
+        accessed.recordAccess("id");
+
+        TrackedObject neverAccessed1 = new TrackedObject(2, TrackedDto.class, Set.of("id", "name"));
+        TrackedObject neverAccessed2 = new TrackedObject(3, TrackedTuple.class, Set.of("entityId", "label"));
+
+        UsageReport report = new UsageReport(List.of(accessed, neverAccessed1, neverAccessed2));
+
+        List<TrackedObject> result = report.getNeverAccessedObjects();
+        assertEquals(2, result.size());
+        assertTrue(result.contains(neverAccessed1));
+        assertTrue(result.contains(neverAccessed2));
+    }
+
+    @Test
+    void getNeverAccessedObjects_preservesObjectRef() {
+        TrackedDto dto = new TrackedDto(1L, "test", null, 5);
+        TrackedObject tracked = new TrackedObject(1, TrackedDto.class, Set.of("id", "name"), dto);
+
+        UsageReport report = new UsageReport(List.of(tracked));
+
+        List<TrackedObject> result = report.getNeverAccessedObjects();
+        assertEquals(1, result.size());
+        assertSame(dto, result.getFirst().getObjectRef());
     }
 
     @Test

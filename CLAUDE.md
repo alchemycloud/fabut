@@ -251,7 +251,34 @@ USAGE REPORT:
     Accessed: all fields ✓
   Order: 1 instance fetched
     Avg usage: 0%
-  WARNING: 1 object fetched but never accessed
+  WARNING: 1 object fetched but never accessed:
+    Order[id=42]
+```
+
+### Excluding Side-Effect Objects
+
+Use `UsageTracker.unregisterIfActive()` in repositories to remove objects created as side effects:
+
+```java
+public OrderDto createDto(Order order) {
+    OrderDto dto = new OrderDto(order);
+    UsageTracker.unregisterIfActive(dto);
+    return dto;
+}
+```
+
+### Filtering Tracked Objects
+
+Override `shouldTrackObject()` to exclude objects (e.g., uninitialized Hibernate proxies):
+
+```java
+@Override
+protected boolean shouldTrackObject(Object obj) {
+    if (obj instanceof HibernateProxy) {
+        return Hibernate.isInitialized(obj);
+    }
+    return true;
+}
 ```
 
 ### JVM Configuration

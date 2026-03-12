@@ -289,6 +289,28 @@ class UsageTrackerTest {
     }
 
     @Test
+    void trackingFilter_skipsFilteredObjects() {
+        tracker.setTrackingFilter(obj -> !(obj instanceof TrackedTuple));
+        tracker.activate();
+
+        tracker.register(new TrackedDto(1L, "test", null, 5));
+        tracker.register(new TrackedTuple(1L, "label"));
+
+        assertEquals(1, tracker.getTrackedObjects().size());
+        assertEquals(TrackedDto.class, tracker.getTrackedObjects().iterator().next().getObjectClass());
+    }
+
+    @Test
+    void trackingFilter_allowsAllByDefault() {
+        tracker.activate();
+
+        tracker.register(new TrackedDto(1L, "test", null, 5));
+        tracker.register(new TrackedTuple(1L, "label"));
+
+        assertEquals(2, tracker.getTrackedObjects().size());
+    }
+
+    @Test
     void threadIsolation() throws InterruptedException {
         tracker.activate();
         TrackedDto dto = new TrackedDto(1L, "main", null, 1);
