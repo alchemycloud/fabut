@@ -240,4 +240,17 @@ class FabutUsageTrackingTest extends Fabut {
         pauseTracking();
         assertFalse(getUsageTracker().isActive());
     }
+
+    @Test
+    void pauseTracking_reportStillPrintedAfterPause() {
+        takeSnapshot();
+
+        TrackedDto dto = new TrackedDto(1L, "test", "desc", 42);
+        dto.getId();
+
+        pauseTracking();
+
+        // after() will run and should still print the report
+        // because hasTrackedObjects() is true even though isActive() is false
+    }
 }

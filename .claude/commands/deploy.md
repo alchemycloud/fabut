@@ -48,9 +48,35 @@ mvn deploy
 - Verify the version in `pom.xml` matches what was deployed
 - Confirm the artifact is available in the remote repository
 
-### 6. Commit (Ask User)
+### 6. Commit and Push
 
-Ask the user if they want to commit the changes. If yes, stage and commit all changed files with an appropriate message.
+After successful deploy, commit and push both projects:
+
+#### 6a. Commit fabut project
+
+Stage all changed files in the fabut project and commit with message format:
+```
+Deploy X.Y.Z-RELEASE: <brief description of changes>
+```
+
+Then push to remote:
+```bash
+git push
+```
+
+#### 6b. Commit and push repo project
+
+The `../repo` project (gh-pages branch) contains the deployed Maven artifacts. After `mvn deploy`, it will have new/modified files under `repo/cloud/alchemy/fabut/`.
+
+```bash
+cd ../repo
+git add repo/cloud/alchemy/fabut/
+git commit -m "Deploy fabut X.Y.Z-RELEASE"
+git push
+cd ../fabut
+```
+
+**Both pushes must succeed. If either push fails, report the error — do not continue.**
 
 ## Documentation Checklist
 

@@ -260,7 +260,7 @@ public abstract class Fabut extends Assertions {
             }
         } finally {
             try {
-                if (usageTracker != null && usageTracker.isActive()) {
+                if (usageTracker != null && usageTracker.hasTrackedObjects()) {
                     UsageReport usageReport = usageTracker.getReport();
                     if (usageReport.hasTrackedObjects()) {
                         System.out.println(usageReport.generate());

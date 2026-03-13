@@ -369,6 +369,8 @@ Deploy a new version to Maven Central. Enforces documentation audit before deplo
 2. Increment version in `pom.xml`
 3. Run `mvn clean install`
 4. Run `mvn deploy`
+5. Commit and push fabut project
+6. Commit and push `../repo` project (gh-pages branch with Maven artifacts)
 
 ### `/assess`
 
