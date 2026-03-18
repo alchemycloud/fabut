@@ -38,7 +38,10 @@ public class AssertableEntityLegacyTest extends AbstractFabutTest {
                 value("count", 42),
                 value("description", Optional.of("desc")),
                 value("score", Optional.of(100)),
-                ignored("version"));
+                ignored("version"),
+                value("active", false),
+                value("visible", Optional.of(true)),
+                value("category", Optional.empty()));
     }
 
     @Test
@@ -51,7 +54,10 @@ public class AssertableEntityLegacyTest extends AbstractFabutTest {
                 value("count", 42),
                 value("description", Optional.empty()),
                 value("score", Optional.empty()),
-                ignored("version"));
+                ignored("version"),
+                value("active", false),
+                value("visible", Optional.of(true)),
+                value("category", Optional.empty()));
     }
 
     @Test
@@ -64,7 +70,10 @@ public class AssertableEntityLegacyTest extends AbstractFabutTest {
                 isNull("count"),
                 value("description", Optional.empty()),
                 value("score", Optional.empty()),
-                ignored("version"));
+                ignored("version"),
+                value("active", false),
+                value("visible", Optional.of(true)),
+                value("category", Optional.empty()));
     }
 
     @Test
@@ -77,7 +86,10 @@ public class AssertableEntityLegacyTest extends AbstractFabutTest {
                 notNull("count"),
                 value("description", Optional.empty()),
                 value("score", Optional.empty()),
-                ignored("version"));
+                ignored("version"),
+                value("active", false),
+                value("visible", Optional.of(true)),
+                value("category", Optional.empty()));
     }
 
     @Test
@@ -90,7 +102,10 @@ public class AssertableEntityLegacyTest extends AbstractFabutTest {
                 ignored("count"),
                 ignored("description"),
                 ignored("score"),
-                ignored("version"));
+                ignored("version"),
+                value("active", false),
+                value("visible", Optional.of(true)),
+                value("category", Optional.empty()));
     }
 
     @Test
@@ -103,7 +118,10 @@ public class AssertableEntityLegacyTest extends AbstractFabutTest {
                 value("count", 42),
                 notNull("description"),
                 notNull("score"),
-                ignored("version"));
+                ignored("version"),
+                value("active", false),
+                value("visible", Optional.of(true)),
+                value("category", Optional.empty()));
     }
 
     // ==================== Failure Cases ====================
@@ -180,7 +198,10 @@ public class AssertableEntityLegacyTest extends AbstractFabutTest {
                 ignored("count"),                 // ignored
                 value("description", Optional.of("desc")),  // Optional with value
                 value("score", Optional.empty()), // Optional empty
-                ignored("version"));
+                ignored("version"),
+                value("active", false),
+                value("visible", Optional.of(true)),
+                value("category", Optional.empty()));
     }
 
     // ==================== Internal assertObjects (for testing parity with v4 internals) ====================
@@ -220,6 +241,9 @@ public class AssertableEntityLegacyTest extends AbstractFabutTest {
                 value("count", 42),
                 value("description", Optional.empty()),
                 value("score", Optional.empty()),
-                ignored("version"));  // Must explicitly ignore in v4 API
+                ignored("version"),
+                value("active", false),
+                value("visible", Optional.of(true)),
+                value("category", Optional.empty()));  // Must explicitly ignore in v4 API
     }
 }

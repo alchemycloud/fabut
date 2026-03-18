@@ -28,7 +28,7 @@ class DiffTest {
         // Then
         assertFalse(diff.hasChanges());
         assertEquals(0, diff.changeCount());
-        assertEquals(5, diff.getAllChanges().size());
+        assertEquals(8, diff.getAllChanges().size());
         assertTrue(diff.getChangedFields().isEmpty());
     }
 

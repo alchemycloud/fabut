@@ -1,5 +1,6 @@
 package cloud.alchemy.fabut.model;
 
+import cloud.alchemy.fabut.annotation.AssertDefault;
 import cloud.alchemy.fabut.annotation.AssertGroup;
 import cloud.alchemy.fabut.annotation.Assertable;
 
@@ -28,9 +29,21 @@ public class AssertableEntity {
     private Optional<Integer> score;
     private Long version;
 
+    @AssertDefault("false")
+    private Boolean active;
+
+    @AssertDefault("true")
+    private Optional<Boolean> visible;
+
+    @AssertDefault("empty")
+    private Optional<String> category;
+
     public AssertableEntity() {
         this.description = Optional.empty();
         this.score = Optional.empty();
+        this.active = false;
+        this.visible = Optional.of(true);
+        this.category = Optional.empty();
     }
 
     public AssertableEntity(Long id, String name, Integer count, Optional<String> description, Optional<Integer> score) {
@@ -39,6 +52,9 @@ public class AssertableEntity {
         this.count = count;
         this.description = description;
         this.score = score;
+        this.active = false;
+        this.visible = Optional.of(true);
+        this.category = Optional.empty();
     }
 
     public Long getId() {
@@ -87,5 +103,29 @@ public class AssertableEntity {
 
     public void setVersion(Long version) {
         this.version = version;
+    }
+
+    public Boolean getActive() {
+        return active;
+    }
+
+    public void setActive(Boolean active) {
+        this.active = active;
+    }
+
+    public Optional<Boolean> getVisible() {
+        return visible;
+    }
+
+    public void setVisible(Optional<Boolean> visible) {
+        this.visible = visible;
+    }
+
+    public Optional<String> getCategory() {
+        return category;
+    }
+
+    public void setCategory(Optional<String> category) {
+        this.category = category;
     }
 }

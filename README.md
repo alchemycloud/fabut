@@ -43,6 +43,7 @@ void testCreateOrder() {
 - **Complete coverage** - Fabut fails if you forget to assert a field
 - **Minimal boilerplate** - Just `created(object)` - no need to pass `this`
 - **Optional support** - First-class support for `Optional<T>` fields
+- **Default assertions** - Declare field defaults with `@AssertDefault` — no need to assert them in every test
 - **Auto-ignore fields** - Mark audit fields as ignored once, never think about them again
 - **Snapshot testing** - Track database changes automatically
 - **Usage tracking** - Detect suboptimal data fetching with automatic field-level access analysis
@@ -56,7 +57,7 @@ void testCreateOrder() {
 <dependency>
     <groupId>cloud.alchemy</groupId>
     <artifactId>fabut</artifactId>
-    <version>5.5.1-RELEASE</version>
+    <version>5.6.0-RELEASE</version>
     <scope>test</scope>
 </dependency>
 ```
@@ -243,6 +244,59 @@ void createProduct_setsNameAndPrice() {
         .verify();
 }
 ```
+
+### Default Assertions
+
+Fields annotated with `@AssertDefault` are automatically asserted when `verify()` is called on a `created()` builder, unless you explicitly assert them:
+
+```java
+@Assertable(ignoredFields = {"version"})
+public class Order {
+    private Long id;
+    private String status;
+    @AssertDefault("false")
+    private Boolean archived;
+    @AssertDefault("empty")
+    private Optional<String> notes;
+    private Long version;
+    // getters...
+}
+
+@Test
+void createOrder_defaultFieldsAutoAsserted() {
+    Order order = orderService.create(customerId);
+
+    // archived=false and notes=empty are auto-asserted by @AssertDefault
+    OrderAssert.created(order)
+        .id_is_not_null()
+        .status_is("PENDING")
+        .verify();  // archived and notes defaults checked automatically
+}
+
+@Test
+void createOrder_overrideDefault() {
+    Order order = orderService.createArchived(customerId);
+
+    // Explicit assertion overrides the default
+    OrderAssert.created(order)
+        .id_is_not_null()
+        .status_is("PENDING")
+        .archived_is(true)       // Override @AssertDefault("false")
+        .notes_is("Auto-archived")
+        .verify();
+}
+```
+
+Supported `@AssertDefault` values:
+
+| Value | Valid on | Behavior |
+|-------|----------|----------|
+| `"true"` / `"false"` | `Boolean`, `boolean`, `Optional<Boolean>` | Asserts boolean value |
+| `"empty"` | `Optional<?>` | Asserts `Optional.empty()` |
+| `"null"` | Any reference type | Asserts `null` |
+| Numeric string | Numeric types, `Optional<NumericType>` | Asserts numeric value |
+
+Invalid combinations (e.g. `@AssertDefault("false")` on a `String` field) produce compile-time errors.
 
 ## Generated Methods Reference
 

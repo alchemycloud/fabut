@@ -25,6 +25,7 @@ mvn package -DskipTests        # Build JAR
 | Concept | Description |
 |---------|-------------|
 | `@Assertable` | Annotation on domain classes, generates `XxxAssert` builder |
+| `@AssertDefault` | Field annotation — auto-asserts default value in `created().verify()` unless explicitly overridden |
 | `ignoredFields` | Fields auto-skipped in assertions (audit, version, timestamps) |
 | `takeSnapshot()` | Captures DB state BEFORE action + activates usage tracking |
 | `assertEntityWithSnapshot()` | Asserts only changed fields against snapshot |
@@ -36,14 +37,14 @@ mvn package -DskipTests        # Build JAR
 ## Generated Builder API
 
 ```java
-// Assert new/created object - must cover ALL fields
+// Assert new/created object - must cover ALL fields (unless @AssertDefault handles them)
 OrderAssert.created(order)
     .id_is_not_null()
     .status_is("PENDING")
     .customerId_is(customerId)
     .total_is(new BigDecimal("99.99"))
     .notes_is_empty()          // Optional.empty()
-    .verify();
+    .verify();                 // @AssertDefault fields auto-asserted here
 
 // Assert entity changes against snapshot - only specify CHANGED fields
 OrderAssert.updated(order)
@@ -61,6 +62,7 @@ OrderAssert.deleted(order).verify();
 |------------|---------|
 | `T field` | `field_is(T)`, `field_is_null()`, `field_is_not_null()`, `field_is_ignored()` |
 | `Optional<T>` | Above + `field_is_empty()`, `field_is_not_empty()`, `field_is(InnerT)` |
+| `@AssertDefault` field | Same as above; default auto-asserted in `verify()` unless explicitly set |
 
 ## Test Class Setup
 
@@ -173,6 +175,8 @@ public class Order {
     private String status;
     private BigDecimal total;
     private Optional<String> notes;
+    @AssertDefault("false")
+    private Boolean archived;      // Auto-asserted as false in created().verify()
     private Long version;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

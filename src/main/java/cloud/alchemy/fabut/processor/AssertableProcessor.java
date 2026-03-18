@@ -147,6 +147,7 @@ public class AssertableProcessor extends AbstractProcessor {
     /**
      * Scan field declarations in the type for @AssertDefault annotations.
      * Returns a map of fieldName → default value string.
+     * Validates that the default value is compatible with the field's type.
      */
     private Map<String, String> collectFieldDefaults(TypeElement typeElement) {
         Map<String, String> defaults = new HashMap<>();
@@ -154,11 +155,102 @@ public class AssertableProcessor extends AbstractProcessor {
             if (enclosed.getKind() == ElementKind.FIELD) {
                 AssertDefault assertDefault = enclosed.getAnnotation(AssertDefault.class);
                 if (assertDefault != null) {
-                    defaults.put(enclosed.getSimpleName().toString(), assertDefault.value());
+                    String value = assertDefault.value();
+                    String fieldType = enclosed.asType().toString();
+                    boolean isOptional = fieldType.startsWith("java.util.Optional");
+                    String innerType = isOptional ? getOptionalInnerTypeString(fieldType) : fieldType;
+
+                    validateAssertDefaultValue(enclosed, value, fieldType, innerType, isOptional);
+
+                    defaults.put(enclosed.getSimpleName().toString(), value);
                 }
             }
         }
         return defaults;
+    }
+
+    /**
+     * Validate that @AssertDefault value is compatible with the field's type.
+     */
+    private void validateAssertDefaultValue(Element field, String value, String fieldType,
+                                             String innerType, boolean isOptional) {
+        // "null" is valid on any reference type
+        if ("null".equals(value)) {
+            return;
+        }
+
+        // "empty" is only valid on Optional
+        if ("empty".equals(value)) {
+            if (!isOptional) {
+                messager.printMessage(Diagnostic.Kind.ERROR,
+                        "@AssertDefault(\"empty\") can only be used on Optional fields, but field type is " + fieldType, field);
+            }
+            return;
+        }
+
+        // "true"/"false" valid only on Boolean/boolean/Optional<Boolean>
+        if ("true".equals(value) || "false".equals(value)) {
+            String checkType = isOptional ? innerType : fieldType;
+            if (!isBooleanType(checkType)) {
+                messager.printMessage(Diagnostic.Kind.ERROR,
+                        "@AssertDefault(\"" + value + "\") can only be used on Boolean fields, but field type is " + fieldType, field);
+            }
+            return;
+        }
+
+        // Numeric string — valid on numeric types or Optional<NumericType>
+        if (isNumericString(value)) {
+            String checkType = isOptional ? innerType : fieldType;
+            if (!isNumericType(checkType)) {
+                messager.printMessage(Diagnostic.Kind.ERROR,
+                        "@AssertDefault(\"" + value + "\") is numeric but field type " + fieldType + " is not a numeric type", field);
+            }
+            return;
+        }
+
+        // String literal fallback — valid on String or Optional<String>
+        String checkType = isOptional ? innerType : fieldType;
+        if (!checkType.equals("java.lang.String") && !checkType.equals("String")) {
+            messager.printMessage(Diagnostic.Kind.ERROR,
+                    "@AssertDefault(\"" + value + "\") is a string literal but field type " + fieldType + " is not String", field);
+        }
+    }
+
+    private boolean isBooleanType(String type) {
+        return "java.lang.Boolean".equals(type) || "Boolean".equals(type) || "boolean".equals(type);
+    }
+
+    private boolean isNumericType(String type) {
+        return switch (type) {
+            case "int", "long", "float", "double", "short", "byte",
+                 "java.lang.Integer", "Integer",
+                 "java.lang.Long", "Long",
+                 "java.lang.Float", "Float",
+                 "java.lang.Double", "Double",
+                 "java.lang.Short", "Short",
+                 "java.lang.Byte", "Byte",
+                 "java.math.BigDecimal", "BigDecimal",
+                 "java.math.BigInteger", "BigInteger" -> true;
+            default -> false;
+        };
+    }
+
+    private boolean isNumericString(String value) {
+        try {
+            Double.parseDouble(value);
+            return true;
+        } catch (NumberFormatException e) {
+            return false;
+        }
+    }
+
+    private String getOptionalInnerTypeString(String fieldType) {
+        int start = fieldType.indexOf('<');
+        int end = fieldType.lastIndexOf('>');
+        if (start >= 0 && end > start) {
+            return fieldType.substring(start + 1, end);
+        }
+        return "Object";
     }
 
     private boolean isGetter(ExecutableElement method) {
