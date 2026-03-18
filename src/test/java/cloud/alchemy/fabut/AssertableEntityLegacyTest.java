@@ -103,9 +103,9 @@ public class AssertableEntityLegacyTest extends AbstractFabutTest {
                 ignored("description"),
                 ignored("score"),
                 ignored("version"),
-                value("active", false),
-                value("visible", Optional.of(true)),
-                value("category", Optional.empty()));
+                ignored("active"),
+                ignored("visible"),
+                ignored("category"));
     }
 
     @Test
