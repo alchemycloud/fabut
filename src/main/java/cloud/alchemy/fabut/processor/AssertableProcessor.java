@@ -1,5 +1,6 @@
 package cloud.alchemy.fabut.processor;
 
+import cloud.alchemy.fabut.annotation.AssertDefault;
 import cloud.alchemy.fabut.annotation.AssertGroup;
 import cloud.alchemy.fabut.annotation.Assertable;
 
@@ -101,6 +102,9 @@ public class AssertableProcessor extends AbstractProcessor {
     private List<FieldInfo> collectFieldsRecursive(TypeElement typeElement, Set<String> ignoredFields, Set<String> seenFieldNames) {
         List<FieldInfo> fields = new ArrayList<>();
 
+        // Collect @AssertDefault annotations from field declarations
+        Map<String, String> fieldDefaults = collectFieldDefaults(typeElement);
+
         // Get all methods (including inherited)
         for (Element enclosed : typeElement.getEnclosedElements()) {
             if (enclosed.getKind() == ElementKind.METHOD) {
@@ -117,8 +121,9 @@ public class AssertableProcessor extends AbstractProcessor {
                         boolean isOptional = isOptionalType(returnType);
                         String typeString = getTypeString(returnType);
                         String innerTypeString = isOptional ? getOptionalInnerType(returnType) : typeString;
+                        String defaultValue = fieldDefaults.get(fieldName);
 
-                        fields.add(new FieldInfo(fieldName, typeString, innerTypeString, isOptional));
+                        fields.add(new FieldInfo(fieldName, typeString, innerTypeString, isOptional, defaultValue));
                         seenFieldNames.add(fieldName);
                     }
                 }
@@ -137,6 +142,115 @@ public class AssertableProcessor extends AbstractProcessor {
         }
 
         return fields;
+    }
+
+    /**
+     * Scan field declarations in the type for @AssertDefault annotations.
+     * Returns a map of fieldName → default value string.
+     * Validates that the default value is compatible with the field's type.
+     */
+    private Map<String, String> collectFieldDefaults(TypeElement typeElement) {
+        Map<String, String> defaults = new HashMap<>();
+        for (Element enclosed : typeElement.getEnclosedElements()) {
+            if (enclosed.getKind() == ElementKind.FIELD) {
+                AssertDefault assertDefault = enclosed.getAnnotation(AssertDefault.class);
+                if (assertDefault != null) {
+                    String value = assertDefault.value();
+                    String fieldType = enclosed.asType().toString();
+                    boolean isOptional = fieldType.startsWith("java.util.Optional");
+                    String innerType = isOptional ? getOptionalInnerTypeString(fieldType) : fieldType;
+
+                    validateAssertDefaultValue(enclosed, value, fieldType, innerType, isOptional);
+
+                    defaults.put(enclosed.getSimpleName().toString(), value);
+                }
+            }
+        }
+        return defaults;
+    }
+
+    /**
+     * Validate that @AssertDefault value is compatible with the field's type.
+     */
+    private void validateAssertDefaultValue(Element field, String value, String fieldType,
+                                             String innerType, boolean isOptional) {
+        // "null" is valid on any reference type
+        if ("null".equals(value)) {
+            return;
+        }
+
+        // "empty" is only valid on Optional
+        if ("empty".equals(value)) {
+            if (!isOptional) {
+                messager.printMessage(Diagnostic.Kind.ERROR,
+                        "@AssertDefault(\"empty\") can only be used on Optional fields, but field type is " + fieldType, field);
+            }
+            return;
+        }
+
+        // "true"/"false" valid only on Boolean/boolean/Optional<Boolean>
+        if ("true".equals(value) || "false".equals(value)) {
+            String checkType = isOptional ? innerType : fieldType;
+            if (!isBooleanType(checkType)) {
+                messager.printMessage(Diagnostic.Kind.ERROR,
+                        "@AssertDefault(\"" + value + "\") can only be used on Boolean fields, but field type is " + fieldType, field);
+            }
+            return;
+        }
+
+        // Numeric string — valid on numeric types or Optional<NumericType>
+        if (isNumericString(value)) {
+            String checkType = isOptional ? innerType : fieldType;
+            if (!isNumericType(checkType)) {
+                messager.printMessage(Diagnostic.Kind.ERROR,
+                        "@AssertDefault(\"" + value + "\") is numeric but field type " + fieldType + " is not a numeric type", field);
+            }
+            return;
+        }
+
+        // String literal fallback — valid on String or Optional<String>
+        String checkType = isOptional ? innerType : fieldType;
+        if (!checkType.equals("java.lang.String") && !checkType.equals("String")) {
+            messager.printMessage(Diagnostic.Kind.ERROR,
+                    "@AssertDefault(\"" + value + "\") is a string literal but field type " + fieldType + " is not String", field);
+        }
+    }
+
+    private boolean isBooleanType(String type) {
+        return "java.lang.Boolean".equals(type) || "Boolean".equals(type) || "boolean".equals(type);
+    }
+
+    private boolean isNumericType(String type) {
+        return switch (type) {
+            case "int", "long", "float", "double", "short", "byte",
+                 "java.lang.Integer", "Integer",
+                 "java.lang.Long", "Long",
+                 "java.lang.Float", "Float",
+                 "java.lang.Double", "Double",
+                 "java.lang.Short", "Short",
+                 "java.lang.Byte", "Byte",
+                 "java.math.BigDecimal", "BigDecimal",
+                 "java.math.BigInteger", "BigInteger" -> true;
+            default -> false;
+        };
+    }
+
+    private boolean isNumericString(String value) {
+        try {
+            Double.parseDouble(value);
+            return true;
+        } catch (NumberFormatException e) {
+            return false;
+        }
+    }
+
+    private String getOptionalInnerTypeString(String fieldType) {
+        int start = fieldType.indexOf('<');
+        int end = fieldType.lastIndexOf('>');
+        if (start >= 0 && end > start) {
+            return fieldType.substring(start + 1, end);
+        }
+        return "Object";
     }
 
     private boolean isGetter(ExecutableElement method) {
@@ -193,12 +307,20 @@ public class AssertableProcessor extends AbstractProcessor {
             out.println();
         }
 
+        boolean hasDefaults = fields.stream().anyMatch(f -> f.defaultValue != null);
+
         // Imports
         out.println("import cloud.alchemy.fabut.Fabut;");
         out.println("import cloud.alchemy.fabut.property.IProperty;");
         out.println("import java.util.ArrayList;");
+        if (hasDefaults) {
+            out.println("import java.util.HashSet;");
+        }
         out.println("import java.util.List;");
         out.println("import java.util.Optional;");
+        if (hasDefaults) {
+            out.println("import java.util.Set;");
+        }
         out.println();
 
         // Class javadoc
@@ -216,6 +338,9 @@ public class AssertableProcessor extends AbstractProcessor {
         out.println("    private final boolean isSnapshot;");
         out.println("    private final boolean isDelete;");
         out.println("    private final List<IProperty> properties = new ArrayList<>();");
+        if (hasDefaults) {
+            out.println("    private final Set<String> explicitFields = new HashSet<>();");
+        }
         out.println();
 
         // Constructor - auto-adds ignored() for fields specified in @Assertable(ignoredFields)
@@ -309,6 +434,9 @@ public class AssertableProcessor extends AbstractProcessor {
             out.println("    public static " + builderClassName + " created(" + params + ") {");
             out.println("        " + builderClassName + " builder = new " + builderClassName + "(Fabut.current(), object, false);");
             for (FieldInfo field : mandatoryFields) {
+                if (hasDefaults) {
+                    out.println("        builder.explicitFields.add(\"" + field.name + "\");");
+                }
                 out.println("        builder.properties.add(builder.fabut.value(\"" + field.name + "\", " + field.name + "));");
             }
             out.println("        return builder;");
@@ -327,6 +455,9 @@ public class AssertableProcessor extends AbstractProcessor {
             out.println("    public static " + builderClassName + " created(" + paramsWithFabut + ") {");
             out.println("        " + builderClassName + " builder = new " + builderClassName + "(fabut, object, false);");
             for (FieldInfo field : mandatoryFields) {
+                if (hasDefaults) {
+                    out.println("        builder.explicitFields.add(\"" + field.name + "\");");
+                }
                 out.println("        builder.properties.add(builder.fabut.value(\"" + field.name + "\", " + field.name + "));");
             }
             out.println("        return builder;");
@@ -341,6 +472,9 @@ public class AssertableProcessor extends AbstractProcessor {
             out.println("    public static " + builderClassName + " updated(" + params.toString().replace("object", "entity") + ") {");
             out.println("        " + builderClassName + " builder = new " + builderClassName + "(Fabut.current(), entity, true);");
             for (FieldInfo field : mandatoryFields) {
+                if (hasDefaults) {
+                    out.println("        builder.explicitFields.add(\"" + field.name + "\");");
+                }
                 out.println("        builder.properties.add(builder.fabut.value(\"" + field.name + "\", " + field.name + "));");
             }
             out.println("        return builder;");
@@ -353,6 +487,9 @@ public class AssertableProcessor extends AbstractProcessor {
             out.println("    public static " + builderClassName + " updated(" + paramsWithFabut.toString().replace("object", "entity") + ") {");
             out.println("        " + builderClassName + " builder = new " + builderClassName + "(fabut, entity, true);");
             for (FieldInfo field : mandatoryFields) {
+                if (hasDefaults) {
+                    out.println("        builder.explicitFields.add(\"" + field.name + "\");");
+                }
                 out.println("        builder.properties.add(builder.fabut.value(\"" + field.name + "\", " + field.name + "));");
             }
             out.println("        return builder;");
@@ -368,17 +505,17 @@ public class AssertableProcessor extends AbstractProcessor {
 
         // Generate created methods for each newGroup
         for (AssertGroup group : create) {
-            generateGroupMethods(out, className, builderClassName, group, fieldMap, "created", "object", false);
+            generateGroupMethods(out, className, builderClassName, group, fieldMap, "created", "object", false, hasDefaults);
         }
 
         // Generate updated methods for each updateGroup
         for (AssertGroup group : update) {
-            generateGroupMethods(out, className, builderClassName, group, fieldMap, "updated", "entity", true);
+            generateGroupMethods(out, className, builderClassName, group, fieldMap, "updated", "entity", true, hasDefaults);
         }
 
         // Generate methods for each field
         for (FieldInfo field : fields) {
-            generateFieldMethods(out, builderClassName, field);
+            generateFieldMethods(out, builderClassName, field, hasDefaults);
         }
 
         // Verify method
@@ -391,6 +528,21 @@ public class AssertableProcessor extends AbstractProcessor {
         out.println("            fabut.assertEntityAsDeleted(object);");
         out.println("            return object;");
         out.println("        }");
+
+        // Generate defaults block for created assertions (non-snapshot)
+        List<FieldInfo> fieldsWithDefaults = fields.stream()
+                .filter(f -> f.defaultValue != null)
+                .toList();
+        if (!fieldsWithDefaults.isEmpty()) {
+            out.println("        if (!isSnapshot) {");
+            for (FieldInfo field : fieldsWithDefaults) {
+                out.println("            if (!explicitFields.contains(\"" + field.name + "\")) {");
+                out.println("                properties.add(" + generateDefaultPropertyExpression(field) + ");");
+                out.println("            }");
+            }
+            out.println("        }");
+        }
+
         out.println("        IProperty[] props = properties.toArray(new IProperty[0]);");
         out.println("        if (isSnapshot) {");
         out.println("            return fabut.assertEntityWithSnapshot(object, props);");
@@ -403,12 +555,15 @@ public class AssertableProcessor extends AbstractProcessor {
         out.println("}");
     }
 
-    private void generateFieldMethods(PrintWriter out, String builderClassName, FieldInfo field) {
+    private void generateFieldMethods(PrintWriter out, String builderClassName, FieldInfo field, boolean hasDefaults) {
         String fieldPath = "\"" + field.name + "\"";
+        // Track explicit fields only when defaults exist (to avoid unnecessary overhead)
+        String trackExplicit = hasDefaults ? "        explicitFields.add(" + fieldPath + ");\n" : "";
 
         // field_is(value) - exact value match
         out.println("    /** Assert " + field.name + " equals the expected value. */");
         out.println("    public " + builderClassName + " " + field.name + "_is(" + field.type + " expected) {");
+        out.print(trackExplicit);
         out.println("        properties.add(fabut.value(" + fieldPath + ", expected));");
         out.println("        return this;");
         out.println("    }");
@@ -417,6 +572,7 @@ public class AssertableProcessor extends AbstractProcessor {
         // field_is_null()
         out.println("    /** Assert " + field.name + " is null. */");
         out.println("    public " + builderClassName + " " + field.name + "_is_null() {");
+        out.print(trackExplicit);
         out.println("        properties.add(fabut.isNull(" + fieldPath + "));");
         out.println("        return this;");
         out.println("    }");
@@ -425,6 +581,7 @@ public class AssertableProcessor extends AbstractProcessor {
         // field_is_not_null()
         out.println("    /** Assert " + field.name + " is not null. */");
         out.println("    public " + builderClassName + " " + field.name + "_is_not_null() {");
+        out.print(trackExplicit);
         out.println("        properties.add(fabut.notNull(" + fieldPath + "));");
         out.println("        return this;");
         out.println("    }");
@@ -433,6 +590,7 @@ public class AssertableProcessor extends AbstractProcessor {
         // field_is_ignored()
         out.println("    /** Ignore " + field.name + " in this assertion. */");
         out.println("    public " + builderClassName + " " + field.name + "_is_ignored() {");
+        out.print(trackExplicit);
         out.println("        properties.add(fabut.ignored(" + fieldPath + "));");
         out.println("        return this;");
         out.println("    }");
@@ -442,6 +600,7 @@ public class AssertableProcessor extends AbstractProcessor {
         if (field.isOptional) {
             out.println("    /** Assert " + field.name + " is empty (Optional.empty()). */");
             out.println("    public " + builderClassName + " " + field.name + "_is_empty() {");
+            out.print(trackExplicit);
             out.println("        properties.add(fabut.isEmpty(" + fieldPath + "));");
             out.println("        return this;");
             out.println("    }");
@@ -449,6 +608,7 @@ public class AssertableProcessor extends AbstractProcessor {
 
             out.println("    /** Assert " + field.name + " is not empty (Optional has value). */");
             out.println("    public " + builderClassName + " " + field.name + "_is_not_empty() {");
+            out.print(trackExplicit);
             out.println("        properties.add(fabut.notEmpty(" + fieldPath + "));");
             out.println("        return this;");
             out.println("    }");
@@ -457,6 +617,7 @@ public class AssertableProcessor extends AbstractProcessor {
             // Convenience overload: field_is(InnerType) wraps in Optional.of()
             out.println("    /** Assert " + field.name + " contains the expected value (wraps in Optional.of). */");
             out.println("    public " + builderClassName + " " + field.name + "_is(" + field.innerType + " expected) {");
+            out.print(trackExplicit);
             out.println("        properties.add(fabut.value(" + fieldPath + ", Optional.of(expected)));");
             out.println("        return this;");
             out.println("    }");
@@ -466,7 +627,8 @@ public class AssertableProcessor extends AbstractProcessor {
 
     private void generateGroupMethods(PrintWriter out, String className, String builderClassName,
                                        AssertGroup group, Map<String, FieldInfo> fieldMap,
-                                       String methodPrefix, String paramName, boolean isSnapshot) {
+                                       String methodPrefix, String paramName, boolean isSnapshot,
+                                       boolean hasDefaults) {
         String groupName = group.name();
         String[] groupFields = group.fields();
 
@@ -498,6 +660,9 @@ public class AssertableProcessor extends AbstractProcessor {
             for (int i = 0; i < groupFieldInfos.size(); i++) {
                 FieldInfo fieldInfo = groupFieldInfos.get(i);
                 String fieldName = groupFields[i];
+                if (hasDefaults) {
+                    out.println("        builder.explicitFields.add(\"" + fieldName + "\");");
+                }
                 if (fieldInfo.isOptional) {
                     out.println("        builder.properties.add(builder.fabut.value(\"" + fieldName + "\", Optional.ofNullable(" + fieldName + ")));");
                 } else {
@@ -526,6 +691,9 @@ public class AssertableProcessor extends AbstractProcessor {
             for (int i = 0; i < groupFieldInfos.size(); i++) {
                 FieldInfo fieldInfo = groupFieldInfos.get(i);
                 String fieldName = groupFields[i];
+                if (hasDefaults) {
+                    out.println("        builder.explicitFields.add(\"" + fieldName + "\");");
+                }
                 if (fieldInfo.isOptional) {
                     out.println("        builder.properties.add(builder.fabut.value(\"" + fieldName + "\", Optional.ofNullable(" + fieldName + ")));");
                 } else {
@@ -655,5 +823,53 @@ public class AssertableProcessor extends AbstractProcessor {
         out.println("}");
     }
 
-    private record FieldInfo(String name, String type, String innerType, boolean isOptional) {}
+    /**
+     * Generate the Java expression for a default property assertion.
+     * Interprets the @AssertDefault value based on the field's type.
+     */
+    private String generateDefaultPropertyExpression(FieldInfo field) {
+        String value = field.defaultValue;
+        String fieldPath = "\"" + field.name + "\"";
+
+        // Special keywords
+        if ("null".equals(value)) {
+            return "fabut.isNull(" + fieldPath + ")";
+        }
+        if ("empty".equals(value)) {
+            return "fabut.isEmpty(" + fieldPath + ")";
+        }
+
+        // Boolean values
+        if ("true".equals(value) || "false".equals(value)) {
+            if (field.isOptional) {
+                return "fabut.value(" + fieldPath + ", Optional.of(" + value + "))";
+            }
+            return "fabut.value(" + fieldPath + ", " + value + ")";
+        }
+
+        // Numeric values — try integer first, then decimal
+        try {
+            Long.parseLong(value);
+            if (field.isOptional) {
+                return "fabut.value(" + fieldPath + ", Optional.of(" + value + "))";
+            }
+            return "fabut.value(" + fieldPath + ", " + value + ")";
+        } catch (NumberFormatException ignored) {}
+
+        try {
+            Double.parseDouble(value);
+            if (field.isOptional) {
+                return "fabut.value(" + fieldPath + ", Optional.of(" + value + "))";
+            }
+            return "fabut.value(" + fieldPath + ", " + value + ")";
+        } catch (NumberFormatException ignored) {}
+
+        // String literal fallback
+        if (field.isOptional) {
+            return "fabut.value(" + fieldPath + ", Optional.of(\"" + value + "\"))";
+        }
+        return "fabut.value(" + fieldPath + ", \"" + value + "\")";
+    }
+
+    private record FieldInfo(String name, String type, String innerType, boolean isOptional, String defaultValue) {}
 }

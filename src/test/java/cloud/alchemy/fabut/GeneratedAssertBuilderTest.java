@@ -202,9 +202,11 @@ public class GeneratedAssertBuilderTest extends AbstractFabutTest {
         AssertableEntity entity = new AssertableEntity(1L, "test", 42, Optional.of("desc"), Optional.of(100));
 
         // Use assertCreate with all mandatory fields as parameters
-        AssertableEntityAssert.created(entity, 1L, "test", 42)
+        AssertableEntityAssert.created(entity, 1L, "test", 42, false)
                 .description_is("desc")
                 .score_is(100)
+                .visible_is(true)
+                .category_is_empty()
                 .verify();
     }
 
@@ -213,9 +215,11 @@ public class GeneratedAssertBuilderTest extends AbstractFabutTest {
         AssertableEntity entity = new AssertableEntity(1L, "test", 42, Optional.empty(), Optional.empty());
 
         // Use created with explicit Fabut and all mandatory fields
-        AssertableEntityAssert.created(this, entity, 1L, "test", 42)
+        AssertableEntityAssert.created(this, entity, 1L, "test", 42, false)
                 .description_is_empty()
                 .score_is_empty()
+                .visible_is(true)
+                .category_is_empty()
                 .verify();
     }
 
@@ -224,9 +228,11 @@ public class GeneratedAssertBuilderTest extends AbstractFabutTest {
         AssertableEntity entity = new AssertableEntity(1L, "test", 42, Optional.of("desc"), Optional.of(100));
 
         // Mandatory fields are set, optional fields can be ignored
-        AssertableEntityAssert.created(entity, 1L, "test", 42)
+        AssertableEntityAssert.created(entity, 1L, "test", 42, false)
                 .description_is_ignored()
                 .score_is_ignored()
+                .visible_is_ignored()
+                .category_is_ignored()
                 .verify();
     }
 
@@ -236,9 +242,11 @@ public class GeneratedAssertBuilderTest extends AbstractFabutTest {
 
         // Mismatch in mandatory field should fail
         assertThrows(AssertionFailedError.class, () ->
-                AssertableEntityAssert.created(entity, 1L, "expected", 42)
+                AssertableEntityAssert.created(entity, 1L, "expected", 42, false)
                         .description_is_empty()
                         .score_is_empty()
+                        .visible_is(true)
+                        .category_is_empty()
                         .verify()
         );
     }
@@ -323,6 +331,146 @@ public class GeneratedAssertBuilderTest extends AbstractFabutTest {
                 .score_is_empty()
                 .verify();
         // No versionIs() call needed - field is ignored
+    }
+
+    // ==================== @AssertDefault Tests ====================
+
+    @Test
+    public void testAssertDefault_CreatedWithDefaults_Success() {
+        // All defaults match constructor values: active=false, visible=Optional.of(true), category=Optional.empty()
+        AssertableEntity entity = new AssertableEntity(1L, "test", 42, Optional.empty(), Optional.empty());
+
+        AssertableEntityAssert.created(this, entity)
+                .id_is(1L)
+                .name_is("test")
+                .count_is(42)
+                .description_is_empty()
+                .score_is_empty()
+                // active, visible, category auto-asserted by defaults
+                .verify();
+    }
+
+    @Test
+    public void testAssertDefault_BooleanMismatch_Fails() {
+        AssertableEntity entity = new AssertableEntity(1L, "test", 42, Optional.empty(), Optional.empty());
+        entity.setActive(true);  // Default expects false
+
+        assertThrows(AssertionFailedError.class, () ->
+                AssertableEntityAssert.created(this, entity)
+                        .id_is(1L)
+                        .name_is("test")
+                        .count_is(42)
+                        .description_is_empty()
+                        .score_is_empty()
+                        .verify()
+        );
+    }
+
+    @Test
+    public void testAssertDefault_OptionalBooleanMismatch_Fails() {
+        AssertableEntity entity = new AssertableEntity(1L, "test", 42, Optional.empty(), Optional.empty());
+        entity.setVisible(Optional.of(false));  // Default expects true
+
+        assertThrows(AssertionFailedError.class, () ->
+                AssertableEntityAssert.created(this, entity)
+                        .id_is(1L)
+                        .name_is("test")
+                        .count_is(42)
+                        .description_is_empty()
+                        .score_is_empty()
+                        .verify()
+        );
+    }
+
+    @Test
+    public void testAssertDefault_OptionalEmptyMismatch_Fails() {
+        AssertableEntity entity = new AssertableEntity(1L, "test", 42, Optional.empty(), Optional.empty());
+        entity.setCategory(Optional.of("X"));  // Default expects empty
+
+        assertThrows(AssertionFailedError.class, () ->
+                AssertableEntityAssert.created(this, entity)
+                        .id_is(1L)
+                        .name_is("test")
+                        .count_is(42)
+                        .description_is_empty()
+                        .score_is_empty()
+                        .verify()
+        );
+    }
+
+    @Test
+    public void testAssertDefault_ExplicitOverride_Boolean_Success() {
+        AssertableEntity entity = new AssertableEntity(1L, "test", 42, Optional.empty(), Optional.empty());
+        entity.setActive(true);
+
+        AssertableEntityAssert.created(this, entity)
+                .id_is(1L)
+                .name_is("test")
+                .count_is(42)
+                .description_is_empty()
+                .score_is_empty()
+                .active_is(true)  // Override default
+                .verify();
+    }
+
+    @Test
+    public void testAssertDefault_ExplicitOverride_OptionalBoolean_Success() {
+        AssertableEntity entity = new AssertableEntity(1L, "test", 42, Optional.empty(), Optional.empty());
+        entity.setVisible(Optional.of(false));
+
+        AssertableEntityAssert.created(this, entity)
+                .id_is(1L)
+                .name_is("test")
+                .count_is(42)
+                .description_is_empty()
+                .score_is_empty()
+                .visible_is(false)  // Override default
+                .verify();
+    }
+
+    @Test
+    public void testAssertDefault_ExplicitOverride_OptionalString_Success() {
+        AssertableEntity entity = new AssertableEntity(1L, "test", 42, Optional.empty(), Optional.empty());
+        entity.setCategory(Optional.of("X"));
+
+        AssertableEntityAssert.created(this, entity)
+                .id_is(1L)
+                .name_is("test")
+                .count_is(42)
+                .description_is_empty()
+                .score_is_empty()
+                .category_is("X")  // Override default
+                .verify();
+    }
+
+    @Test
+    public void testAssertDefault_IgnoredOverridesDefault_Success() {
+        AssertableEntity entity = new AssertableEntity(1L, "test", 42, Optional.empty(), Optional.empty());
+        entity.setActive(true);  // Doesn't matter — field is ignored
+
+        AssertableEntityAssert.created(this, entity)
+                .id_is(1L)
+                .name_is("test")
+                .count_is(42)
+                .description_is_empty()
+                .score_is_empty()
+                .active_is_ignored()  // Suppresses default assertion
+                .visible_is_ignored()
+                .category_is_ignored()
+                .verify();
+    }
+
+    @Test
+    public void testAssertDefault_GroupMethodWithDefaults_Success() {
+        AssertableEntity entity = new AssertableEntity(1L, "test", 42, Optional.empty(), Optional.empty());
+
+        // createdKey only sets id and name — defaults for active, visible, category auto-asserted
+        AssertableEntityAssert.createdKey(entity, 1L, "test")
+                .count_is(42)
+                .description_is_empty()
+                .score_is_empty()
+                // active, visible, category auto-asserted by defaults
+                .verify();
     }
 
     // ==================== Auto-Verify ====================

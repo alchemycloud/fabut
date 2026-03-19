@@ -8,6 +8,7 @@ import cloud.alchemy.fabut.model.AssertableEntityDiff;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
@@ -218,7 +219,7 @@ public class AssertableProcessorTest extends Fabut {
 
         assertTrue(diff.hasChanges());
         // All fields should show as SET (from null to value)
-        assertEquals(5, diff.changeCount());
+        assertEquals(8, diff.changeCount());
     }
 
     @Test
@@ -229,7 +230,7 @@ public class AssertableProcessorTest extends Fabut {
 
         assertTrue(diff.hasChanges());
         // All fields should show as CLEARED (from value to null)
-        assertEquals(5, diff.changeCount());
+        assertEquals(8, diff.changeCount());
     }
 
     @Test
@@ -324,5 +325,50 @@ public class AssertableProcessorTest extends Fabut {
         // score_is(Integer) is the overloaded convenience method (inner type of Optional<Integer>)
         Method scoreIsInteger = AssertableEntityAssert.class.getMethod("score_is", Integer.class);
         assertNotNull(scoreIsInteger);
+    }
+
+    // ==================== @AssertDefault Code Generation Tests ====================
+
+    @Test
+    public void testAssertDefaultGeneratesExplicitFieldsSet() throws NoSuchFieldException {
+        // explicitFields should be a private final Set<String>
+        Field explicitFields = AssertableEntityAssert.class.getDeclaredField("explicitFields");
+        assertTrue(Modifier.isPrivate(explicitFields.getModifiers()));
+        assertTrue(Modifier.isFinal(explicitFields.getModifiers()));
+        assertEquals(Set.class, explicitFields.getType());
+    }
+
+    @Test
+    public void testAssertDefaultFieldMethodsExist() {
+        Set<String> methodNames = Arrays.stream(AssertableEntityAssert.class.getMethods())
+                .map(Method::getName)
+                .collect(Collectors.toSet());
+
+        // active (Boolean with @AssertDefault("false"))
+        assertTrue(methodNames.contains("active_is"), "Should have active_is method");
+        assertTrue(methodNames.contains("active_is_null"), "Should have active_is_null method");
+        assertTrue(methodNames.contains("active_is_ignored"), "Should have active_is_ignored method");
+
+        // visible (Optional<Boolean> with @AssertDefault("true"))
+        assertTrue(methodNames.contains("visible_is"), "Should have visible_is method");
+        assertTrue(methodNames.contains("visible_is_empty"), "Should have visible_is_empty method");
+        assertTrue(methodNames.contains("visible_is_not_empty"), "Should have visible_is_not_empty method");
+
+        // category (Optional<String> with @AssertDefault("empty"))
+        assertTrue(methodNames.contains("category_is"), "Should have category_is method");
+        assertTrue(methodNames.contains("category_is_empty"), "Should have category_is_empty method");
+        assertTrue(methodNames.contains("category_is_not_empty"), "Should have category_is_not_empty method");
+    }
+
+    @Test
+    public void testAssertDefaultOptionalBooleanHasConvenienceOverload() throws NoSuchMethodException {
+        // visible_is(Boolean) — convenience overload that wraps in Optional.of()
+        Method visibleIsBoolean = AssertableEntityAssert.class.getMethod("visible_is", Boolean.class);
+        assertNotNull(visibleIsBoolean);
+        assertEquals(AssertableEntityAssert.class, visibleIsBoolean.getReturnType());
+
+        // visible_is(Optional) — full type overload
+        Method visibleIsOptional = AssertableEntityAssert.class.getMethod("visible_is", Optional.class);
+        assertNotNull(visibleIsOptional);
     }
 }
