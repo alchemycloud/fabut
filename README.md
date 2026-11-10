@@ -47,6 +47,7 @@ void testCreateOrder() {
 - **Auto-ignore fields** - Mark audit fields as ignored once, never think about them again
 - **Snapshot testing** - Track database changes automatically
 - **Usage tracking** - Detect suboptimal data fetching with automatic field-level access analysis
+- **UI snapshots** - Pixel-perfect Playwright screenshot steps with ignored areas, tolerances and agent-readable diffs
 - **IDE friendly** - Full autocomplete for all assertion methods
 
 ## Quick Start
@@ -57,7 +58,7 @@ void testCreateOrder() {
 <dependency>
     <groupId>cloud.alchemy</groupId>
     <artifactId>fabut</artifactId>
-    <version>5.6.0-RELEASE</version>
+    <version>5.7.0-RELEASE</version>
     <scope>test</scope>
 </dependency>
 ```
@@ -314,6 +315,22 @@ For each field, Fabut generates intuitive assertion methods:
 | `XxxAssert.created(obj)` | Assert a newly created object (all fields must be covered) |
 | `XxxAssert.updated(entity)` | Assert changed fields against snapshot |
 | `XxxAssert.deleted(entity)` | Assert entity was deleted |
+| `XxxAssert.created(obj, f1, f2, ...)` | Shortcut: assert all mandatory (non-`Optional`) fields by position |
+| `XxxAssert.updated(entity, f1, f2, ...)` | Same shortcut against the snapshot |
+| `XxxAssert.created<Group>(obj, ...)` | Field group declared with `@Assertable(create = @AssertGroup(...))` |
+| `XxxAssert.updated<Group>(entity, ...)` | Field group declared with `@Assertable(update = @AssertGroup(...))` |
+| `XxxDiff.compare(before, after)` | Reflection-free field-by-field diff of two instances |
+
+```java
+@Assertable(
+    create = @AssertGroup(name = "Key", fields = {"id", "name"}),
+    update = @AssertGroup(name = "Status", fields = {"status"})
+)
+public class Order { ... }
+
+OrderAssert.createdKey(order, 1L, "First order").status_is("PENDING").verify();
+OrderAssert.updatedStatus(order, "SHIPPED").verify();
+```
 
 > **Note:** Each factory method also has an overload that takes `Fabut` as the first parameter (e.g., `created(fabut, obj)`). Prefer the simpler form without `Fabut` -- it resolves the instance automatically via `ThreadLocal`. Only use the explicit `Fabut` parameter when the automatic resolution is not available (e.g., assertions outside the test class).
 
@@ -498,11 +515,129 @@ ByteBuddy requires dynamic agent loading. Add to your `pom.xml`:
 </plugin>
 ```
 
+## UI Snapshot Testing (Playwright)
+
+`FabutUi` brings Fabut's snapshot approach to the browser: every step of a UI test can take a screenshot and compare it pixel by pixel with the baseline from the previous run. Dynamic parts can be ignored and each screen (or region) can have its own accepted deviation. Failures explain *what* changed — which area, which DOM element, which accessibility-tree lines — so an agent can fix the UI or the test without looking at images.
+
+### Setup
+
+Playwright is an optional dependency — add it to projects that write UI tests:
+
+```xml
+<dependency>
+    <groupId>com.microsoft.playwright</groupId>
+    <artifactId>playwright</artifactId>
+    <version>1.64.0</version>
+    <scope>test</scope>
+</dependency>
+```
+
+### Writing UI Tests
+
+```java
+class CheckoutUiTest extends FabutUi {
+
+    public CheckoutUiTest() {
+        screenSettings.ignore("[data-testid=clock]");   // ignored on every screen
+    }
+
+    @Override
+    protected String baseUrl() { return "http://localhost:8080"; }
+
+    @Test
+    void checkout() {
+        page.navigate("/cart");
+        screen("cart").verify();                        // step 1: pixel perfect
+
+        page.click("text=Checkout");
+        screen("payment")
+            .ignore(".promo-banner")                    // masked + excluded
+            .tolerate(".map", 0.05)                     // up to 5% of the map may differ
+            .maxDiffPixels(10)                          // rest of the screen: at most 10 px
+            .verify();
+
+        screen(page.locator(".order-summary"), "summary").verify();   // single element
+    }
+}
+```
+
+`FabutUi` extends `Fabut`, so the same test can also `takeSnapshot()` and assert the database.
+
+| Method | Description |
+|--------|-------------|
+| `screen("name")` | Viewport screenshot step (`.fullPage()` for the whole page) |
+| `screen(locator, "name")` | Screenshot of one element |
+| `screen()` | Auto-numbered step (`step-01`, `step-02`, ...) |
+| `.ignore(selector \| locator)` | Mask matching elements and exclude them from comparison |
+| `.ignoreArea(x, y, w, h)` | Exclude a fixed area (screenshot px) |
+| `.tolerate(selector, ratio)` | Allow `ratio` (0..1) of the element's pixels to differ |
+| `.tolerateArea(x, y, w, h, ratio)` | Same for a fixed area |
+| `.maxDiffPixels(n)` / `.maxDiffRatio(r)` | Screen-wide budget outside tolerated areas (default: 0) |
+| `.colorThreshold(t)` | Per-pixel color sensitivity 0..1 (default 0.1, 0 = exact) |
+| `.strictAntialiasing()` | Count anti-aliasing differences too (ignored by default) |
+| `.style(css)` | CSS injected while taking the screenshot |
+| `.verify()` | Capture, compare, report — forgetting it fails the test |
+
+### Determinism
+
+Each test gets a fresh browser context with fixed viewport (1280×720), device scale factor 1, `en-US` locale, `UTC` timezone, light color scheme and reduced motion. Screenshots are taken with CSS animations disabled and the caret hidden, and are retaken until two consecutive shots are identical (warning if the page never settles). Override `contextOptions()`, `launchOptions()` or `browserType()` to change this.
+
+### Baselines and Update Modes
+
+Baselines are stored per test method, with a browser/OS suffix because font rendering differs between platforms:
+
+```
+src/test/fabut-ui/CheckoutUiTest/checkout/payment-chromium-linux.png
+src/test/fabut-ui/CheckoutUiTest/checkout/payment.aria.yml        # accessibility tree, used in failure reports
+```
+
+| `-Dfabut.ui.update=` | Behavior |
+|----------------------|----------|
+| `missing` (local default) | Record missing baselines, compare existing ones |
+| `none` (default when `CI` env is set) | Missing baseline fails |
+| `all` | Overwrite mismatching baselines (accept the current UI) |
+
+Other properties: `fabut.ui.baselineDir`, `fabut.ui.outputDir`, `fabut.ui.headed=true`.
+
+### Failure Report
+
+All mismatches of a test are collected and reported together after the test (`failFast = true` to stop at the first):
+
+```
+SCREEN MISMATCH: CheckoutUiTest/checkout/payment
+  1234 px (0.134%) differ, allowed 10 px
+  changed areas (screenshot px):
+    #1 x=540 y=212 w=120 h=40 (1180 px)  -> button#pay.primary "Pay now"
+    #2 x=20 y=680 w=60 h=12 (54 px)  -> span.version "v2.4.1"
+  expected: src/test/fabut-ui/CheckoutUiTest/checkout/payment-chromium-linux.png
+  actual:   target/fabut-ui/CheckoutUiTest/checkout/payment.actual.png
+  diff:     target/fabut-ui/CheckoutUiTest/checkout/payment.diff.png
+  compare:  target/fabut-ui/CheckoutUiTest/checkout/payment.compare.png  (expected | actual | diff)
+  accessibility tree changes:
+    - - button "Pay"
+    + - button "Pay now"
+  if the change is intended, accept it with: -Dfabut.ui.update=all
+```
+
+A machine-readable `<name>.json` with the same data is written next to the images.
+
+### Without FabutUi
+
+The engine works with any Playwright `Page`, and the comparator with any two images:
+
+```java
+ScreenSnapshotter screens = new ScreenSnapshotter(ScreenSettings.defaults());
+screens.screen(page, "checkout", "payment").ignore("#clock").verify();   // throws on mismatch
+
+ImageDiff diff = ImageComparator.compare(expectedImage, actualImage, CompareOptions.pixelPerfect());
+```
+
 ## Requirements
 
 - Java 25+
 - JUnit 6.0+
 - ByteBuddy 1.17+ (included transitively)
+- Playwright 1.64+ (optional, only for `FabutUi`)
 
 ## License
 
