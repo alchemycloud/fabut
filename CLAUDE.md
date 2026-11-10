@@ -33,6 +33,7 @@ mvn package -DskipTests        # Build JAR
 | `pauseTracking()` | Stops recording field access after API call, before assertions |
 | `trackUsage` | Set to `false` to disable usage tracking entirely (default: `true`) |
 | Usage Tracking | Automatic field-level usage analysis via ByteBuddy instrumentation |
+| `FabutUi` | Base class for Playwright UI tests: `screen("name")...verify()` compares screenshots with baselines |
 
 ## Generated Builder API
 
@@ -54,6 +55,12 @@ OrderAssert.updated(order)
 
 // Assert entity was deleted
 OrderAssert.deleted(order).verify();
+
+// Shortcuts
+OrderAssert.created(order, id, status, total).verify();   // all non-Optional fields, declaration order
+OrderAssert.createdKey(order, 1L, "x").verify();           // @Assertable(create = @AssertGroup(name = "Key", fields = {...}))
+OrderAssert.updatedStatus(order, "SHIPPED").verify();      // @Assertable(update = @AssertGroup(name = "Status", ...))
+Diff<Order> diff = OrderDiff.compare(before, after);       // generated, reflection-free diff
 ```
 
 ## Generated Methods Per Field
@@ -328,6 +335,70 @@ src/main/java/cloud/alchemy/fabut/tracking/
 └── UsageInstrumentation.java   # ByteBuddy agent installation + class instrumentation
 ```
 
+## UI Snapshot Testing (`cloud.alchemy.fabut.ui`)
+
+Playwright-based pixel-perfect screen assertions. Playwright is an **optional** dependency of fabut — consumers add `com.microsoft.playwright:playwright` themselves.
+
+```java
+class CheckoutUiTest extends FabutUi {          // extends Fabut: DB snapshot + UI in one test
+    public CheckoutUiTest() {
+        screenSettings.ignore("[data-testid=clock]");   // ignored on every screen
+    }
+    @Override protected String baseUrl() { return "http://localhost:8080"; }
+
+    @Test
+    void checkout() {
+        page.navigate("/cart");
+        screen("cart").verify();                         // pixel perfect step
+        page.click("text=Checkout");
+        screen("payment")
+            .ignore(".promo-banner")                     // mask + exclude
+            .tolerate(".map", 0.05)                      // region budget: 5% of its pixels
+            .maxDiffPixels(10)                           // global budget outside tolerated regions
+            .verify();
+        screen(page.locator(".summary"), "summary").verify();   // element screenshot
+    }
+}
+```
+
+| API | Description |
+|-----|-------------|
+| `screen(name)` / `screen(locator, name)` / `screen()` | Start screen assertion (viewport / element / auto `step-NN`) |
+| `.ignore(selector\|locator)`, `.ignoreArea(x,y,w,h)` | Excluded from comparison (selectors are also masked) |
+| `.tolerate(selector, ratio)`, `.tolerateArea(x,y,w,h,ratio)` | Own deviation budget (0..1) |
+| `.maxDiffPixels(n)`, `.maxDiffRatio(r)` | Global budget; default 0 (pixel perfect) |
+| `.colorThreshold(t)` | Per-pixel YIQ sensitivity 0..1 (default 0.1) |
+| `.fullPage()`, `.strictAntialiasing()`, `.style(css)` | Capture options |
+| `.verify()` | Required; forgotten verify() → UNVERIFIED BUILDER |
+| `screenSettings` | Class-wide defaults (dirs, budgets, global ignores, platform suffix) |
+| `failFast` | `false` (default) = collect mismatches, fail in `@AfterEach` |
+| `contextOptions()` / `launchOptions()` / `browserType()` / `baseUrl()` | Overridable browser setup |
+
+| Path / Property | Meaning |
+|-----------------|---------|
+| `src/test/fabut-ui/<Class>/<method>/<name>-<browser>-<os>.png` | Baseline (commit it) |
+| `src/test/fabut-ui/<Class>/<method>/<name>.aria.yml` | ARIA snapshot, used for diff in failure messages |
+| `target/fabut-ui/<Class>/<method>/<name>.{actual,diff,compare}.png`, `.json` | Failure artifacts |
+| `-Dfabut.ui.update=missing` | Default locally: record missing baselines |
+| `-Dfabut.ui.update=none` | Default if `CI` env set: missing baseline fails |
+| `-Dfabut.ui.update=all` | Accept current UI: overwrite mismatching baselines |
+| `-Dfabut.ui.headed=true` | Show the browser |
+
+**Agent workflow on `SCREEN MISMATCH`:** read the message — it lists changed areas with the DOM element at each (`-> button#pay "Pay now"`) and accessibility-tree line changes. If the change is a bug, fix the UI. If intended, rerun with `-Dfabut.ui.update=all`. If the area is dynamic (time, random ids), add `.ignore(selector)`. View `*.compare.png` (expected | actual | diff) when visual inspection is needed.
+
+```
+src/main/java/cloud/alchemy/fabut/ui/
+├── FabutUi.java            # Base test class: browser lifecycle, screen(), soft failures
+├── ScreenAssert.java       # Fluent builder (ignore/tolerate/budgets/verify)
+├── ScreenSnapshotter.java  # Stable capture, region mapping, baseline IO, diagnostics
+├── ScreenSettings.java     # Defaults + system properties
+├── ScreenResult.java       # Status, agent-readable message(), toJson()
+├── ImageComparator.java    # Pure-Java YIQ diff, anti-aliasing detection, clustering
+├── CompareOptions.java / Region.java / ImageDiff.java / DiffCluster.java
+├── UpdateMode.java         # none | missing | all
+└── TextDiff.java           # Line diff for ARIA snapshots
+```
+
 ## Project Structure
 
 ```
@@ -337,6 +408,7 @@ src/main/java/cloud/alchemy/fabut/
 ├── processor/              # Annotation processor generates XxxAssert
 ├── property/               # Property types (Property, NullProperty, etc.)
 ├── tracking/               # Usage tracking (ByteBuddy instrumentation)
+├── ui/                     # Playwright UI snapshot testing (FabutUi)
 ├── diff/                   # Compile-time diff reporting
 ├── graph/                  # Cycle detection in object graphs
 └── enums/                  # AssertType, AssertableType
@@ -349,6 +421,7 @@ src/main/java/cloud/alchemy/fabut/
 - Maven
 - Apache Commons Lang3
 - ByteBuddy (usage tracking instrumentation)
+- Playwright (optional, UI snapshot testing)
 
 ## Commands
 
